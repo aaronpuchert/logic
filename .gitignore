@@ -1,0 +1,6 @@
+# Build files
+build/
+
+# IDE files
+*.kdev4
+.kdev4/
