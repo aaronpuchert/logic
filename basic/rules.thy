@@ -1,13 +1,8 @@
-; Syntax:
-; (rule name variable-list statement)
-; (equivrule name variable-list statement statement)
-; (deductionrule name variable-list statement-list statement)
-
 ; SÄTZE DER AUSSAGENLOGIK
 ; Satz vom ausgeschlossenen Dritten
-(rule excluded_middle (list (statement a)) (or a (not a)))
+(tautology excluded_middle (list (statement a)) (or a (not a)))
 ; Satz vom Widerspruch
-(rule noncontradiction (list (statement a)) (not (and a (not a))))
+(tautology noncontradiction (list (statement a)) (not (and a (not a))))
 ; Satz von der doppelten Verneinung
 (equivrule double_negation (list (statement a)) (not (not a)) a)
 ; DeMorgan...

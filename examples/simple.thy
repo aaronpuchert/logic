@@ -15,7 +15,7 @@
 	(proof
 		(statement (impl (schüler? fritz) (dumm? fritz))
 			(specialization
-				(list (predicate (person x) (impl (schüler? x) (dumm? x))) person fritz)
+				(list (predicate (list (person x)) (impl (schüler? x) (dumm? x))) person fritz)
 				(list (ref 1~1))
 			)
 		)
