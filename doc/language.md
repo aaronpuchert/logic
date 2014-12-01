@@ -80,3 +80,34 @@ rules are deduction rules. They state that if every statement in the
 	<statement-list> := (list <statement>*)
 
 The rules of standard logic will be predefined in `basic/rules.thy`.
+
+## Structure of theories ##
+Theories consist of declarations, axioms and (proved) statements. Consequently,
+a theory is just a list of objects like these:
+
+	<theory> := (<declaration>
+		| <predicate-declaration>
+		| <predicate-definition>
+		| <theory-axiom>
+		| <theory-statement>) *
+
+### Axioms and statements ###
+Axioms are statements without proof. Their syntax is
+
+	<theory-axiom> := (axiom <statement>)
+
+Statements (with proof) have the following syntax:
+
+	<theory-statement> := (statement <statement> <proof>)
+
+### Proofs ###
+There are two kinds of proofs: elementary proofs and composite proofs. An
+elementary proof consists of the application of a rule:
+
+	<proof> := (<rule> <variable-list> <statement-list>)
+
+A composite proof consists of statements:
+
+	<proof> |= (proof <theory-statement>*)
+
+It may also contain definitions, assumptions, etc. — maybe later.
