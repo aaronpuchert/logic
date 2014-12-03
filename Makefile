@@ -20,14 +20,14 @@ TEST_OBJS = $(patsubst test/%.cpp,$(BUILDDIR)/test/%.o,$(TEST_CPPS))
 DOCS = $(patsubst %.md,%.html,$(wildcard doc/*.md))
 
 # Compile everything
-all: $(TEST_TARGET) # $(TARGET)
+all: $(BUILDDIR)/ $(BUILDDIR)/core/ $(BUILDDIR)/test/ $(TEST_TARGET) # $(TARGET)
 
 # Main target
-$(TARGET): $(BUILDDIR)/ $(BUILDDIR)/core/ $(OBJS)
+$(TARGET): $(OBJS)
 	$(CXX) $(LFLAGS) -o $@ $^
 
 # Tests
-test: $(BUILDDIR)/ $(BUILDDIR)/core/ $(BUILDDIR)/test/ $(TEST_TARGET)
+test: $(TEST_TARGET)
 	$(TEST_TARGET)
 
 $(TEST_TARGET): $(OBJS) $(TEST_OBJS)

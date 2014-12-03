@@ -4,5 +4,5 @@ compiler:
 install:
   - sudo apt-get install libboost-test-dev
 script:
-  - make
-  - make test
+  - make all
+  - build/testsuite --log_level=all
