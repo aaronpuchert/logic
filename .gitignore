@@ -1,6 +1,9 @@
 # Build files
 build/
 
+# Compiled markdown
+doc/*.html
+
 # IDE files
 *.kdev4
 .kdev4/

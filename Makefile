@@ -17,6 +17,9 @@ TEST_CPPS = $(patsubst %,test/%.cpp,$(TESTS))
 OBJS = $(patsubst %.cpp,$(BUILDDIR)/%.o,$(CPPS))
 TEST_OBJS = $(patsubst test/%.cpp,$(BUILDDIR)/test/%.o,$(TEST_CPPS))
 
+DOCS = $(patsubst %.md,%.html,$(wildcard doc/*.md))
+
+# Compile everything
 all: $(TEST_TARGET) # $(TARGET)
 
 # Main target
@@ -47,7 +50,13 @@ $(BUILDDIR)/:
 $(BUILDDIR)/%/:
 	mkdir $@
 
+doc: $(DOCS)
+
+$(DOCS): doc/%.html: doc/%.md
+	markdown $^ >$@
+
 clean:
 	-rm $(OBJS) $(TEST_OBJS) $(TARGET) $(TEST_TARGET)
+	-rm $(DOCS)
 
-.PHONY: all test clean
+.PHONY: all test clean doc
