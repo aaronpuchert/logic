@@ -16,13 +16,13 @@
 		(statement (impl (schüler? fritz) (dumm? fritz))
 			(specialization
 				(list (predicate (list (person x)) (impl (schüler? x) (dumm? x))) person fritz)
-				(list (ref 1~1))
+				(list (ref parent~1))
 			)
 		)
 		(statement (dumm? fritz)
 			(ponens
 				(list (schüler? fritz) (dumm? fritz))
-				(list (ref 1~2) (ref 0~1))
+				(list (ref parent~2) (ref this~1))
 			)
 		)
 	)

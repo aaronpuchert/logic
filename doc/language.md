@@ -89,22 +89,57 @@ a theory is just a list of objects like these:
 		| <predicate-declaration>
 		| <predicate-definition>
 		| <theory-axiom>
-		| <theory-statement>) *
+		| <theory-statement>)*
 
 ### Axioms and statements ###
 Axioms are statements without proof. Their syntax is
 
-	<theory-axiom> := (axiom <statement>)
+	<theory-axiom> := (axiom [<name>] <statement>)
 
 Statements (with proof) have the following syntax:
 
-	<theory-statement> := (statement <statement> <proof>)
+	<theory-statement> := (statement [<name>] <statement> <proof>)
+
+A name, if given, serves as identifier for references.
+
+### References ###
+When deducing new statements from given ones, we need a possibility to reference
+statements given before. For named statements, the reference is given via the
+name:
+
+	<reference> := (ref <name>)
+
+There are two special names: `this` refers to the statement itself, while
+`parent` refers to the parent of the statement itself (see below). To refer to
+the parent of the parent, just write `parent^2`. Then obviously `parent^1` is
+the same as `parent`. Of course, these two are not useful alone, but together
+with the following concept they help to refer to unnamed statements:
+
+	<reference> |= (ref <name>~<number>)
+
+This refers to the `<number>`th statement before `name`. Thus, `<name>~0` is the
+same as `<name>`, `<name>~1` is the statement before it and so on. This can be
+used in conjunction with `this` and `parent`: `this~1` is the last statement
+before the current one, `parent~2` is the second statement before our parent.
+This goes on: `parent^2~1` is the statement just before our grandparent.
+
+There is another kind of reference we could implement: hashes derived from the
+statement (and maybe its axioms). This would allow us to have fixed references
+in clear text, albeit not terribly readable.
 
 ### Proofs ###
 There are two kinds of proofs: elementary proofs and composite proofs. An
 elementary proof consists of the application of a rule:
 
-	<proof> := (<rule> <variable-list> <statement-list>)
+	<proof> := (<rule> <expression-list> <reference-list>)
+	<expression-list> := (list <expression>*)
+	<reference-list> := (list <reference>*)
+
+The number of expressions and references, respectively, depends on the number
+of variables in the `<variable-list>` part of the rule and the number of further
+arguments (which are statements) given minus one, respectively. So there is no
+reference needed for applying a tautology, one for applying a equivalence rule,
+and `n` for applying a deduction rule with `n` premisses.
 
 A composite proof consists of statements:
 
