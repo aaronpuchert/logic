@@ -42,9 +42,9 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 
 	// The modus ponens rule.
 	Expr_ptr impl = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL, expr_a, expr_b);
-	std::vector<Expr_ptr> premissae{impl, expr_a};
+	std::vector<Expr_ptr> premisses{impl, expr_a};
 	Rule_ptr deductionrule = make_shared<DeductionRule>("ponens",
-		Rule::VarList{*stmt_a, *stmt_b}, premissae, expr_b);
+		Rule::VarList{*stmt_a, *stmt_b}, premisses, expr_b);
 
 	checkRule(deductionrule, "(deductionrule ponens (list (statement a) (statement b)) (list (impl a b) a) b)\n");
 }

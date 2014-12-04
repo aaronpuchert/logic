@@ -104,10 +104,10 @@ namespace Core {
 	class DeductionRule : public Rule {
 	public:
 		DeductionRule(const std::string& name, const VarList &var_list,
-			const std::vector<Expr_ptr> &premissae, Expr_ptr conclusion)
-			: Rule(name, var_list), premissae(premissae), conclusion(conclusion) {}
+			const std::vector<Expr_ptr> &premisses, Expr_ptr conclusion)
+			: Rule(name, var_list), premisses(premisses), conclusion(conclusion) {}
 		const std::vector<Expr_ptr> &prem() const
-			{return premissae;}
+			{return premisses;}
 		const_Expr_ptr getConclusion() const
 			{return conclusion;}
 		void accept(Visitor *visitor) const
@@ -117,7 +117,7 @@ namespace Core {
 			const std::vector<Expr_ptr> &statements);
 
 	protected:
-		std::vector<Expr_ptr> premissae;
+		std::vector<Expr_ptr> premisses;
 		Expr_ptr conclusion;
 	};
 }	// End of namespace Core
