@@ -53,7 +53,10 @@ $(BUILDDIR)/%/:
 doc: $(DOCS)
 
 $(DOCS): doc/%.html: doc/%.md
-	markdown $^ >$@
+	@echo -e "<!DOCTYPE html>\n<html>\n<head>\n\t<title>$^</title>\n\
+		<meta charset='utf-8'></head>\n<body>" >$@
+	markdown $^ >>$@
+	@echo -e "</body>\n</html>" >>$@
 
 clean:
 	-rm $(OBJS) $(TEST_OBJS) $(TARGET) $(TEST_TARGET)
