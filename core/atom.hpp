@@ -28,33 +28,23 @@
  */
 namespace Core {
 	/**
-	 * Abstract base class for atoms.
-	 */
-	class Atom {
-	public:
-		Atom(Type_ptr type, const std::string &name)
-			: type(type), name(name) {}
-		const_Type_ptr getType() const
-			{return type;}
-		const std::string &getName() const
-			{return name;}
-
-		virtual void accept(Visitor *visitor) const = 0;
-
-	protected:
-		Type_ptr type;
-		std::string name;
-	};
-
-
-	/**
 	 * Class for variable atoms.
 	 */
-	class Variable : public Atom {
+	class Variable : public Node {
 	public:
 		Variable(Type_ptr type, const std::string &name)
-			: Atom(type, name) {}
+			: Node(name), type(type) {}
+		const_Type_ptr getType() const
+			{return type;}
+		void setDefinition(Expr_ptr new_expression);
+		const_Expr_ptr getDefinition() const
+			{return expression;}
+
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
+
+	private:
+		Type_ptr type;
+		Expr_ptr expression;
 	};
 }	// End of namespace Core

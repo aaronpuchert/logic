@@ -63,15 +63,15 @@ namespace Core {
 	 */
 	class AtomicExpr : public Expression {
 	public:
-		AtomicExpr(const_Atom_ptr atom)
-			: atom(atom) {}
-		const_Atom_ptr getAtom() const
-			{return atom;}
+		AtomicExpr(const_Var_ptr var)
+			: var(var) {}
+		const_Var_ptr getAtom() const
+			{return var;}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
 	private:
-		const_Atom_ptr atom;
+		const_Var_ptr var;
 	};
 
 	/**

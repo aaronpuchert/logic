@@ -1,5 +1,6 @@
 /*
- *   Type system.
+ *   Data structures for atomic objects such as constants, variables and
+ *   predicates.
  *   Copyright (C) 2014 Aaron Puchert
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -17,41 +18,11 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
-#include "forward.hpp"
-#include <string>
-#include <memory>
-#include "traverse.hpp"
+#include "atom.hpp"
 
-/**
- * Namespace for logic core
- */
-namespace Core {
-	/**
-	 * Abstract base class for named entities in theories: types, variables,
-	 * predicates, statements.
-	 */
-	class Node {
-	public:
-		Node(const std::string &name)
-			: name(name) {}
-		const std::string &getName() const
-			{return name;}
+using namespace Core;
 
-		virtual void accept(Visitor *visitor) const = 0;
-
-	protected:
-		std::string name;
-	};
-
-	/**
-	 * Base class for types.
-	 */
-	class Type : public Node {
-	public:
-		Type(const std::string &name)
-			: Node(name) {}
-		void accept(Visitor *visitor) const
-			{visitor->visit(this);}
-	};
-}	// End of namespace Core
+void Variable::setDefinition(Expr_ptr new_expression)
+{
+	expression = new_expression;
+}

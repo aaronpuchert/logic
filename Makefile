@@ -9,7 +9,7 @@ TARGET = logic
 TEST_TARGET = $(BUILDDIR)/testsuite
 
 CPPS = core/lisp.cpp core/logic.cpp core/namespace.cpp core/theory.cpp \
-       core/traverse.cpp
+       core/traverse.cpp core/atom.cpp
 
 TESTS = write
 TEST_CPPS = $(patsubst %,test/%.cpp,$(TESTS))

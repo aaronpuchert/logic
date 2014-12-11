@@ -36,7 +36,7 @@ namespace Core {
 	class Theory {
 	public:
 		Theory(Theory_ptr parent) : types(parent->types),
-			predicates(parent->predicates), atoms(parent->atoms), parent(parent) {}
+			predicates(parent->predicates), vars(parent->vars), parent(parent) {}
 		void addStatement(const Statement &statement, unsigned index = -1);
 		void addStatement(Statement &&statement, unsigned index = -1);
 		const Statement& getStatement(unsigned index = -1);
@@ -47,7 +47,7 @@ namespace Core {
 		// Declared names
 		Namespace<Type> types;
 		Namespace<Predicate> predicates;
-		Namespace<Atom> atoms;
+		Namespace<Variable> vars;
 
 	protected:
 		Theory_ptr parent;
