@@ -7,7 +7,7 @@
 (person fritz)
 (axiom (schüler? fritz))
 ; Alle Schüler sind dumm.
-(axiom (forall (person x) (impl (schüler? x) (dumm? x))))
+(axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))
 
 ; Also ist Fritz dumm.
 (statement

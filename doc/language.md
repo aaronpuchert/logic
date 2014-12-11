@@ -49,8 +49,9 @@ predicate is now done by
 and results in a statement. As of now, the only expressions we know are
 individuals. There are two other important statements in predicate logic:
 
-	<statement> |= (forall <declaration> <statement>)
-		| (exists <declaration> <statement>)
+	<statement> |= (forall <dec-list> <statement>)
+		| (exists <dec-list> <statement>)
+	<dec-list> := (list <declaration>*)
 
 ### Rules ###
 The rules of logic are not hardcoded into the system and must be stated
