@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include <memory>
 
 /**
  * Namespace for logic core
@@ -25,14 +26,22 @@
 namespace Core {
 	// type.hpp
 	class Type;
+	typedef std::shared_ptr<Type> Type_ptr;
+	typedef std::shared_ptr<const Type> const_Type_ptr;
 
 	// atom.hpp
 	class Atom;
+	typedef std::shared_ptr<Atom> Atom_ptr;
+	typedef std::shared_ptr<const Atom> const_Atom_ptr;
 	class Variable;
 
 	// expression.hpp
 	class Predicate;
+	typedef std::shared_ptr<Predicate> Pred_ptr;
+	typedef std::shared_ptr<const Predicate> const_Pred_ptr;
 	class Expression;
+	typedef std::shared_ptr<Expression> Expr_ptr;
+	typedef std::shared_ptr<const Expression> const_Expr_ptr;
 	class AtomicExpr;
 	class PredicateExpr;
 	class NegationExpr;
@@ -46,11 +55,15 @@ namespace Core {
 	class DeductionRule;
 
 	// theory.hpp
+	class Theory;
+	typedef std::shared_ptr<Theory> Theory_ptr;
+	typedef std::shared_ptr<const Theory> const_Theory_ptr;
 	class Statement;
 	class Proof;
+	typedef std::shared_ptr<Proof> Proof_ptr;
+	typedef std::shared_ptr<const Proof> const_Proof_ptr;
 	class ProofStep;
 	class LongProof;
-	class Theory;
 
 	// namespace.hpp
 	template<typename T> class Namespace;

@@ -43,6 +43,4 @@ namespace Core {
 		std::string name;
 	};
 
-	typedef std::shared_ptr<Type> Type_ptr;
-	typedef std::shared_ptr<const Type> const_Type_ptr;
 }	// End of namespace Core

@@ -46,9 +46,6 @@ namespace Core {
 		int valency;
 	};
 
-	typedef std::shared_ptr<Predicate> Pred_ptr;
-	typedef std::shared_ptr<const Predicate> const_Pred_ptr;
-
 	/**
 	 * Functions, relations?
 	 */
@@ -60,9 +57,6 @@ namespace Core {
 	public:
 		virtual void accept(Visitor *visitor) const = 0;
 	};
-
-	typedef std::shared_ptr<Expression> Expr_ptr;
-	typedef std::shared_ptr<const Expression> const_Expr_ptr;
 
 	/**
 	 * Atomic expression.

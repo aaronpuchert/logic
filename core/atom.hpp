@@ -20,7 +20,6 @@
 #pragma once
 #include "forward.hpp"
 #include "type.hpp"
-#include <memory>
 #include <string>
 #include "traverse.hpp"
 
@@ -47,8 +46,6 @@ namespace Core {
 		std::string name;
 	};
 
-	typedef std::shared_ptr<Atom> Atom_ptr;
-	typedef std::shared_ptr<const Atom> const_Atom_ptr;
 
 	/**
 	 * Class for variable atoms.

@@ -30,13 +30,6 @@
  * Namespace for logic core
  */
 namespace Core {
-	// Typedefs for Theory and Proof pointers
-	typedef std::shared_ptr<Theory> Theory_ptr;
-	typedef std::shared_ptr<const Theory> const_Theory_ptr;
-
-	typedef std::shared_ptr<Proof> Proof_ptr;
-	typedef std::shared_ptr<const Proof> const_Proof_ptr;
-
 	/**
 	 * Theory class
 	 */
