@@ -58,7 +58,7 @@ namespace Core {
 	class PredicateExpr : public Expression {
 	public:
 		PredicateExpr(const_Pred_ptr pred, std::vector<Expr_ptr> &&args)
-			: pred(pred), args(args) {}
+			: pred(pred), args(std::move(args)) {}
 		const_Pred_ptr getPredicate() const
 			{return pred;}
 		void accept(Visitor *visitor) const
@@ -70,7 +70,7 @@ namespace Core {
 	};
 
 	/**
-	 * Negation exxpression
+	 * Negation expression
 	 */
 	class NegationExpr : public Expression {
 	public:
@@ -109,7 +109,7 @@ namespace Core {
 	public:
 		enum Type {EXISTS, FORALL};
 		QuantifierExpr(Type type, PredicateLambda &&pred)
-			: type(type), pred(pred) {}
+			: type(type), pred(std::move(pred)) {}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
