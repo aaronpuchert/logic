@@ -33,7 +33,17 @@ void Visitor::visit(const Variable *variable)
 	//
 }
 
-void Visitor::visit(const Predicate *predicate)
+void Visitor::visit(const PredicateDecl *predicate)
+{
+	//
+}
+
+void Visitor::visit(const PredicateLambda *predicate)
+{
+	//
+}
+
+void Visitor::visit(const PredicateDef *predicate)
 {
 	//
 }

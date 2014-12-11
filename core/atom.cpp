@@ -26,3 +26,31 @@ void Variable::setDefinition(Expr_ptr new_expression)
 {
 	expression = new_expression;
 }
+
+int PredicateDecl::getValency() const
+{
+	return type_list.size();
+}
+
+void PredicateDecl::setParameterType(int n, Type_ptr type)
+{
+	type_list[n] = type;
+}
+
+const_Type_ptr PredicateDecl::getParameterType(int n) const
+{
+	return type_list[n];
+}
+
+PredicateLambda::PredicateLambda(std::vector<Variable> &&vars, Expr_ptr expression)
+	: vars(std::move(vars)), expression(expression) {}
+
+int PredicateLambda::getValency() const
+{
+	return vars.size();
+}
+
+const_Type_ptr PredicateLambda::getParameterType(int n) const
+{
+	return vars[n].getType();
+}

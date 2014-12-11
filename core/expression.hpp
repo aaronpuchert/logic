@@ -1,5 +1,5 @@
 /*
- *   Data structures for predicates, expressions etc.
+ *   Data structures for expressions.
  *   Copyright (C) 2014 Aaron Puchert
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -28,28 +28,6 @@
  * Namespace for logic core
  */
 namespace Core {
-	/**
-	 * Class for an abstract n-valued predicate.
-	 */
-	class Predicate {
-	public:
-		Predicate(const std::string &name, int valency)
-			: name(name), valency(valency) {}
-		const std::string& getName() const
-			{return name;}
-		// parameter types
-		void accept(Visitor *visitor) const
-			{visitor->visit(this);}
-
-	protected:
-		std::string name;
-		int valency;
-	};
-
-	/**
-	 * Functions, relations?
-	 */
-
 	/**
 	 * Abstract class for expressions.
 	 */
@@ -130,15 +108,14 @@ namespace Core {
 	class QuantifierExpr : public Expression {
 	public:
 		enum Type {EXISTS, FORALL};
-		QuantifierExpr(Type type, Expr_ptr expr)
-			: type(type), expr(expr) {}
+		QuantifierExpr(Type type, PredicateLambda &&pred)
+			: type(type), pred(pred) {}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
 	private:
 		Type type;
-		// TODO: Declaration type? Or mini namespace?
-		Expr_ptr expr;
+		PredicateLambda pred;
 	};
 
 	/**

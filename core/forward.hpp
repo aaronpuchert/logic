@@ -36,14 +36,14 @@ namespace Core {
 	class Variable;
 	typedef std::shared_ptr<Variable> Var_ptr;
 	typedef std::shared_ptr<const Variable> const_Var_ptr;
-
-	// expression.hpp
 	class Predicate;
 	typedef std::shared_ptr<Predicate> Pred_ptr;
 	typedef std::shared_ptr<const Predicate> const_Pred_ptr;
 	class PredicateDecl;
 	class PredicateLambda;
 	class PredicateDef;
+
+	// expression.hpp
 	class Expression;
 	typedef std::shared_ptr<Expression> Expr_ptr;
 	typedef std::shared_ptr<const Expression> const_Expr_ptr;

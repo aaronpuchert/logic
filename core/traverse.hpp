@@ -32,7 +32,9 @@ namespace Core {
 		virtual ~Visitor() {}
 		virtual void visit(const Type *type);
 		virtual void visit(const Variable *variable);
-		virtual void visit(const Predicate *predicate);
+		virtual void visit(const PredicateDecl *predicate);
+		virtual void visit(const PredicateLambda *predicate);
+		virtual void visit(const PredicateDef *predicate);
 		virtual void visit(const AtomicExpr *expression);
 		virtual void visit(const PredicateExpr *expression);
 		virtual void visit(const NegationExpr *expression);
