@@ -54,3 +54,8 @@ const_Type_ptr PredicateLambda::getParameterType(int n) const
 {
 	return vars[n].getType();
 }
+
+const Variable& PredicateLambda::getDeclaration(int n) const
+{
+	return vars[n];
+}

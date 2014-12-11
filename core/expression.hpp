@@ -61,6 +61,8 @@ namespace Core {
 			: pred(pred), args(std::move(args)) {}
 		const_Pred_ptr getPredicate() const
 			{return pred;}
+		const_Expr_ptr getArg(int n) const
+			{return args[n];}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
@@ -110,6 +112,10 @@ namespace Core {
 		enum Type {EXISTS, FORALL};
 		QuantifierExpr(Type type, PredicateLambda &&pred)
 			: type(type), pred(std::move(pred)) {}
+		Type getType() const
+			{return type;}
+		const PredicateLambda& getPredicateLambda() const
+			{return pred;}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 

@@ -39,7 +39,9 @@ namespace Core {
 		~Writer();
 		void visit(const Type *type);
 		void visit(const Variable *variable);
-		void visit(const Predicate *predicate);
+		void visit(const PredicateDecl *predicate);
+		void visit(const PredicateLambda *predicate);
+		void visit(const PredicateDef *predicate);
 		void visit(const AtomicExpr *expression);
 		void visit(const PredicateExpr *expression);
 		void visit(const NegationExpr *expression);

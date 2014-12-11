@@ -55,12 +55,36 @@ void Writer::visit(const Variable *variable)
 	addParanthesis(CLOSING);
 }
 
-void Writer::visit(const Predicate *predicate)
+void Writer::visit(const PredicateDecl *predicate)
 {
 	addParanthesis(OPENING);
 	addToken("predicate");
 	addToken(predicate->getName());
-	// parameters
+	addParanthesis(OPENING);
+	addToken("list");
+	for (int i=0; i<predicate->getValency(); ++i)
+		addToken(predicate->getParameterType(i)->getName());
+	addParanthesis(CLOSING);
+	addParanthesis(CLOSING);
+}
+
+void Writer::visit(const PredicateLambda *predicate)
+{
+	// Declaration list
+	addParanthesis(OPENING);
+	addToken("list");
+	for (int i=0; i<predicate->getValency(); ++i)
+		predicate->getDeclaration(i).accept(this);
+	addParanthesis(CLOSING);
+	// Statement
+	predicate->getDefinition()->accept(this);
+}
+
+void Writer::visit(const PredicateDef *predicate)
+{
+	addParanthesis(OPENING);
+	addToken("predicate");
+	predicate->getDefinition().accept(this);
 	addParanthesis(CLOSING);
 }
 
@@ -73,7 +97,8 @@ void Writer::visit(const PredicateExpr *expression)
 {
 	addParanthesis(OPENING);
 	addToken(expression->getPredicate()->getName());
-	// parameters
+	for (int i=0; i<expression->getPredicate()->getValency(); ++i)
+		expression->getArg(i)->accept(this);
 	addParanthesis(CLOSING);
 }
 
@@ -110,9 +135,15 @@ void Writer::visit(const ConnectiveExpr *expression)
 void Writer::visit(const QuantifierExpr *expression)
 {
 	addParanthesis(OPENING);
-	// type
-	// declaration
-	// statement
+	switch (expression->getType()) {
+	case QuantifierExpr::EXISTS:
+		addToken("exists");
+		break;
+	case QuantifierExpr::FORALL:
+		addToken("forall");
+		break;
+	}
+	expression->getPredicateLambda().accept(this);
 	addParanthesis(CLOSING);
 }
 
