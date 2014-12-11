@@ -5,4 +5,4 @@ install:
   - sudo apt-get install libboost-test-dev
 script:
   - make all
-  - build/testsuite --log_level=all
+  - build/testsuite
