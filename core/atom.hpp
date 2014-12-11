@@ -67,7 +67,7 @@ namespace Core {
 	class PredicateDecl : public Predicate {
 	public:
 		PredicateDecl(const std::string& name, int valency)
-			: Predicate(name), type_list(valency, 0) {}
+			: Predicate(name), type_list(valency, Type_ptr()) {}
 		int getValency() const;
 		void setParameterType(int n, Type_ptr type);
 		const_Type_ptr getParameterType(int n) const;
