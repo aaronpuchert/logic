@@ -1,6 +1,11 @@
 # Settings
-#DEBUG = -g -DDEBUG
-CFLAGS = -Wall -MMD -MP -std=c++11 $(DEBUG)
+# For release builds set RELEASE=1|2|3|s, depending on the desired optimization level.
+ifeq ($(RELEASE),)
+    ADDITIONAL_FLAGS = -g -DDEBUG
+else
+    ADDITIONAL_FLAGS = -O$(RELEASE)
+endif
+CFLAGS = -Wall -MMD -std=c++11 $(ADDITIONAL_FLAGS)
 LFLAGS = -Wall $(DEBUG)
 
 # Files
