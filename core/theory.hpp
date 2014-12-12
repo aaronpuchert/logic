@@ -58,16 +58,17 @@ namespace Core {
 	/**
 	 * Class for statements.
 	 */
-	class Statement {
+	class Statement : public Node {
 	public:
-		enum Type {AXIOM, STATEMENT};
+		enum StatementType {AXIOM, STATEMENT};
 
 		Statement(const std::string &name, Expr_ptr expr)
-			: name(name), expr(expr) {}
-		Type getType() const
+			: Node(name, Node::STATEMENT), expr(expr) {}
+		StatementType getType() const
 			{return proof ? STATEMENT : AXIOM;}
 		const_Expr_ptr getStatement() const
 			{return expr;}
+
 		const_Proof_ptr getProof() const
 			{return proof;}
 		bool addProof(Proof_ptr proof);
@@ -76,7 +77,6 @@ namespace Core {
 			{visitor->visit(this);}
 
 	private:
-		std::string name;
 		Expr_ptr expr;
 		Proof_ptr proof;
 	};

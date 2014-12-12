@@ -33,8 +33,11 @@ namespace Core {
 	 */
 	class Node {
 	public:
-		Node(const std::string &name)
-			: name(name) {}
+		enum NodeType {UNDEFINED, TYPE, VARIABLE, PREDICATE, STATEMENT}
+			const node_type;
+
+		Node(const std::string &name, NodeType node_type)
+			: node_type(node_type), name(name) {}
 		const std::string &getName() const
 			{return name;}
 
@@ -50,7 +53,7 @@ namespace Core {
 	class Type : public Node {
 	public:
 		Type(const std::string &name)
-			: Node(name) {}
+			: Node(name, Node::TYPE) {}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 	};

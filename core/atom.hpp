@@ -35,7 +35,7 @@ namespace Core {
 	class Variable : public Node {
 	public:
 		Variable(Type_ptr type, const std::string &name)
-			: Node(name), type(type) {}
+			: Node(name, Node::VARIABLE), type(type) {}
 		const_Type_ptr getType() const
 			{return type;}
 		void setDefinition(Expr_ptr new_expression);
@@ -56,7 +56,7 @@ namespace Core {
 	class Predicate : public Node {
 	public:
 		Predicate(const std::string& name)
-			: Node(name) {}
+			: Node(name, Node::PREDICATE) {}
 		virtual int getValency() const = 0;
 		virtual const_Type_ptr getParameterType(int n) const = 0;
 	};
