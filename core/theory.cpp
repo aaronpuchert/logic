@@ -60,7 +60,7 @@ bool Theory::verify()
 /**
  * Initialize a proof step.
  */
-ProofStep::ProofStep(LogicSystem System, const std::string &rule_name,
+ProofStep::ProofStep(Namespace System, const std::string &rule_name,
 	const std::vector<Expr_ptr> var_list,
 	const std::vector<const Statement*> statement_list)
 {

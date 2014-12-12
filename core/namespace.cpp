@@ -20,6 +20,37 @@
 #include "namespace.hpp"
 using namespace Core;
 
+/**
+ * @brief Add entry to namespace.
+ * @param object Object to register in the namespace.
+ * @throw Core::NamespaceException if an object of the same name already exists.
+ */
+void Namespace::add(Namespace::node_ptr object)
+{
+	const std::string &name = object->getName();
+	auto entry = map.find(name);
+	if (entry == map.end())
+		map[name] = object;
+	else
+		throw NamespaceException(NamespaceException::DUPLICATE, name);
+}
+
+/**
+ * @brief Get the object having a specific name.
+ * @param name Identifier to search for.
+ * @return Pointer to the node or nullptr, if no such node exists.
+ */
+typename Namespace::node_ptr Namespace::get(const std::string& name) const
+{
+	auto entry = map.find(name);
+	if (entry != map.end())
+		return entry->second;
+	else if (parent != nullptr)
+		return parent->get(name);
+	else
+		return nullptr;
+}
+
 NamespaceException::NamespaceException(Reason reason, const std::string &name)
 	: reason(reason), name(name)
 {

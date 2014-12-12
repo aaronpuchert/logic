@@ -35,8 +35,9 @@ namespace Core {
 	 */
 	class Theory {
 	public:
-		Theory(Theory_ptr parent) : types(parent->types),
-			predicates(parent->predicates), vars(parent->vars), parent(parent) {}
+		Theory(Theory_ptr parent)
+			: names(parent ? parent->names : nullptr), parent(parent) {}
+
 		void addStatement(const Statement &statement, unsigned index = -1);
 		void addStatement(Statement &&statement, unsigned index = -1);
 		const Statement& getStatement(unsigned index = -1);
@@ -45,9 +46,7 @@ namespace Core {
 		bool verify();
 
 		// Declared names
-		Namespace<Type> types;
-		Namespace<Predicate> predicates;
-		Namespace<Variable> vars;
+		Namespace names;
 
 	protected:
 		Theory_ptr parent;
@@ -95,7 +94,7 @@ namespace Core {
 	 */
 	class ProofStep : public Proof {
 	public:
-		ProofStep(LogicSystem System, const std::string &rule_name,
+		ProofStep(Namespace System, const std::string &rule_name,
 			const std::vector<Expr_ptr> var_list,
 			const std::vector<const Statement *> statement_list);
 		const Rule *getRule() const

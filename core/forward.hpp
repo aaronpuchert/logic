@@ -72,8 +72,7 @@ namespace Core {
 	class LongProof;
 
 	// namespace.hpp
-	template<typename T> class Namespace;
-	typedef Namespace<Rule> LogicSystem;
+	class Namespace;
 
 	// traverse.hpp
 	class Visitor;

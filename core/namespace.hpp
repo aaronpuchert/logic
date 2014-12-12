@@ -23,6 +23,7 @@
 #include <exception>
 #include <sstream>
 #include <memory>
+#include "type.hpp"
 
 /**
  * Namespace for logic core
@@ -31,17 +32,16 @@ namespace Core {
 	/**
 	 * Nested namespaces.
 	 */
-	template<typename T>
 	class Namespace {
 	public:
-		typedef std::shared_ptr<const T> object_ptr;
-		Namespace(std::shared_ptr<const Namespace<T>> parent) : parent(parent) {};
-		void add(const std::string& name, object_ptr object);
-		object_ptr get(const std::string& name) const;
+		typedef std::shared_ptr<Node> node_ptr;
+		Namespace(const Namespace *parent) : parent(parent) {};
+		void add(node_ptr object);
+		node_ptr get(const std::string& name) const;
 
 	private:
-		std::map<std::string, object_ptr> map;
-		std::shared_ptr<const Namespace<T>> parent;
+		std::map<std::string, node_ptr> map;
+		const Namespace *parent;
 	};
 
 	/**
@@ -58,32 +58,4 @@ namespace Core {
 		const std::string name;
 		std::string description;
 	};
-
-	/**
-	 * Add entry to namespace.
-	 */
-	template<typename T>
-	void Namespace<T>::add(const std::string& name, Namespace<T>::object_ptr object)
-	{
-		auto entry = map.find(name);
-		if (entry == map.end())
-			map[name] = object;
-		else
-			throw NamespaceException(NamespaceException::DUPLICATE, name);
-	}
-
-	/**
-	 * Get the object having a specific name.
-	 */
-	template<typename T>
-	typename Namespace<T>::object_ptr Namespace<T>::get(const std::string& name) const
-	{
-		auto entry = map.find(name);
-		if (entry != map.end())
-			return entry->second;
-		else if (parent != nullptr)
-			return parent->get(name);
-		else
-			throw NamespaceException(NamespaceException::NOTFOUND, name);
-	}
 }	// End of namespace Core
