@@ -52,7 +52,12 @@ typename Namespace::node_ptr Namespace::get(const std::string& name) const
 }
 
 NamespaceException::NamespaceException(Reason reason, const std::string &name)
-	: reason(reason), name(name)
+	: reason(reason), name(name) {}
+
+/**
+ * Return exception description.
+ */
+const char* NamespaceException::what() const noexcept
 {
 	std::ostringstream str;
 
@@ -65,13 +70,5 @@ NamespaceException::NamespaceException(Reason reason, const std::string &name)
 		break;
 	}
 
-	description = str.str();
-}
-
-/**
- * Return exception description.
- */
-const char* NamespaceException::what() const noexcept
-{
-	return description.c_str();
+	return str.str().c_str();
 }

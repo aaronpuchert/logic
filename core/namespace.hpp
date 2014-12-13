@@ -56,6 +56,5 @@ namespace Core {
 	private:
 		const Reason reason;
 		const std::string name;
-		std::string description;
 	};
 }	// End of namespace Core
