@@ -108,7 +108,7 @@ When deducing new statements from given ones, we need a possibility to reference
 statements given before. For named statements, the reference is given via the
 name:
 
-	<reference> := (ref <name>)
+	<reference> := <name>
 
 There are two special names: `this` refers to the statement itself, while
 `parent` refers to the parent of the statement itself (see below). To refer to
@@ -116,7 +116,7 @@ the parent of the parent, just write `parent^2`. Then obviously `parent^1` is
 the same as `parent`. Of course, these two are not useful alone, but together
 with the following concept they help to refer to unnamed statements:
 
-	<reference> |= (ref <name>~<number>)
+	<reference> |= <name>~<number>
 
 This refers to the `<number>`th statement before `name`. Thus, `<name>~0` is the
 same as `<name>`, `<name>~1` is the statement before it and so on. This can be
