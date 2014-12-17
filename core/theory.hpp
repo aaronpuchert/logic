@@ -48,8 +48,8 @@ namespace Core {
 		// Declared names
 		Namespace names;
 
-	protected:
-		Theory_ptr parent;
+	private:
+		Theory *parent;
 		// Dependencies?
 		std::vector<Statement> statements;
 	};
@@ -118,7 +118,7 @@ namespace Core {
 	 */
 	class LongProof : public Proof {
 	public:
-		LongProof(Theory_ptr parent) : subTheory(parent) {}
+		LongProof(Theory *parent) : subTheory(parent) {}
 
 		bool proves(const Statement &statement);
 		void accept(Visitor *visitor) const

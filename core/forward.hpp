@@ -56,14 +56,14 @@ namespace Core {
 
 	// logic.hpp
 	class Rule;
+	typedef std::shared_ptr<Rule> Rule_ptr;
+	typedef std::shared_ptr<const Rule> const_Rule_ptr;
 	class Tautology;
 	class EquivalenceRule;
 	class DeductionRule;
 
 	// theory.hpp
 	class Theory;
-	typedef std::shared_ptr<Theory> Theory_ptr;
-	typedef std::shared_ptr<const Theory> const_Theory_ptr;
 	class Statement;
 	class Proof;
 	typedef std::shared_ptr<Proof> Proof_ptr;

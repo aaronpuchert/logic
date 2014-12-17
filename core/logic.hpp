@@ -54,9 +54,6 @@ namespace Core {
 		//Namespace<Variable> local_vars;
 	};
 
-	typedef std::shared_ptr<Rule> Rule_ptr;
-	typedef std::shared_ptr<const Rule> const_Rule_ptr;
-
 	/**
 	 * Tautology rule.
 	 */
