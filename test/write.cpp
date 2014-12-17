@@ -55,27 +55,39 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 
 BOOST_AUTO_TEST_CASE(theory_writer_test)
 {
+	Theory theory(nullptr);
+	Theory::iterator position = theory.begin();
+
 	// (type person)
 	Type_ptr person = make_shared<Type>("person");
 	checkResult(person.get(), "(type person)\n");
+	position = theory.add(person, position);
+
 	// (predicate schüler? (list person))
 	std::shared_ptr<PredicateDecl> student = make_shared<PredicateDecl>("schüler?", 1);
 	student->setParameterType(0, person);
 	checkResult(student.get(), "(predicate schüler? (list person))\n");
+	position = theory.add(student, position);
+
 	// (predicate dumm? (list person))
 	std::shared_ptr<PredicateDecl> stupid = make_shared<PredicateDecl>("dumm?", 1);
 	stupid->setParameterType(0, person);
 	checkResult(stupid.get(), "(predicate dumm? (list person))\n");
+	position = theory.add(stupid, position);
 
 	// (person fritz) ; this is in fact a constant, but what is the difference?
 	Var_ptr fritz = make_shared<Variable>(person, "fritz");
 	checkResult(fritz.get(), "(person fritz)\n");
+	position = theory.add(fritz, position);
 	Expr_ptr fritz_expr = make_shared<AtomicExpr>(fritz);
+
 	// (axiom (schüler? fritz))
 	Expr_ptr axiom1_expr = make_shared<PredicateExpr>(student,
 		std::vector<Expr_ptr>{fritz_expr});
-	Statement axiom1("fritz_is_student", axiom1_expr);
-	checkResult(&axiom1, "(axiom (schüler? fritz))\n");
+	std::shared_ptr<Statement> axiom1 =
+		make_shared<Statement>("fritz_is_student", axiom1_expr);
+	checkResult(axiom1.get(), "(axiom (schüler? fritz))\n");
+	position = theory.add(axiom1, position);
 
 	// (axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))
 	Var_ptr var_x = make_shared<Variable>(person, "x");
@@ -89,14 +101,17 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	PredicateLambda impl_pred(std::vector<Variable>{*var_x}, impl);
 	Expr_ptr forall_expr = make_shared<QuantifierExpr>
 		(QuantifierExpr::FORALL, std::move(impl_pred));
-	Statement axiom2("students_are_stupid", forall_expr);
-	checkResult(&axiom2, "(axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))\n");
+	std::shared_ptr<Statement> axiom2 =
+		make_shared<Statement>("students_are_stupid", forall_expr);
+	checkResult(axiom2.get(), "(axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))\n");
+	position = theory.add(axiom2, position);
 
 	//  (statement
 	//  	(dumm? fritz)
 	Expr_ptr statement_expr = make_shared<PredicateExpr>(stupid,
 		std::vector<Expr_ptr>{fritz_expr});
-	Statement statement("fritz_is_stupid", statement_expr);
+	std::shared_ptr<Statement> statement =
+		make_shared<Statement>("fritz_is_stupid", statement_expr);
 	//  	(proof
 	//  		(statement (impl (schüler? fritz) (dumm? fritz))
 	//  			(specialization
@@ -113,4 +128,5 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  	)
 	//  )
 	// TODO: add the proof
+	position = theory.add(statement, position);
 }
