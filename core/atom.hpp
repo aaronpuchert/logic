@@ -18,7 +18,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#ifndef CORE_ATOM_HPP
+#define CORE_ATOM_HPP
 #include "forward.hpp"
 #include "type.hpp"
 #include <string>
@@ -125,3 +126,5 @@ namespace Core {
 	 * Functions, relations?
 	 */
 }	// End of namespace Core
+
+#endif

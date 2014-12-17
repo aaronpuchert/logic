@@ -17,7 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#ifndef CORE_TRAVERSE_HPP
+#define CORE_TRAVERSE_HPP
 #include "forward.hpp"
 
 /**
@@ -49,3 +50,5 @@ namespace Core {
 		virtual void visit(const Theory *theory);
 	};
 }	// End of namespace Core
+
+#endif

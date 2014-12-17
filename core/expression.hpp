@@ -17,7 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#ifndef CORE_EXPRESSION_HPP
+#define CORE_EXPRESSION_HPP
 #include "forward.hpp"
 #include "atom.hpp"
 #include <vector>
@@ -130,3 +131,5 @@ namespace Core {
 	// class LongImplication : public Expression {};
 	// class LongConjunction : public Expression {};
 }	// End of namespace Core
+
+#endif

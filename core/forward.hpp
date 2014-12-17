@@ -17,7 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#ifndef CORE_FORWARD_HPP
+#define CORE_FORWARD_HPP
 #include <memory>
 #include <utility>
 
@@ -74,3 +75,5 @@ namespace Core {
 	// traverse.hpp
 	class Visitor;
 }	// End of namespace Core
+
+#endif

@@ -17,7 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#ifndef CORE_THEORY_HPP
+#define CORE_THEORY_HPP
 #include "forward.hpp"
 #include "expression.hpp"
 #include "logic.hpp"
@@ -152,3 +153,5 @@ namespace Core {
 		Theory subTheory;
 	};
 }	// End of namespace Core
+
+#endif
