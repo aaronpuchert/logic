@@ -71,9 +71,6 @@ namespace Core {
 	class ProofStep;
 	class LongProof;
 
-	// namespace.hpp
-	class Namespace;
-
 	// traverse.hpp
 	class Visitor;
 }	// End of namespace Core

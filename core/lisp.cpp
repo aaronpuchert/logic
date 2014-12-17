@@ -230,7 +230,8 @@ void Writer::visit(const LongProof *longproof)
 
 void Writer::visit(const Theory *theory)
 {
-	// print declarations, then statements
+	for (const Node_ptr node : *theory)
+		node->accept(this);
 }
 
 void Writer::addParanthesis(Change depth_change)

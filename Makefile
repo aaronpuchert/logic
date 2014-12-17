@@ -13,8 +13,11 @@ BUILDDIR = build
 TARGET = logic
 TEST_TARGET = $(BUILDDIR)/testsuite
 
-CPPS = core/lisp.cpp core/logic.cpp core/namespace.cpp core/theory.cpp \
-       core/traverse.cpp core/atom.cpp
+CPPS =	core/atom.cpp \
+	core/lisp.cpp \
+	core/logic.cpp \
+	core/theory.cpp \
+	core/traverse.cpp
 
 TESTS = write
 TEST_CPPS = $(patsubst %,test/%.cpp,$(TESTS))

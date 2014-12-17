@@ -48,6 +48,17 @@ namespace Core {
 	};
 
 	/**
+	 * Dummy node class for searching.
+	 */
+	class SearchNode : public Node {
+	public:
+		SearchNode(const std::string& name)
+			: Node(name, Node::UNDEFINED) {}
+		void accept(Visitor *visitor) const
+			{}
+	};
+
+	/**
 	 * Base class for types.
 	 */
 	class Type : public Node {

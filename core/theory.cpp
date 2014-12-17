@@ -18,35 +18,80 @@
  */
 
 #include "theory.hpp"
+#include <sstream>
 using namespace Core;
 
 /**
- * Add a proof to a statement.
+ * Compare function object for nodes, similar to std::less.
  */
-bool Statement::addProof(Proof_ptr proof)
+bool Theory::NodeCompare::operator ()(const Node *x, const Node *y) const
 {
-	//
+	return (x->getName() < y->getName());
 }
 
 /**
- * Add a statement to a theory at a specific position.
+ * Construct a theory.
+ * @param parent The parent theory, if this is a subtheory, otherwise nullptr.
  */
-void Theory::addStatement(const Statement &statement, unsigned index)
-{
-	//
-}
+Theory::Theory(Theory* parent) : parent(parent) {}
 
-void Theory::addStatement(Statement &&statement, unsigned index)
+/**
+ * @brief Add node to theory.
+ * @param object Object to add.
+ * @param after Iterator pointing to the node after which to insert.
+ * @return Iterator to the newly inserted object.
+ * @throw Core::NamespaceException if an object of the same name already exists.
+ */
+Theory::iterator Theory::add(Node_ptr object, iterator after)
 {
-	//
+	auto entry = name_space.find(object.get());
+	if (entry == name_space.end()) {
+		iterator position = nodes.insert(++after, object);
+		name_space[object.get()] = position;
+		return position;
+	}
+	else
+		throw NamespaceException(NamespaceException::DUPLICATE,
+			object->getName());
 }
 
 /**
- * Get the statement at a specific position.
+ * @brief Get the object having a specific name.
+ * @param reference Identifier to search for.
+ * @return Pointer to the node or nullptr, if no such node exists.
  */
-const Statement& Theory::getStatement(unsigned index)
+Theory::iterator Theory::get(const std::string& reference) const
 {
-	//
+	// construct a dummy node
+	SearchNode node(reference);
+
+	auto entry = name_space.find(&node);
+	if (entry != name_space.end())
+		return entry->second;
+	else if (parent != nullptr)
+		return parent->get(reference);
+	else
+		return entry->second;
+}
+
+Theory::iterator Theory::begin()
+{
+	return nodes.begin();
+}
+
+Theory::iterator Theory::end()
+{
+	return nodes.end();
+}
+
+Theory::const_iterator Theory::begin() const
+{
+	return nodes.begin();
+}
+
+Theory::const_iterator Theory::end() const
+{
+	return nodes.end();
 }
 
 /**
@@ -57,10 +102,40 @@ bool Theory::verify()
 	//
 }
 
+NamespaceException::NamespaceException(Reason reason, const std::string &name)
+	: reason(reason), name(name) {}
+
+/**
+ * Return exception description.
+ */
+const char* NamespaceException::what() const noexcept
+{
+	std::ostringstream str;
+
+	switch (reason) {
+	case NOTFOUND:
+		str << "Did not find symbol: " << name;
+		break;
+	case DUPLICATE:
+		str << "Duplicate symbol: " << name;
+		break;
+	}
+
+	return str.str().c_str();
+}
+
+/**
+ * Add a proof to a statement.
+ */
+bool Statement::addProof(Proof_ptr proof)
+{
+	//
+}
+
 /**
  * Initialize a proof step.
  */
-ProofStep::ProofStep(Namespace System, const std::string &rule_name,
+ProofStep::ProofStep(Theory *System, const std::string &rule_name,
 	const std::vector<Expr_ptr> var_list,
 	const std::vector<const Statement*> statement_list)
 {

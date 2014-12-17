@@ -20,10 +20,11 @@
 #pragma once
 #include "forward.hpp"
 #include "expression.hpp"
-#include "namespace.hpp"
 #include "logic.hpp"
 #include <string>
 #include <vector>
+#include <list>
+#include <map>
 #include "traverse.hpp"
 
 /**
@@ -35,23 +36,47 @@ namespace Core {
 	 */
 	class Theory {
 	public:
-		Theory(Theory_ptr parent)
-			: names(parent ? parent->names : nullptr), parent(parent) {}
+		Theory(Theory *parent);
 
-		void addStatement(const Statement &statement, unsigned index = -1);
-		void addStatement(Statement &&statement, unsigned index = -1);
-		const Statement& getStatement(unsigned index = -1);
+		// Iterate through nodes
+		using iterator = std::list<Node_ptr>::iterator;
+		using const_iterator = std::list<Node_ptr>::const_iterator;
+		iterator begin();
+		iterator end();
+		const_iterator begin() const;
+		const_iterator end() const;
+
+		// Add and get nodes: declarations, definitions, and statements.
+		iterator add(Node_ptr object, iterator after);
+		iterator get(const std::string& reference) const;
+
+		// Miscellaneous
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 		bool verify();
 
-		// Declared names
-		Namespace names;
-
 	private:
 		Theory *parent;
 		// Dependencies?
-		std::vector<Statement> statements;
+		std::list<Node_ptr> nodes;
+		struct NodeCompare : public std::binary_function<Node *, Node *, bool> {
+			bool operator ()(const Node *, const Node *) const;
+		};
+		std::map<Node *, iterator, NodeCompare> name_space;
+	};
+
+	/**
+	 * Exception for not finding entries
+	 */
+	class NamespaceException : public std::exception {
+	public:
+		enum Reason {NOTFOUND, DUPLICATE};
+		NamespaceException(Reason reason, const std::string &name);
+		const char* what() const noexcept;
+
+	private:
+		const Reason reason;
+		const std::string name;
 	};
 
 	/**
@@ -94,7 +119,7 @@ namespace Core {
 	 */
 	class ProofStep : public Proof {
 	public:
-		ProofStep(Namespace System, const std::string &rule_name,
+		ProofStep(Theory *System, const std::string &rule_name,
 			const std::vector<Expr_ptr> var_list,
 			const std::vector<const Statement *> statement_list);
 		const Rule *getRule() const
