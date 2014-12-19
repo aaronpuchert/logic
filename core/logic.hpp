@@ -33,26 +33,21 @@ namespace Core {
 	/**
 	 * Abstract base class for logical rules
 	 */
-	class Rule {
+	class Rule : public Node {
 	public:
 		// Type for Variable lists
 		typedef std::vector<Variable> VarList;
 
 		Rule(const std::string& name, const VarList &var_list)
-			: name(name), var_list(var_list) {}
-		const std::string& getName() const
-			{return name;}
+			: Node(name, Node::RULE), var_list(var_list) {}
 		const VarList& getVars() const
 			{return var_list;}
-		virtual void accept(Visitor *visitor) const = 0;
 
 		virtual bool validate(const std::vector<Expr_ptr> &substitutes,
 			const std::vector<Expr_ptr> &statements) = 0;
 
 	protected:
-		std::string name;
 		VarList var_list;
-		//Namespace<Variable> local_vars;
 	};
 
 	/**

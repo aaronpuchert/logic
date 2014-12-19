@@ -20,8 +20,14 @@ void checkResult(const T *object, const std::string& result)
 	BOOST_CHECK_EQUAL(stream.str(), result);
 }
 
+// Rule system
+Theory rules(nullptr);
+
 BOOST_AUTO_TEST_CASE(rule_writer_test)
 {
+	// Put rules in theory
+	Theory::iterator position = rules.begin();
+
 	// Create statement variables
 	Type_ptr statement = make_shared<Type>("statement");
 	std::shared_ptr<Variable> stmt_a = make_shared<Variable>(statement, "a");
@@ -36,6 +42,7 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 		Rule::VarList{*stmt_a}, taut_stmt);
 
 	checkResult(tautology.get(), "(tautology excluded_middle (list (statement a)) (or a (not a)))\n");
+	position = rules.add(tautology, position);
 
 	// Rule of double negation.
 	Expr_ptr not_not_a = make_shared<NegationExpr>(not_a);
@@ -43,6 +50,7 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 		Rule::VarList{*stmt_a}, not_not_a, expr_a);
 
 	checkResult(equivrule.get(), "(equivrule double_negation (list (statement a)) (not (not a)) a)\n");
+	position = rules.add(equivrule, position);
 
 	// The modus ponens rule.
 	Expr_ptr impl = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL, expr_a, expr_b);
@@ -51,6 +59,7 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 		Rule::VarList{*stmt_a, *stmt_b}, premisses, expr_b);
 
 	checkResult(deductionrule.get(), "(deductionrule ponens (list (statement a) (statement b)) (list (impl a b) a) b)\n");
+	position = rules.add(deductionrule, position);
 }
 
 BOOST_AUTO_TEST_CASE(theory_writer_test)

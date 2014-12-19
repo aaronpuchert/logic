@@ -33,7 +33,7 @@ namespace Core {
 	 */
 	class Node {
 	public:
-		enum NodeType {UNDEFINED, TYPE, VARIABLE, PREDICATE, STATEMENT}
+		enum NodeType {UNDEFINED, TYPE, VARIABLE, PREDICATE, STATEMENT, RULE}
 			const node_type;
 
 		Node(const std::string &name, NodeType node_type)
