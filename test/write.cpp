@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 		student_x, stupid_x);
 	PredicateLambda impl_pred(std::vector<Variable>{*var_x}, impl);
 	Expr_ptr forall_expr = make_shared<QuantifierExpr>
-		(QuantifierExpr::FORALL, std::move(impl_pred));
+		(QuantifierExpr::FORALL, impl_pred);
 	std::shared_ptr<Statement> axiom2 =
 		make_shared<Statement>("students_are_stupid", forall_expr);
 	checkResult(axiom2.get(), "(axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))\n");

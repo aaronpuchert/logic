@@ -111,8 +111,8 @@ namespace Core {
 	class QuantifierExpr : public Expression {
 	public:
 		enum Type {EXISTS, FORALL};
-		QuantifierExpr(Type type, PredicateLambda &&pred)
-			: type(type), pred(std::move(pred)) {}
+		QuantifierExpr(Type type, const PredicateLambda &pred)
+			: type(type), pred(pred) {}
 		Type getType() const
 			{return type;}
 		const PredicateLambda& getPredicateLambda() const
