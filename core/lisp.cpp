@@ -209,14 +209,25 @@ void Writer::visit(const Statement *statement)
 	addParanthesis(CLOSING);
 }
 
+void Writer::visit(const Reference *reference)
+{
+	addToken(reference->getDescription(theory_stack.top(), iterator_stack.top()));
+}
+
 void Writer::visit(const ProofStep *proofstep)
 {
 	addParanthesis(OPENING);
 	addToken(proofstep->getRule()->getName());
+	addParanthesis(OPENING);
+	addToken("list");
 	for (Expr_ptr expr : proofstep->getVars())
 		expr->accept(this);
-	for (const Statement* statement : proofstep->getReferences())
-		addToken("refs not yet implemented");
+	addParanthesis(CLOSING);
+	addParanthesis(OPENING);
+	addToken("list");
+	for (const Reference &ref : proofstep->getReferences())
+		ref.accept(this);
+	addParanthesis(CLOSING);
 	addParanthesis(CLOSING);
 }
 
@@ -230,8 +241,15 @@ void Writer::visit(const LongProof *longproof)
 
 void Writer::visit(const Theory *theory)
 {
-	for (const Node_ptr node : *theory)
-		node->accept(this);
+	theory_stack.push(theory);
+
+	for (Theory::const_iterator it = theory->begin(); it != theory->end(); ++it) {
+		iterator_stack.push(it);
+		(*it)->accept(this);
+		iterator_stack.pop();
+	}
+
+	theory_stack.pop();
 }
 
 void Writer::addParanthesis(Change depth_change)

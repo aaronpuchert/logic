@@ -66,6 +66,7 @@ namespace Core {
 	// theory.hpp
 	class Theory;
 	class Statement;
+	class Reference;
 	class Proof;
 	typedef std::shared_ptr<Proof> Proof_ptr;
 	typedef std::shared_ptr<const Proof> const_Proof_ptr;

@@ -30,13 +30,20 @@ bool Theory::NodeCompare::operator ()(const Node *x, const Node *y) const
 }
 
 /**
- * Construct a theory.
- * @param parent The parent theory, if this is a subtheory, otherwise nullptr.
+ * Construct a root theory.
  */
-Theory::Theory(Theory* parent) : parent(parent) {}
+Theory::Theory() : parent(nullptr) {}
 
 /**
- * @brief Add node to theory.
+ * Construct a theory.
+ * @param parent The parent theory, if this is a subtheory, otherwise nullptr.
+ * @param parent_node Iterator to the node referring to this theory.
+ */
+Theory::Theory(Theory* parent, iterator parent_node)
+	: parent(parent), parent_node(parent_node) {}
+
+/**
+ * Add node to theory.
  * @param object Object to add.
  * @param after Iterator pointing to the node after which to insert.
  * @return Iterator to the newly inserted object.
@@ -47,7 +54,8 @@ Theory::iterator Theory::add(Node_ptr object, iterator after)
 	auto entry = name_space.find(object.get());
 	if (entry == name_space.end()) {
 		iterator position = nodes.insert(++after, object);
-		name_space[object.get()] = position;
+		if (object->getName() != "")
+			name_space[object.get()] = position;
 		return position;
 	}
 	else
@@ -56,7 +64,7 @@ Theory::iterator Theory::add(Node_ptr object, iterator after)
 }
 
 /**
- * @brief Get the object having a specific name.
+ * Get the object having a specific name.
  * @param reference Identifier to search for.
  * @return Pointer to the node or nullptr, if no such node exists.
  */
@@ -126,20 +134,127 @@ const char* NamespaceException::what() const noexcept
 
 /**
  * Add a proof to a statement.
+ * @param proof Pointer to the proof to be added.
+ * @return [later] Return if the proof could be accepted.
  */
 bool Statement::addProof(Proof_ptr proof)
 {
-	//
+	this->proof = proof;
+	return true;
 }
 
 /**
- * Initialize a proof step.
+ * Construct a reference.
+ * @param theory Theory which contains the referenced node.
+ * @param it Iterator pointing to the referenced node.
  */
-ProofStep::ProofStep(Theory *System, const std::string &rule_name,
-	const std::vector<Expr_ptr> var_list,
-	const std::vector<const Statement*> statement_list)
+Reference::Reference(const Theory *theory, Theory::const_iterator it)
+	: theory(theory), ref(it) {}
+
+/**
+ * Create description of reference.
+ * @param this_theory Theory which contains `this`.
+ * @param this_it Iterator to `this`.
+ */
+std::string Reference::getDescription(const Theory *this_theory,
+	Theory::const_iterator this_it) const
 {
-	//
+	// Does the referred statement have a name?
+	if ((*ref)->getName() != "")
+		return (*ref)->getName();
+
+	// What about name~n?
+
+	// Try to find the referenced statement
+	Theory::const_iterator level_head(this_it);
+	int level_val = 0;
+	int diff;
+
+	for (const Theory *level = this_theory; level; level = level->parent) {
+		for (diff = 0; (level_head != level->end())
+			&& (level_head != ref); ++diff) --level_head;
+
+		// level up
+		if (level->parent && level_head != ref) {
+			level_head = level->parent_node;
+			++level_val;
+		}
+		else
+			break;
+	}
+
+	// What should we do if we don't find anything:
+	// 1. Provide a fallback method or
+	// 2. Use some kind of hash?
+
+	// Found it? Return <base>~<diff>.
+	std::ostringstream stream;
+	if (level_val) {
+		if (level_val > 1)
+			stream << "parent^" << level_val;
+		else
+			stream << "parent";
+	}
+	else
+		stream << "this";
+	stream << '~' << diff;
+	return stream.str();
+}
+
+/**
+ * Wind back a reference.
+ * @param diff Number of nodes to go back.
+ */
+Reference& Reference::operator -=(int diff)
+{
+	while (diff--)
+		--ref;
+	return *this;
+}
+
+/**
+ * Get a reference to the node which is `back` before `a`.
+ */
+Reference Core::operator -(const Reference& a, int back)
+{
+	Reference res(a);
+	res -= back;
+	return res;
+}
+
+/**
+ * Compute the positive distance between two references, assuming a<b.
+ * @return The nonnegative difference or -1, if `a` doesn't precede `b` in this theory.
+ */
+int Core::operator -(const Reference& a, const Reference& b)
+{
+	if (a.theory != b.theory)
+		return -1;
+
+	int diff = 0;
+	for (Theory::const_iterator it = a.ref; it != b.ref; ++it)
+		++diff;
+	return diff;
+}
+
+
+/**
+ * Initialize a proof step.
+ * @param system Theory containing the desired rule.
+ * @param rule_name Name of the desired rule.
+ * @param var_list List of expressions which substitute the rule variables.
+ * @param statement_list List of statements referenced.
+ */
+ProofStep::ProofStep(Theory *system, const std::string &rule_name,
+	std::vector<Expr_ptr> &&var_list,
+	std::vector<Reference> &&statement_list)
+	: var_list(std::move(var_list)), ref_statement_list(std::move(statement_list))
+{
+	Theory::const_iterator rule_it = system->get(rule_name);
+	if ((*rule_it)->node_type == Node::RULE)
+		rule = std::dynamic_pointer_cast<Rule>(*rule_it).get();
+	else
+		return; 	// TODO: exception
 }
 
 /**

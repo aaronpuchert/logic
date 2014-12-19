@@ -37,11 +37,14 @@ namespace Core {
 	 */
 	class Theory {
 	public:
-		Theory(Theory *parent);
-
-		// Iterate through nodes
+		// Types for iterating through theories
 		using iterator = std::list<Node_ptr>::iterator;
 		using const_iterator = std::list<Node_ptr>::const_iterator;
+
+		Theory();
+		Theory(Theory *parent, iterator parent_node);
+
+		// Iterate through nodes
 		iterator begin();
 		iterator end();
 		const_iterator begin() const;
@@ -56,8 +59,10 @@ namespace Core {
 			{visitor->visit(this);}
 		bool verify();
 
+		const Theory *parent;
+		const iterator parent_node;
+
 	private:
-		Theory *parent;
 		// Dependencies?
 		std::list<Node_ptr> nodes;
 		struct NodeCompare : public std::binary_function<Node *, Node *, bool> {
@@ -107,6 +112,36 @@ namespace Core {
 	};
 
 	/**
+	 * Class for references
+	 */
+	class Reference {
+	public:
+		Reference(const Theory *theory, Theory::const_iterator it);
+		std::string getDescription(const Theory *this_theory,
+			Theory::const_iterator this_it) const;
+
+		// Resolve reference
+		const_Node_ptr operator *() const
+			{return *ref;}
+		Reference& operator -=(int diff);
+
+		void accept(Visitor *visitor) const
+			{visitor->visit(this);}
+
+		friend Reference operator -(const Reference&, int);
+		friend int operator -(const Reference&, const Reference&);
+		friend bool operator ==(const Reference& a, const Reference& b)
+			{return (a-b) == 0;}
+
+	private:
+		// Where do we find the object?
+		const Theory *theory;
+		// Reference to a node in this theory
+		Theory::const_iterator ref;
+	};
+
+
+	/**
 	 * Abstract base class for proofs.
 	 */
 	class Proof {
@@ -120,14 +155,14 @@ namespace Core {
 	 */
 	class ProofStep : public Proof {
 	public:
-		ProofStep(Theory *System, const std::string &rule_name,
-			const std::vector<Expr_ptr> var_list,
-			const std::vector<const Statement *> statement_list);
+		ProofStep(Theory *system, const std::string &rule_name,
+			std::vector<Expr_ptr> &&var_list,
+			std::vector<Reference> &&statement_list);
 		const Rule *getRule() const
 			{return rule;}
 		const std::vector<Expr_ptr>& getVars() const
 			{return var_list;}
-		const std::vector<const Statement*> getReferences() const
+		const std::vector<Reference> getReferences() const
 			{return ref_statement_list;}
 		bool proves(const Statement &statement);
 		void accept(Visitor *visitor) const
@@ -136,7 +171,7 @@ namespace Core {
 	private:
 		const Rule *rule;
 		std::vector<Expr_ptr> var_list;
-		std::vector<const Statement*> ref_statement_list;
+		std::vector<Reference> ref_statement_list;
 	};
 
 	/**
@@ -144,7 +179,8 @@ namespace Core {
 	 */
 	class LongProof : public Proof {
 	public:
-		LongProof(Theory *parent) : subTheory(parent) {}
+		LongProof(Theory *parent, Theory::iterator parent_node)
+			: subTheory(parent, parent_node) {}
 
 		bool proves(const Statement &statement);
 		void accept(Visitor *visitor) const

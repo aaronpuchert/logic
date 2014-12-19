@@ -93,6 +93,11 @@ void Visitor::visit(const Statement *statement)
 	//
 }
 
+void Visitor::visit(const Reference *reference)
+{
+	//
+}
+
 void Visitor::visit(const ProofStep *proofstep)
 {
 	//

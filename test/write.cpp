@@ -21,7 +21,7 @@ void checkResult(const T *object, const std::string& result)
 }
 
 // Rule system
-Theory rules(nullptr);
+Theory rules;
 
 BOOST_AUTO_TEST_CASE(rule_writer_test)
 {
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 
 BOOST_AUTO_TEST_CASE(theory_writer_test)
 {
-	Theory theory(nullptr);
+	Theory theory;
 	Theory::iterator position = theory.begin();
 
 	// (type person)
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	Expr_ptr axiom1_expr = make_shared<PredicateExpr>(student,
 		std::vector<Expr_ptr>{fritz_expr});
 	std::shared_ptr<Statement> axiom1 =
-		make_shared<Statement>("fritz_is_student", axiom1_expr);
+		make_shared<Statement>("", axiom1_expr);
 	checkResult(axiom1.get(), "(axiom (schüler? fritz))\n");
 	position = theory.add(axiom1, position);
 
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	Expr_ptr forall_expr = make_shared<QuantifierExpr>
 		(QuantifierExpr::FORALL, impl_pred);
 	std::shared_ptr<Statement> axiom2 =
-		make_shared<Statement>("students_are_stupid", forall_expr);
+		make_shared<Statement>("", forall_expr);
 	checkResult(axiom2.get(), "(axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))\n");
 	position = theory.add(axiom2, position);
 
@@ -120,22 +120,37 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	Expr_ptr statement_expr = make_shared<PredicateExpr>(stupid,
 		std::vector<Expr_ptr>{fritz_expr});
 	std::shared_ptr<Statement> statement =
-		make_shared<Statement>("fritz_is_stupid", statement_expr);
+		make_shared<Statement>("", statement_expr);
+	position = theory.add(statement, position);
+
 	//  	(proof
+	std::shared_ptr<LongProof> proof = make_shared<LongProof>(&theory, position);
+	Theory::iterator sub_pos = proof->subTheory.begin();
 	//  		(statement (impl (schüler? fritz) (dumm? fritz))
+	Expr_ptr inter1_expr = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL,
+		axiom1_expr, statement_expr);
+	std::shared_ptr<Statement> inter1 = make_shared<Statement>("", inter1_expr);
+	sub_pos = proof->subTheory.add(inter1, sub_pos);
 	//  			(specialization
 	//  				(list (predicate (list (person x)) (impl (schüler? x) (dumm? x))) person fritz)
 	//  				(list parent~1)
 	//  			)
+	// TODO: add proof
 	//  		)
 	//  		(statement (dumm? fritz)
+	std::shared_ptr<Statement> inter2 = make_shared<Statement>("", statement_expr);
 	//  			(ponens
 	//  				(list (schüler? fritz) (dumm? fritz))
 	//  				(list parent~2 this~1)
 	//  			)
+	std::shared_ptr<ProofStep> step2 = make_shared<ProofStep>(&rules,
+		"ponens", std::vector<Expr_ptr>{axiom1_expr, statement_expr},
+		std::vector<Reference>{Reference(&theory, --(--position)), Reference(&proof->subTheory, sub_pos)});
+	inter2->addProof(step2);
+	sub_pos = proof->subTheory.add(inter2, sub_pos);
 	//  		)
 	//  	)
 	//  )
-	// TODO: add the proof
-	position = theory.add(statement, position);
+	statement->addProof(proof);
+	checkResult(statement.get(), "(statement (dumm? fritz) (proof (axiom (impl (schüler? fritz) (dumm? fritz))) (statement (dumm? fritz) (ponens (list (schüler? fritz) (dumm? fritz)) (list parent~2 this~1)))))\n");
 }

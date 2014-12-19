@@ -20,6 +20,7 @@
 #ifndef CORE_LISP_HPP
 #define CORE_LISP_HPP
 #include "forward.hpp"
+#include "theory.hpp"
 #include <string>
 #include <stack>
 #include <queue>
@@ -53,6 +54,7 @@ namespace Core {
 		void visit(const EquivalenceRule *rule);
 		void visit(const DeductionRule *rule);
 		void visit(const Statement *statement);
+		void visit(const Reference *reference);
 		void visit(const ProofStep *proofstep);
 		void visit(const LongProof *longproof);
 		void visit(const Theory *theory);
@@ -67,6 +69,10 @@ namespace Core {
 		std::ostream &output;
 		std::queue<std::string> token_queue;
 		int depth;
+
+		// Keeping track of where we are
+		std::stack<const Theory *> theory_stack;
+		std::stack<Theory::const_iterator> iterator_stack;
 	};
 
 }	// End of namespace Core
