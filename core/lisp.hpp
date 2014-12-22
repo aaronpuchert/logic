@@ -33,6 +33,27 @@
  */
 namespace Core {
 	/**
+	 * Lisp-syntax tokens.
+	 */
+	class LispToken {
+	public:
+		enum Type {WORD, OPENING, CLOSING, ENDOFFILE};
+		LispToken(Type type) : type(type) {}
+		LispToken(Type type, const std::string &content)
+			: type(type), content(content) {}
+		LispToken(Type type, std::string &&content)
+			: type(type), content(std::move(content)) {}
+
+		Type getType() const
+			{return type;}
+		std::string getContent() const;
+
+	private:
+		Type type;
+		std::string content;
+	};
+
+	/**
 	 * Lisp-syntax writer class
 	 */
 	class Writer : public Visitor {
@@ -67,7 +88,7 @@ namespace Core {
 		void writeQueue();
 
 		std::ostream &output;
-		std::queue<std::string> token_queue;
+		std::queue<LispToken> token_queue;
 		int depth;
 
 		// Keeping track of where we are

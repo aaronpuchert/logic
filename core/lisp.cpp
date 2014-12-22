@@ -23,6 +23,14 @@
 #include <limits>
 using namespace Core;
 
+std::string LispToken::getContent() const
+{
+	if (type == WORD)
+		return content;
+	else
+		throw std::logic_error("Only word tokens have content.");
+}
+
 /**
  * Implementation of the writer
  */
@@ -257,9 +265,9 @@ void Writer::addParanthesis(Change depth_change)
 	depth += (int)depth_change;
 
 	if (depth_change == OPENING)
-		addToken("(");
+		token_queue.push(LispToken(LispToken::OPENING));
 	else	// CLOSING
-		addToken(")");
+		token_queue.push(LispToken(LispToken::CLOSING));
 
 	// if conditions are met, write contents
 	if (depth == 0)
@@ -268,22 +276,37 @@ void Writer::addParanthesis(Change depth_change)
 
 void Writer::addToken(const std::string &token)
 {
-	token_queue.push(token);
+	token_queue.push(LispToken(LispToken::WORD, token));
 }
 
 void Writer::addToken(std::string &&token)
 {
-	token_queue.push(token);
+	token_queue.push(LispToken(LispToken::WORD, std::move(token)));
 }
 
 void Writer::writeQueue()
 {
 	while (token_queue.size()) {
-		std::string token(token_queue.front());
+		LispToken token(token_queue.front());
 		token_queue.pop();
-		output << token;
-		if (token != "(" && token_queue.size() && token_queue.front() != ")")
-			output << " ";
+
+		switch (token.getType()) {
+		case LispToken::WORD:
+			output << token.getContent();
+			break;
+		case LispToken::OPENING:
+			output << '(';
+			break;
+		case LispToken::CLOSING:
+			output << ')';
+			break;
+		case LispToken::ENDOFFILE:		// To avoid warning.
+			break;
+		}
+
+		if (token.getType() != LispToken::OPENING && token_queue.size() &&
+				token_queue.front().getType() != LispToken::CLOSING)
+			output << ' ';
 	};
 
 	output << std::endl;
