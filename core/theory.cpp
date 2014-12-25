@@ -252,7 +252,7 @@ ProofStep::ProofStep(Theory *system, const std::string &rule_name,
 {
 	Theory::const_iterator rule_it = system->get(rule_name);
 	if ((*rule_it)->node_type == Node::RULE)
-		rule = std::dynamic_pointer_cast<Rule>(*rule_it).get();
+		rule = std::static_pointer_cast<Rule>(*rule_it).get();
 	else
 		return; 	// TODO: exception
 }
