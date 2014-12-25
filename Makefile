@@ -48,9 +48,6 @@ $(OBJS): $(BUILDDIR)/%.o: %.cpp
 $(TEST_OBJS): $(BUILDDIR)/test/%.o: test/%.cpp
 	$(CXX) -c $(CFLAGS) -o $@ $<
 
-# Use the dependency files created by the compiler
--include $(patsubst %.o,%.d,$(OBJS) $(TEST_OBJS))
-
 # Directories
 $(BUILDDIR)/:
 	mkdir $@
@@ -72,3 +69,6 @@ clean:
 	-rm $(DOCS)
 
 .PHONY: all test clean doc
+
+# Use the dependency files created by the compiler
+-include $(patsubst %.o,%.d,$(OBJS) $(TEST_OBJS))

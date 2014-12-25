@@ -21,6 +21,7 @@
 #include "logic.hpp"
 #include "lisp.hpp"
 #include <limits>
+#include <stdexcept>
 using namespace Core;
 
 std::string LispToken::getContent() const
