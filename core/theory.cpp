@@ -18,6 +18,7 @@
  */
 
 #include "theory.hpp"
+#include "logic.hpp"
 #include <sstream>
 using namespace Core;
 
@@ -66,9 +67,9 @@ Theory::iterator Theory::add(Node_ptr object, iterator after)
 /**
  * Get the object having a specific name.
  * @param reference Identifier to search for.
- * @return Pointer to the node or nullptr, if no such node exists.
+ * @return Iterator to the node or to the end, if no such node exists.
  */
-Theory::iterator Theory::get(const std::string& reference) const
+Theory::const_iterator Theory::get(const std::string& reference) const
 {
 	// construct a dummy node
 	SearchNode node(reference);
@@ -79,7 +80,7 @@ Theory::iterator Theory::get(const std::string& reference) const
 	else if (parent != nullptr)
 		return parent->get(reference);
 	else
-		return entry->second;
+		return nodes.end();
 }
 
 Theory::iterator Theory::begin()

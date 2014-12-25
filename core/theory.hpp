@@ -21,7 +21,6 @@
 #define CORE_THEORY_HPP
 #include "forward.hpp"
 #include "expression.hpp"
-#include "logic.hpp"
 #include <string>
 #include <vector>
 #include <list>
@@ -52,7 +51,7 @@ namespace Core {
 
 		// Add and get nodes: declarations, definitions, and statements.
 		iterator add(Node_ptr object, iterator after);
-		iterator get(const std::string& reference) const;
+		const_iterator get(const std::string& reference) const;
 
 		// Miscellaneous
 		void accept(Visitor *visitor) const
