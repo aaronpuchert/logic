@@ -49,7 +49,7 @@ $(TEST_OBJS): $(BUILDDIR)/test/%.o: test/%.cpp
 	$(CXX) -c $(CFLAGS) -o $@ $<
 
 # Use the dependency files created by the compiler
--include $(patsubst %.cpp,%.d,$(CPPS) $(TEST_CPPS))
+-include $(patsubst %.o,%.d,$(OBJS) $(TEST_OBJS))
 
 # Directories
 $(BUILDDIR)/:
@@ -67,7 +67,8 @@ $(DOCS): doc/%.html: doc/%.md
 	@echo -e "</body>\n</html>" >>$@
 
 clean:
-	-rm $(OBJS) $(TEST_OBJS) $(TARGET) $(TEST_TARGET)
+	-rm $(OBJS) $(TEST_OBJS) $(patsubst %.o,%.d,$(OBJS) $(TEST_OBJS))
+	-rm $(TARGET) $(TEST_TARGET)
 	-rm $(DOCS)
 
 .PHONY: all test clean doc
