@@ -30,7 +30,6 @@ namespace Core {
 	 */
 	class Visitor {
 	public:
-		virtual ~Visitor() {}
 		virtual void visit(const Type *type);
 		virtual void visit(const Variable *variable);
 		virtual void visit(const PredicateDecl *predicate);
@@ -49,6 +48,9 @@ namespace Core {
 		virtual void visit(const ProofStep *proofstep);
 		virtual void visit(const LongProof *longproof);
 		virtual void visit(const Theory *theory);
+
+	protected:
+		~Visitor() {}
 	};
 }	// End of namespace Core
 

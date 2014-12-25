@@ -146,6 +146,7 @@ namespace Core {
 	 */
 	class Proof {
 	public:
+		virtual ~Proof() {}
 		virtual bool proves(const Statement &statement) = 0;
 		virtual void accept(Visitor *visitor) const = 0;
 	};

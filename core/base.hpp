@@ -39,6 +39,7 @@ namespace Core {
 
 		Node(const std::string &name, NodeType node_type)
 			: node_type(node_type), name(name) {}
+		virtual ~Node() {}
 		const std::string &getName() const
 			{return name;}
 
@@ -64,6 +65,7 @@ namespace Core {
 	 */
 	class Expression {
 	public:
+		virtual ~Expression() {}
 		virtual void accept(Visitor *visitor) const = 0;
 	};
 
