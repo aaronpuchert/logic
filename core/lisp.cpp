@@ -159,8 +159,7 @@ void Writer::write_varlist(const Rule* rule)
 {
 	addParanthesis(OPENING);
 	addToken("list");
-	for (const Variable &var: rule->getVars())
-		var.accept(this);
+	rule->getVars()->accept(this);
 	addParanthesis(CLOSING);
 }
 

@@ -38,16 +38,20 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	// Rule of the excluded middle.
 	Expr_ptr not_a = make_shared<NegationExpr>(expr_a);
 	Expr_ptr taut_stmt = make_shared<ConnectiveExpr>(ConnectiveExpr::OR, expr_a, not_a);
+	Theory tautology_theory;
+	tautology_theory.add(stmt_a, tautology_theory.begin());
 	Rule_ptr tautology = make_shared<Tautology>("excluded_middle",
-		Rule::VarList{*stmt_a}, taut_stmt);
+		std::move(tautology_theory), taut_stmt);
 
 	checkResult(tautology.get(), "(tautology excluded_middle (list (statement a)) (or a (not a)))\n");
 	position = rules.add(tautology, position);
 
 	// Rule of double negation.
 	Expr_ptr not_not_a = make_shared<NegationExpr>(not_a);
+	Theory equivrule_theory;
+	equivrule_theory.add(stmt_a, equivrule_theory.begin());
 	Rule_ptr equivrule = make_shared<EquivalenceRule>("double_negation",
-		Rule::VarList{*stmt_a}, not_not_a, expr_a);
+		std::move(equivrule_theory), not_not_a, expr_a);
 
 	checkResult(equivrule.get(), "(equivrule double_negation (list (statement a)) (not (not a)) a)\n");
 	position = rules.add(equivrule, position);
@@ -55,8 +59,11 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	// The modus ponens rule.
 	Expr_ptr impl = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL, expr_a, expr_b);
 	std::vector<Expr_ptr> premisses{impl, expr_a};
+	Theory deductionrule_theory;
+	Theory::iterator it = deductionrule_theory.add(stmt_a, deductionrule_theory.begin());
+	deductionrule_theory.add(stmt_b, it);
 	Rule_ptr deductionrule = make_shared<DeductionRule>("ponens",
-		Rule::VarList{*stmt_a, *stmt_b}, premisses, expr_b);
+		std::move(deductionrule_theory), premisses, expr_b);
 
 	checkResult(deductionrule.get(), "(deductionrule ponens (list (statement a) (statement b)) (list (impl a b) a) b)\n");
 	position = rules.add(deductionrule, position);

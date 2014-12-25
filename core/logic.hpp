@@ -35,19 +35,16 @@ namespace Core {
 	 */
 	class Rule : public Node {
 	public:
-		// Type for Variable lists
-		typedef std::vector<Variable> VarList;
-
-		Rule(const std::string& name, const VarList &var_list)
-			: Node(name, Node::RULE), var_list(var_list) {}
-		const VarList& getVars() const
-			{return var_list;}
+		Rule(const std::string& name, Theory &&params)
+			: Node(name, Node::RULE), params(std::move(params)) {}
+		const Theory* getVars() const
+			{return &params;}
 
 		virtual bool validate(const std::vector<Expr_ptr> &substitutes,
 			const std::vector<Expr_ptr> &statements) = 0;
 
 	protected:
-		VarList var_list;
+		Theory params;
 	};
 
 	/**
@@ -55,8 +52,8 @@ namespace Core {
 	 */
 	class Tautology : public Rule {
 	public:
-		Tautology(const std::string& name, const VarList &var_list,
-			Expr_ptr statement) : Rule(name, var_list), statement(statement) {}
+		Tautology(const std::string& name, Theory &&params, Expr_ptr statement)
+			: Rule(name, std::move(params)), statement(statement) {}
 		const_Expr_ptr getStatement() const
 			{return statement;}
 		void accept(Visitor *visitor) const
@@ -74,9 +71,10 @@ namespace Core {
 	 */
 	class EquivalenceRule : public Rule {
 	public:
-		EquivalenceRule(const std::string& name, const VarList &var_list,
+		EquivalenceRule(const std::string& name, Theory &&params,
 			Expr_ptr statement1, Expr_ptr statement2)
-			: Rule(name, var_list), statement1(statement1), statement2(statement2) {}
+			: Rule(name, std::move(params)),
+				statement1(statement1), statement2(statement2) {}
 		const_Expr_ptr getStatement1() const
 			{return statement1;}
 		const_Expr_ptr getStatement2() const
@@ -96,9 +94,10 @@ namespace Core {
 	 */
 	class DeductionRule : public Rule {
 	public:
-		DeductionRule(const std::string& name, const VarList &var_list,
+		DeductionRule(const std::string& name, Theory &&params,
 			const std::vector<Expr_ptr> &premisses, Expr_ptr conclusion)
-			: Rule(name, var_list), premisses(premisses), conclusion(conclusion) {}
+			: Rule(name, std::move(params)), premisses(premisses),
+				conclusion(conclusion) {}
 		const std::vector<Expr_ptr> &prem() const
 			{return premisses;}
 		const_Expr_ptr getConclusion() const
