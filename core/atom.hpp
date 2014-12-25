@@ -21,7 +21,7 @@
 #ifndef CORE_ATOM_HPP
 #define CORE_ATOM_HPP
 #include "forward.hpp"
-#include "type.hpp"
+#include "base.hpp"
 #include <string>
 #include <vector>
 #include "traverse.hpp"
@@ -83,7 +83,7 @@ namespace Core {
 	/**
 	 * Definition of an anonymous Predicate.
 	 */
-	class PredicateLambda {
+	class PredicateLambda : public Expression {
 	public:
 		PredicateLambda(std::vector<Variable> &&vars, Expr_ptr expression);
 		int getValency() const;

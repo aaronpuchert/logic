@@ -1,5 +1,5 @@
 /*
- *   Type system.
+ *   Base classes for Theory nodes and Expressions.
  *   Copyright (C) 2014 Aaron Puchert
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#ifndef CORE_BASE_HPP
+#define CORE_BASE_HPP
 #include "forward.hpp"
 #include <string>
 #include <memory>
@@ -59,6 +60,14 @@ namespace Core {
 	};
 
 	/**
+	 * Abstract class for expressions.
+	 */
+	class Expression {
+	public:
+		virtual void accept(Visitor *visitor) const = 0;
+	};
+
+	/**
 	 * Base class for types.
 	 */
 	class Type : public Node {
@@ -69,3 +78,5 @@ namespace Core {
 			{visitor->visit(this);}
 	};
 }	// End of namespace Core
+
+#endif

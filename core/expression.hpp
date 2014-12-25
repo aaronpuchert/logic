@@ -30,14 +30,6 @@
  */
 namespace Core {
 	/**
-	 * Abstract class for expressions.
-	 */
-	class Expression {
-	public:
-		virtual void accept(Visitor *visitor) const = 0;
-	};
-
-	/**
 	 * Atomic expression.
 	 */
 	class AtomicExpr : public Expression {

@@ -26,10 +26,12 @@
  * Namespace for logic core
  */
 namespace Core {
-	// type.hpp
+	// base.hpp
 	class Node;
 	typedef std::shared_ptr<Node> Node_ptr;
 	typedef std::shared_ptr<const Node> const_Node_ptr;
+	class SearchNode;
+	class Expression;
 	class Type;
 	typedef std::shared_ptr<Type> Type_ptr;
 	typedef std::shared_ptr<const Type> const_Type_ptr;
@@ -46,7 +48,6 @@ namespace Core {
 	class PredicateDef;
 
 	// expression.hpp
-	class Expression;
 	typedef std::shared_ptr<Expression> Expr_ptr;
 	typedef std::shared_ptr<const Expression> const_Expr_ptr;
 	class AtomicExpr;
