@@ -30,8 +30,8 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 
 	// Create statement variables
 	Type_ptr statement = make_shared<Type>("statement");
-	std::shared_ptr<Variable> stmt_a = make_shared<Variable>(statement, "a");
-	std::shared_ptr<Variable> stmt_b = make_shared<Variable>(statement, "b");
+	Var_ptr stmt_a = make_shared<Variable>(statement, "a");
+	Var_ptr stmt_b = make_shared<Variable>(statement, "b");
 	Expr_ptr expr_a = make_shared<AtomicExpr>(stmt_a);
 	Expr_ptr expr_b = make_shared<AtomicExpr>(stmt_b);
 
@@ -93,8 +93,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	// (axiom (schüler? fritz))
 	Expr_ptr axiom1_expr = make_shared<PredicateExpr>(student,
 		std::vector<Expr_ptr>{fritz_expr});
-	std::shared_ptr<Statement> axiom1 =
-		make_shared<Statement>("", axiom1_expr);
+	Statement_ptr axiom1 = make_shared<Statement>("", axiom1_expr);
 	checkResult(axiom1.get(), "(axiom (schüler? fritz))\n");
 	position = theory.add(axiom1, position);
 
@@ -110,8 +109,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	PredicateLambda impl_pred(std::vector<Variable>{*var_x}, impl);
 	Expr_ptr forall_expr = make_shared<QuantifierExpr>
 		(QuantifierExpr::FORALL, impl_pred);
-	std::shared_ptr<Statement> axiom2 =
-		make_shared<Statement>("", forall_expr);
+	Statement_ptr axiom2 = make_shared<Statement>("", forall_expr);
 	checkResult(axiom2.get(), "(axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))\n");
 	position = theory.add(axiom2, position);
 
@@ -119,8 +117,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  	(dumm? fritz)
 	Expr_ptr statement_expr = make_shared<PredicateExpr>(stupid,
 		std::vector<Expr_ptr>{fritz_expr});
-	std::shared_ptr<Statement> statement =
-		make_shared<Statement>("", statement_expr);
+	Statement_ptr statement = make_shared<Statement>("", statement_expr);
 	position = theory.add(statement, position);
 
 	//  	(proof
@@ -129,7 +126,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  		(statement (impl (schüler? fritz) (dumm? fritz))
 	Expr_ptr inter1_expr = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL,
 		axiom1_expr, statement_expr);
-	std::shared_ptr<Statement> inter1 = make_shared<Statement>("", inter1_expr);
+	Statement_ptr inter1 = make_shared<Statement>("", inter1_expr);
 	sub_pos = proof->subTheory.add(inter1, sub_pos);
 	//  			(specialization
 	//  				(list (predicate (list (person x)) (impl (schüler? x) (dumm? x))) person fritz)
@@ -138,7 +135,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	// TODO: add proof
 	//  		)
 	//  		(statement (dumm? fritz)
-	std::shared_ptr<Statement> inter2 = make_shared<Statement>("", statement_expr);
+	Statement_ptr inter2 = make_shared<Statement>("", statement_expr);
 	//  			(ponens
 	//  				(list (schüler? fritz) (dumm? fritz))
 	//  				(list parent~2 this~1)
