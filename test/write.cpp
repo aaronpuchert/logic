@@ -38,20 +38,16 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	// Rule of the excluded middle.
 	Expr_ptr not_a = make_shared<NegationExpr>(expr_a);
 	Expr_ptr taut_stmt = make_shared<ConnectiveExpr>(ConnectiveExpr::OR, expr_a, not_a);
-	Theory tautology_theory;
-	tautology_theory.add(stmt_a, tautology_theory.begin());
 	Rule_ptr tautology = make_shared<Tautology>("excluded_middle",
-		std::move(tautology_theory), taut_stmt);
+		Theory{stmt_a}, taut_stmt);
 
 	checkResult(tautology.get(), "(tautology excluded_middle (list (statement a)) (or a (not a)))\n");
 	position = rules.add(tautology, position);
 
 	// Rule of double negation.
 	Expr_ptr not_not_a = make_shared<NegationExpr>(not_a);
-	Theory equivrule_theory;
-	equivrule_theory.add(stmt_a, equivrule_theory.begin());
 	Rule_ptr equivrule = make_shared<EquivalenceRule>("double_negation",
-		std::move(equivrule_theory), not_not_a, expr_a);
+		Theory{stmt_a}, not_not_a, expr_a);
 
 	checkResult(equivrule.get(), "(equivrule double_negation (list (statement a)) (not (not a)) a)\n");
 	position = rules.add(equivrule, position);
@@ -59,11 +55,8 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	// The modus ponens rule.
 	Expr_ptr impl = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL, expr_a, expr_b);
 	std::vector<Expr_ptr> premisses{impl, expr_a};
-	Theory deductionrule_theory;
-	it = deductionrule_theory.add(stmt_a, deductionrule_theory.begin());
-	it = deductionrule_theory.add(stmt_b, it);
 	Rule_ptr deductionrule = make_shared<DeductionRule>("ponens",
-		std::move(deductionrule_theory), premisses, expr_b);
+		Theory{stmt_a, stmt_b}, premisses, expr_b);
 
 	checkResult(deductionrule.get(), "(deductionrule ponens (list (statement a) (statement b)) (list (impl a b) a) b)\n");
 	position = rules.add(deductionrule, position);
@@ -81,19 +74,15 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	position = theory.add(person_node, position);
 
 	// (predicate schüler? (list person))
-	Theory student_theory;
 	Node_ptr var_x = make_shared<Node>(person, "x");
-	student_theory.add(var_x, student_theory.begin());
-	Expr_ptr student_expr = make_shared<PredicateLambda>(std::move(student_theory));
+	Expr_ptr student_expr = make_shared<PredicateLambda>(Theory{var_x});
 	Node_ptr student = make_shared<Node>(predicate_type, "schüler?");
 	student->setDefinition(student_expr);
 	checkResult(student.get(), "(predicate schüler? (list (person x)))\n");
 	position = theory.add(student, position);
 
 	// (predicate dumm? (list person))
-	Theory stupid_theory;
-	stupid_theory.add(var_x, stupid_theory.begin());
-	Expr_ptr stupid_expr = make_shared<PredicateLambda>(std::move(stupid_theory));
+	Expr_ptr stupid_expr = make_shared<PredicateLambda>(Theory{var_x});
 	Node_ptr stupid = make_shared<Node>(predicate_type, "dumm?");
 	stupid->setDefinition(stupid_expr);
 	checkResult(stupid.get(), "(predicate dumm? (list (person x)))\n");
@@ -113,8 +102,6 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	position = theory.add(axiom1, position);
 
 	// (axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))
-	Theory axiom_theory;
-	axiom_theory.add(var_x, axiom_theory.end());
 	Expr_ptr expr_x = make_shared<AtomicExpr>(var_x);
 	Expr_ptr student_x = make_shared<PredicateExpr>(student,
 		std::vector<Expr_ptr>{expr_x});
@@ -123,7 +110,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	Expr_ptr impl = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL,
 		student_x, stupid_x);
 	std::shared_ptr<PredicateLambda> impl_pred =
-		make_shared<PredicateLambda>(std::move(axiom_theory));
+		make_shared<PredicateLambda>(Theory{var_x});
 	impl_pred->setDefinition(impl);
 	Expr_ptr forall_expr = make_shared<QuantifierExpr>
 		(QuantifierExpr::FORALL, impl_pred);

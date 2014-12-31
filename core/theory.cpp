@@ -44,6 +44,17 @@ Theory::Theory(Theory* parent, iterator parent_node)
 	: parent(parent), parent_node(parent_node) {}
 
 /**
+ * Construct a theory from a list of nodes.
+ * @param nodes List of nodes.
+ */
+Theory::Theory(std::initializer_list<Node_ptr> nodes)
+{
+	iterator it = begin();
+	for (Node_ptr node : nodes)
+		it = add(node, it);
+}
+
+/**
  * Add node to theory.
  * @param object Object to add.
  * @param after Iterator pointing to the node after which to insert.

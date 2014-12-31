@@ -25,6 +25,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <initializer_list>
 #include "traverse.hpp"
 
 /**
@@ -42,6 +43,7 @@ namespace Core {
 
 		Theory();
 		Theory(Theory *parent, iterator parent_node);
+		Theory(std::initializer_list<Node_ptr> nodes);
 
 		// Iterate through nodes
 		iterator begin();
