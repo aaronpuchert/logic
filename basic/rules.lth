@@ -29,5 +29,5 @@
 ; Umbenennung
 ; ... ist das eine Regel, oder ist das elementar?
 ; Spezialisierung
-(deductionrule specialization ((predicate P) (typename T) (T y)) (forall (T x) P(x)) P(y))
+(deductionrule specialization (list (type T) (predicate P (list (T x))) (T y)) (list (forall P)) (P y))
 ; Was sonst?

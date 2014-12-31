@@ -60,6 +60,30 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 
 	checkResult(deductionrule.get(), "(deductionrule ponens (list (statement a) (statement b)) (list (impl a b) a) b)\n");
 	position = rules.add(deductionrule, position);
+
+	// The specialization rule
+	Node_ptr type_decl = make_shared<Node>(type_type, "T");
+	Type_ptr gen_type = make_shared<VariableType>(type_decl);
+
+	Node_ptr var_x = make_shared<Node>(gen_type, "x");
+	Expr_ptr predicate = make_shared<PredicateLambda>(Theory{var_x});
+	Node_ptr pred_node = make_shared<Node>(predicate_type, "P");
+	pred_node->setDefinition(predicate);
+
+	Node_ptr var_y = make_shared<Node>(gen_type, "y");
+
+	Expr_ptr expr_y = make_shared<AtomicExpr>(var_y);
+	Expr_ptr atomic_pred = make_shared<AtomicExpr>(pred_node);
+	Expr_ptr forall_expr = make_shared<QuantifierExpr>(QuantifierExpr::FORALL,
+		atomic_pred);
+	Expr_ptr pred_expr = make_shared<PredicateExpr>(pred_node,
+		std::vector<Expr_ptr>{expr_y});
+	Rule_ptr specializationrule = make_shared<DeductionRule>(
+		"specialization", Theory{type_decl, pred_node, var_y},
+		std::vector<Expr_ptr>{forall_expr}, pred_expr);
+
+	checkResult(specializationrule.get(), "(deductionrule specialization (list (type T) (predicate P (list (T x))) (T y)) (list (forall P)) (P y))\n");
+	position = rules.add(specializationrule, position);
 }
 
 BOOST_AUTO_TEST_CASE(theory_writer_test)
@@ -132,12 +156,15 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	Expr_ptr inter1_expr = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL,
 		axiom1_expr, statement_expr);
 	Statement_ptr inter1 = make_shared<Statement>("", inter1_expr);
-	sub_pos = proof->subTheory.add(inter1, sub_pos);
 	//  			(specialization
-	//  				(list (predicate (list (person x)) (impl (schüler? x) (dumm? x))) person fritz)
+	//  				(list person (list (person x)) (impl (schüler? x) (dumm? x)) fritz)
 	//  				(list parent~1)
 	//  			)
-	// TODO: add proof
+	std::shared_ptr<ProofStep> step1 = make_shared<ProofStep>(&rules, "specialization",
+		std::vector<Expr_ptr>{make_shared<AtomicExpr>(person_node), impl_pred, fritz_expr},
+		std::vector<Reference>{Reference(&theory, --position)});
+	inter1->addProof(step1);
+	sub_pos = proof->subTheory.add(inter1, sub_pos);
 	//  		)
 	//  		(statement (dumm? fritz)
 	Statement_ptr inter2 = make_shared<Statement>("", statement_expr);
@@ -147,12 +174,12 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  			)
 	std::shared_ptr<ProofStep> step2 = make_shared<ProofStep>(&rules,
 		"ponens", std::vector<Expr_ptr>{axiom1_expr, statement_expr},
-		std::vector<Reference>{Reference(&theory, --(--position)), Reference(&proof->subTheory, sub_pos)});
+		std::vector<Reference>{Reference(&theory, --position), Reference(&proof->subTheory, sub_pos)});
 	inter2->addProof(step2);
 	sub_pos = proof->subTheory.add(inter2, sub_pos);
 	//  		)
 	//  	)
 	//  )
 	statement->addProof(proof);
-	checkResult(statement.get(), "(statement (dumm? fritz) (proof (axiom (impl (schüler? fritz) (dumm? fritz))) (statement (dumm? fritz) (ponens (list (schüler? fritz) (dumm? fritz)) (list parent~2 this~1)))))\n");
+	checkResult(statement.get(), "(statement (dumm? fritz) (proof (statement (impl (schüler? fritz) (dumm? fritz)) (specialization (list person (list (person x)) (impl (schüler? x) (dumm? x)) fritz) (list parent~1))) (statement (dumm? fritz) (ponens (list (schüler? fritz) (dumm? fritz)) (list parent~2 this~1)))))\n");
 }
