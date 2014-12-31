@@ -23,47 +23,33 @@ using namespace Core;
 
 /**
  * Construct standard type.
- * @method Type::Type
- * @param variant Can be any of Type::{UNDEFINED|TYPE|PREDICATE|STATEMENT|RULE}.
+ * @method BuiltInType::BuiltInType
+ * @param variant Can be any of Type::{UNDEFINED|TYPE|STATEMENT|RULE}.
  */
-Type::Type(Variant variant)
+BuiltInType::BuiltInType(Variant variant)
 	: variant(variant) {}
 
-/**
- * Get name of standard type.
- * @method Type::getName
- * @return String containing the name.
- */
-std::string Type::getName() const
-{
-	switch (variant) {
-	case TYPE:
-		return "type";
-	case PREDICATE:
-		return "predicate";
-	case STATEMENT:
-		return "statement";
-	case RULE:
-		return "rule";
-	default:
-		return "undefined";
-	}
-}
-
-void Type::accept(Visitor *visitor) const
+void BuiltInType::accept(Visitor *visitor) const
 {
 	visitor->visit(this);
 }
+
+// GLOBAL standard types.
+const const_Type_ptr
+	BuiltInType::type = std::make_shared<BuiltInType>(BuiltInType::TYPE),
+	BuiltInType::predicate = std::make_shared<BuiltInType>(BuiltInType::PREDICATE),
+	BuiltInType::statement = std::make_shared<BuiltInType>(BuiltInType::STATEMENT),
+	BuiltInType::rule = std::make_shared<BuiltInType>(BuiltInType::RULE),
+	BuiltInType::undefined = std::make_shared<BuiltInType>(BuiltInType::UNDEFINED);
 
 /**
  * Construct a VariableType.
  * @method VariableType::VariableType
  * @param node Pointer to a node of Type type.
  */
-VariableType::VariableType(const_Node_ptr node)
-	: Type(Type::VARIABLE), node(node)
+VariableType::VariableType(const_Node_ptr node) : node(node)
 {
-	if (node->getType() != type_type)
+	if (node->getType() != BuiltInType::type)
 		std::runtime_error("Can't construct a VariableType from a non-type node.");
 }
 
@@ -82,7 +68,7 @@ const_Node_ptr VariableType::getNode() const
  * @method VariableType::getName
  * @return String containing the name.
  */
-std::string VariableType::getName() const
+const std::string& VariableType::getName() const
 {
 	return node->getName();
 }
@@ -90,16 +76,6 @@ std::string VariableType::getName() const
 void VariableType::accept(Visitor *visitor) const
 {
 	visitor->visit(this);
-}
-
-// GLOBAL standard types.
-namespace Core {
-const const_Type_ptr
-	type_type = std::make_shared<Type>(Type::TYPE),
-	statement_type = std::make_shared<Type>(Type::STATEMENT),
-	predicate_type = std::make_shared<Type>(Type::PREDICATE),
-	rule_type = std::make_shared<Type>(Type::RULE),
-	undefined_type = std::make_shared<Type>(Type::UNDEFINED);
 }
 
 /**

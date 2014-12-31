@@ -49,10 +49,36 @@ Writer::~Writer()
 		output << "Error: unbalanced parantheses!\n";
 }
 
+void Writer::visit(const BuiltInType *type)
+{
+	switch (type->variant) {
+	case BuiltInType::TYPE:
+		addToken("type");
+		break;
+	case BuiltInType::PREDICATE:
+		addToken("predicate");
+		break;
+	case BuiltInType::STATEMENT:
+		addToken("statement");   // TODO: that's actually not so easy.
+		break;
+	case BuiltInType::RULE:
+		addToken("rule");        // TODO: not so easy as well.
+		break;
+	default:
+		addToken("undefined");
+		break;
+	}
+}
+
+void Writer::visit(const VariableType *type)
+{
+	addToken(type->getName());
+}
+
 void Writer::visit(const Node *node)
 {
 	addParanthesis(OPENING);
-	addToken(node->getType()->getName());
+	node->getType()->accept(this);
 	addToken(node->getName());
 	if (const_Expr_ptr expr = node->getDefinition())
 		expr->accept(this);

@@ -263,7 +263,7 @@ ProofStep::ProofStep(Theory *system, const std::string &rule_name,
 	: var_list(std::move(var_list)), ref_statement_list(std::move(statement_list))
 {
 	Theory::const_iterator rule_it = system->get(rule_name);
-	if (rule_it != system->end() && (*rule_it)->getType() == rule_type)
+	if (rule_it != system->end() && (*rule_it)->getType() == BuiltInType::rule)
 		rule = std::static_pointer_cast<Rule>(*rule_it).get();
 	else
 		return; 	// TODO: exception

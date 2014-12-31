@@ -33,6 +33,7 @@ namespace Core {
 	class Type;
 	typedef std::shared_ptr<Type> Type_ptr;
 	typedef std::shared_ptr<const Type> const_Type_ptr;
+	class BuiltInType;
 	class VariableType;
 	class Node;
 	typedef std::shared_ptr<Node> Node_ptr;

@@ -30,8 +30,8 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	Theory::iterator it;	// Iterator for within rules
 
 	// Create statement variables
-	Node_ptr stmt_a = make_shared<Node>(statement_type, "a");
-	Node_ptr stmt_b = make_shared<Node>(statement_type, "b");
+	Node_ptr stmt_a = make_shared<Node>(BuiltInType::statement, "a");
+	Node_ptr stmt_b = make_shared<Node>(BuiltInType::statement, "b");
 	Expr_ptr expr_a = make_shared<AtomicExpr>(stmt_a);
 	Expr_ptr expr_b = make_shared<AtomicExpr>(stmt_b);
 
@@ -62,12 +62,12 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	position = rules.add(deductionrule, position);
 
 	// The specialization rule
-	Node_ptr type_decl = make_shared<Node>(type_type, "T");
+	Node_ptr type_decl = make_shared<Node>(BuiltInType::type, "T");
 	Type_ptr gen_type = make_shared<VariableType>(type_decl);
 
 	Node_ptr var_x = make_shared<Node>(gen_type, "x");
 	Expr_ptr predicate = make_shared<PredicateLambda>(Theory{var_x});
-	Node_ptr pred_node = make_shared<Node>(predicate_type, "P");
+	Node_ptr pred_node = make_shared<Node>(BuiltInType::predicate, "P");
 	pred_node->setDefinition(predicate);
 
 	Node_ptr var_y = make_shared<Node>(gen_type, "y");
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	Theory::iterator position = theory.begin();
 
 	// (type person)
-	Node_ptr person_node = make_shared<Node>(type_type, "person");
+	Node_ptr person_node = make_shared<Node>(BuiltInType::type, "person");
 	Type_ptr person = make_shared<VariableType>(person_node);
 	checkResult(person_node.get(), "(type person)\n");
 	position = theory.add(person_node, position);
@@ -100,14 +100,14 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	// (predicate schüler? (list person))
 	Node_ptr var_x = make_shared<Node>(person, "x");
 	Expr_ptr student_expr = make_shared<PredicateLambda>(Theory{var_x});
-	Node_ptr student = make_shared<Node>(predicate_type, "schüler?");
+	Node_ptr student = make_shared<Node>(BuiltInType::predicate, "schüler?");
 	student->setDefinition(student_expr);
 	checkResult(student.get(), "(predicate schüler? (list (person x)))\n");
 	position = theory.add(student, position);
 
 	// (predicate dumm? (list person))
 	Expr_ptr stupid_expr = make_shared<PredicateLambda>(Theory{var_x});
-	Node_ptr stupid = make_shared<Node>(predicate_type, "dumm?");
+	Node_ptr stupid = make_shared<Node>(BuiltInType::predicate, "dumm?");
 	stupid->setDefinition(stupid_expr);
 	checkResult(stupid.get(), "(predicate dumm? (list (person x)))\n");
 	position = theory.add(stupid, position);

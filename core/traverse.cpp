@@ -23,7 +23,7 @@ using namespace Core;
 /**
  * Default implementations for Visitor functions.
  */
-void Visitor::visit(const Type *type)
+void Visitor::visit(const BuiltInType *type)
 {
 	//
 }

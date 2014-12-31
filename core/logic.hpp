@@ -37,7 +37,7 @@ namespace Core {
 	class Rule : public Node {
 	public:
 		Rule(const std::string& name, Theory &&params)
-			: Node(rule_type, name), params(std::move(params)) {}
+			: Node(BuiltInType::rule, name), params(std::move(params)) {}
 		const Theory* getVars() const
 			{return &params;}
 

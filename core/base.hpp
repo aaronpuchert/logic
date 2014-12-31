@@ -42,13 +42,24 @@ namespace Core {
 	 */
 	class Type {
 	public:
-		enum Variant {UNDEFINED, TYPE, VARIABLE, PREDICATE, STATEMENT, RULE}
+		virtual ~Type() {}
+		virtual void accept(Visitor *visitor) const = 0;
+	};
+
+	/**
+	 * Built-in standard types.
+	 */
+	class BuiltInType : public Type {
+	public:
+		enum Variant {UNDEFINED, TYPE, PREDICATE, STATEMENT, RULE}
 			const variant;
 
-		Type(Variant variant);
-		virtual ~Type() {}
-		virtual std::string getName() const;
-		virtual void accept(Visitor *visitor) const;
+		BuiltInType(Variant variant);
+		void accept(Visitor *visitor) const;
+
+		// Global standard types
+		static const const_Type_ptr
+			type, predicate, statement, rule, undefined;
 	};
 
 	/**
@@ -58,23 +69,13 @@ namespace Core {
 	public:
 		VariableType(const_Node_ptr node);
 		const_Node_ptr getNode() const;
-		std::string getName() const;
+		const std::string& getName() const;
 
 		void accept(Visitor *visitor) const;
 
 	private:
 		const_Node_ptr node;
 	};
-
-	/**
-	 * Global standard types.
-	 */
-	extern const const_Type_ptr
-		type_type,
-		statement_type,
-		predicate_type,
-		rule_type,
-		undefined_type;
 
 	/**
 	 * Abstract base class for named entities in theories: types, variables,
@@ -108,7 +109,7 @@ namespace Core {
 	class SearchNode : public Node {
 	public:
 		SearchNode(const std::string& name)
-			: Node(undefined_type, name) {}
+			: Node(BuiltInType::undefined, name) {}
 		void accept(Visitor *visitor) const
 			{}
 	};
