@@ -29,38 +29,6 @@
  */
 namespace Core {
 	/**
-	 * Abstract base class for named entities in theories: types, variables,
-	 * predicates, statements.
-	 */
-	class Node {
-	public:
-		enum NodeType {UNDEFINED, TYPE, VARIABLE, PREDICATE, STATEMENT, RULE}
-			const node_type;
-
-		Node(const std::string &name, NodeType node_type)
-			: node_type(node_type), name(name) {}
-		virtual ~Node() {}
-		const std::string &getName() const
-			{return name;}
-
-		virtual void accept(Visitor *visitor) const = 0;
-
-	protected:
-		std::string name;
-	};
-
-	/**
-	 * Dummy node class for searching.
-	 */
-	class SearchNode : public Node {
-	public:
-		SearchNode(const std::string& name)
-			: Node(name, Node::UNDEFINED) {}
-		void accept(Visitor *visitor) const
-			{}
-	};
-
-	/**
 	 * Abstract class for expressions.
 	 */
 	class Expression {
@@ -72,12 +40,77 @@ namespace Core {
 	/**
 	 * Base class for types.
 	 */
-	class Type : public Node {
+	class Type {
 	public:
-		Type(const std::string &name)
-			: Node(name, Node::TYPE) {}
+		enum Variant {UNDEFINED, TYPE, VARIABLE, PREDICATE, STATEMENT, RULE}
+			const variant;
+
+		Type(Variant variant);
+		virtual ~Type() {}
+		virtual std::string getName() const;
+		virtual void accept(Visitor *visitor) const;
+	};
+
+	/**
+	 * Variable type.
+	 */
+	class VariableType : public Type {
+	public:
+		VariableType(const_Node_ptr node);
+		const_Node_ptr getNode() const;
+		std::string getName() const;
+
+		void accept(Visitor *visitor) const;
+
+	private:
+		const_Node_ptr node;
+	};
+
+	/**
+	 * Global standard types.
+	 */
+	extern const const_Type_ptr
+		type_type,
+		statement_type,
+		predicate_type,
+		rule_type,
+		undefined_type;
+
+	/**
+	 * Abstract base class for named entities in theories: types, variables,
+	 * predicates, statements.
+	 */
+	class Node {
+	public:
+		Node(const_Type_ptr type, const std::string &name)
+			: type(type), name(name) {}
+		virtual ~Node() {}
+
+		const std::string &getName() const
+			{return name;}
+		void setDefinition(Expr_ptr new_expression);
+		const_Type_ptr getType() const
+			{return type;}
+		const_Expr_ptr getDefinition() const
+			{return expression;}
+
+		virtual void accept(Visitor *visitor) const;
+
+	protected:
+		const_Type_ptr type;
+		std::string name;
+		Expr_ptr expression;
+	};
+
+	/**
+	 * Dummy node class for searching.
+	 */
+	class SearchNode : public Node {
+	public:
+		SearchNode(const std::string& name)
+			: Node(undefined_type, name) {}
 		void accept(Visitor *visitor) const
-			{visitor->visit(this);}
+			{}
 	};
 }	// End of namespace Core
 

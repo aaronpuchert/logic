@@ -28,22 +28,12 @@ void Visitor::visit(const Type *type)
 	//
 }
 
-void Visitor::visit(const Variable *variable)
+void Visitor::visit(const VariableType *type)
 {
 	//
 }
 
-void Visitor::visit(const PredicateDecl *predicate)
-{
-	//
-}
-
-void Visitor::visit(const PredicateLambda *predicate)
-{
-	//
-}
-
-void Visitor::visit(const PredicateDef *predicate)
+void Visitor::visit(const Node *node)
 {
 	//
 }
@@ -69,6 +59,11 @@ void Visitor::visit(const ConnectiveExpr *expression)
 }
 
 void Visitor::visit(const QuantifierExpr *expression)
+{
+	//
+}
+
+void Visitor::visit(const PredicateLambda *predicate)
 {
 	//
 }

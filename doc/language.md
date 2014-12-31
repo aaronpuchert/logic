@@ -1,6 +1,21 @@
 # Syntax #
-We follow the Lisp syntax. A program is a list of expressions, which may again
-contain other expressions.
+We follow the Lisp syntax. There are two central structures: nodes and
+expressions. Expressions are defined recursively as usual, more details can be
+found in the following sections. Theories are lists of nodes, which are simply
+names (identifiers). Nodes with just a name can be understood as declarations.
+It is also possible to give an expression for a node, i.e. a definition.
+
+Expressions and nodes are statically typed. There are a few built-in types:
+
+* type
+* predicate
+* statement
+* rule
+
+It is also possible to define your own types anywhere in a theory. Nodes of a
+certain type are then declared or defined via:
+
+	<node> = (<type> <name> [<definition>])
 
 ## Basic logic ##
 ### Statements (Propositional calculus) ###
@@ -19,39 +34,40 @@ The can be composed in the following ways:
 		| (impl <statement> <statement>)
 		| (equiv <statement> <statement>)
 
+Hence these are operators that accept statements as their input and return a
+statement.
+
 ### Types, Predicates and Quantifiers (Predicate logic) ###
 Types reduce the scope of predicates and quantifiers. A type is simply declared
 by
 
-	<type-declaration> := (type <typename>)
+	<declaration> := (type <typename>)
 
-There are two predefined types: `statement` and `predicate`. This allows as to
-make statements about statements and predicates. As soon as we have a type, we
-can define individuals of this type by
+This allows as to make statements about statements and predicates. As soon as we
+have a type, we can define individuals of this type by
 
-	<declaration> := (<typename> <name>)
+	<declaration> |= (<typename> <name>)
 
-Note that the declaration of statement variables is a special case of this one.
 Predicates can be declared, only giving the types of arguments, or be defined,
 giving a statement that depends on the arguments:
 
-	<predicate-declaration> := (predicate <pred_name> <type-list>)
-	<predicate-definition> := (predicate-definition [<pred_name>] <dec-list> <statement>)
-	<type_list> := (list <typename>*)
+	<declaration> |= (predicate <pred-name> <predicate-lambda>)
+	<predicate-lambda> = <dec-list> [<statement>]
 	<dec-list> := (list <declaration>*)
 
-Predicate definitions may omit a name, allowing for anonymous predicates. The
-`<statement>` may depend on the variables given in `<dec-list>`. “Calling” a
+A predicate-lambda is an expression, that can be used within other expressions.
+The `<statement>` may depend on the variables given in `<dec-list>`. “Calling” a
 predicate is now done by
 
-	<statement> |= (<name> <expression>*)
+	<statement> |= (<pred-name> <expression>*)
 
-and results in a statement. As of now, the only expressions we know are
-individuals. There are two other important statements in predicate logic:
+and results in a statement. Of course, we need quantifier expressions for
+predicate logic:
 
-	<statement> |= (forall <dec-list> <statement>)
-		| (exists <dec-list> <statement>)
-	<dec-list> := (list <declaration>*)
+	<statement> |= ({forall|exists} <predicate-expression>)
+
+The `<predicate-expression>` could be a predicate lambda or the name of a
+predicate.
 
 ### Rules ###
 The rules of logic are not hardcoded into the system and must be stated
@@ -60,24 +76,24 @@ explicitly. They are used to verify proofs.
 Every rule has a name, by which it is referenced in proofs, and a list of
 variables which can be substituted.
 
-	<variable-list> := (list (<declaration>*))
+	<dec-list> := (list (<declaration>*))
 
 With these prerequisites, we can define tautologies:
 
-	<tautology> := (tautology <name> <variable-list> <statement>)
+	<tautology> := (tautology <name> <dec-list> <statement>)
 
 Such a rule states that `<statement>` is always true, regardless of the values
 of any variables used.
 
 Equivalence rules state that two statements are logically equivalent:
 
-	<equivalence-rule> := (equivrule <name> <variable-list> <statement> <statement>)
+	<equivalence-rule> := (equivrule <name> <dec-list> <statement> <statement>)
 
 This means one can be replaced by the other. The last and most common form of
 rules are deduction rules. They state that if every statement in the
 `<statement-list>` is true, then `<statement>` is also true:
 
-	<deduction-rule> := (deductionrule <name> <variable-list> <statement-list> <statement>)
+	<deduction-rule> := (deductionrule <name> <dec-list> <statement-list> <statement>)
 	<statement-list> := (list <statement>*)
 
 The rules of standard logic will be predefined in `basic/rules.thy`.
@@ -87,8 +103,6 @@ Theories consist of declarations, axioms and (proved) statements. Consequently,
 a theory is just a list of objects like these:
 
 	<theory> := (<declaration>
-		| <predicate-declaration>
-		| <predicate-definition>
 		| <theory-axiom>
 		| <theory-statement>)*
 

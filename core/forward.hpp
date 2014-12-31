@@ -27,34 +27,25 @@
  */
 namespace Core {
 	// base.hpp
+	class Expression;
+	typedef std::shared_ptr<Expression> Expr_ptr;
+	typedef std::shared_ptr<const Expression> const_Expr_ptr;
+	class Type;
+	typedef std::shared_ptr<Type> Type_ptr;
+	typedef std::shared_ptr<const Type> const_Type_ptr;
+	class VariableType;
 	class Node;
 	typedef std::shared_ptr<Node> Node_ptr;
 	typedef std::shared_ptr<const Node> const_Node_ptr;
 	class SearchNode;
-	class Expression;
-	class Type;
-	typedef std::shared_ptr<Type> Type_ptr;
-	typedef std::shared_ptr<const Type> const_Type_ptr;
-
-	// atom.hpp
-	class Variable;
-	typedef std::shared_ptr<Variable> Var_ptr;
-	typedef std::shared_ptr<const Variable> const_Var_ptr;
-	class Predicate;
-	typedef std::shared_ptr<Predicate> Pred_ptr;
-	typedef std::shared_ptr<const Predicate> const_Pred_ptr;
-	class PredicateDecl;
-	class PredicateLambda;
-	class PredicateDef;
 
 	// expression.hpp
-	typedef std::shared_ptr<Expression> Expr_ptr;
-	typedef std::shared_ptr<const Expression> const_Expr_ptr;
 	class AtomicExpr;
 	class PredicateExpr;
 	class NegationExpr;
 	class ConnectiveExpr;
 	class QuantifierExpr;
+	class PredicateLambda;
 
 	// logic.hpp
 	class Rule;

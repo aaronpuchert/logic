@@ -31,15 +31,14 @@ namespace Core {
 	class Visitor {
 	public:
 		virtual void visit(const Type *type);
-		virtual void visit(const Variable *variable);
-		virtual void visit(const PredicateDecl *predicate);
-		virtual void visit(const PredicateLambda *predicate);
-		virtual void visit(const PredicateDef *predicate);
+		virtual void visit(const VariableType *type);
+		virtual void visit(const Node *node);
 		virtual void visit(const AtomicExpr *expression);
 		virtual void visit(const PredicateExpr *expression);
 		virtual void visit(const NegationExpr *expression);
 		virtual void visit(const ConnectiveExpr *expression);
 		virtual void visit(const QuantifierExpr *expression);
+		virtual void visit(const PredicateLambda *predicate);
 		virtual void visit(const Tautology *rule);
 		virtual void visit(const EquivalenceRule *rule);
 		virtual void visit(const DeductionRule *rule);

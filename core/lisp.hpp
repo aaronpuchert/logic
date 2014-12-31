@@ -60,16 +60,13 @@ namespace Core {
 	public:
 		Writer(std::ostream &output);
 		~Writer();
-		void visit(const Type *type);
-		void visit(const Variable *variable);
-		void visit(const PredicateDecl *predicate);
-		void visit(const PredicateLambda *predicate);
-		void visit(const PredicateDef *predicate);
+		void visit(const Node *node);
 		void visit(const AtomicExpr *expression);
 		void visit(const PredicateExpr *expression);
 		void visit(const NegationExpr *expression);
 		void visit(const ConnectiveExpr *expression);
 		void visit(const QuantifierExpr *expression);
+		void visit(const PredicateLambda *predicate);
 		void write_varlist(const Rule *rule);
 		void visit(const Tautology *rule);
 		void visit(const EquivalenceRule *rule);

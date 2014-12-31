@@ -20,6 +20,7 @@
 #include "theory.hpp"
 #include "logic.hpp"
 #include "lisp.hpp"
+#include "expression.hpp"
 #include <limits>
 #include <stdexcept>
 using namespace Core;
@@ -48,32 +49,13 @@ Writer::~Writer()
 		output << "Error: unbalanced parantheses!\n";
 }
 
-void Writer::visit(const Type *type)
+void Writer::visit(const Node *node)
 {
 	addParanthesis(OPENING);
-	addToken("type");
-	addToken(type->getName());
-	addParanthesis(CLOSING);
-}
-
-void Writer::visit(const Variable *variable)
-{
-	addParanthesis(OPENING);
-	addToken(variable->getType()->getName());
-	addToken(variable->getName());
-	addParanthesis(CLOSING);
-}
-
-void Writer::visit(const PredicateDecl *predicate)
-{
-	addParanthesis(OPENING);
-	addToken("predicate");
-	addToken(predicate->getName());
-	addParanthesis(OPENING);
-	addToken("list");
-	for (int i=0; i<predicate->getValency(); ++i)
-		addToken(predicate->getParameterType(i)->getName());
-	addParanthesis(CLOSING);
+	addToken(node->getType()->getName());
+	addToken(node->getName());
+	if (const_Expr_ptr expr = node->getDefinition())
+		expr->accept(this);
 	addParanthesis(CLOSING);
 }
 
@@ -82,19 +64,10 @@ void Writer::visit(const PredicateLambda *predicate)
 	// Declaration list
 	addParanthesis(OPENING);
 	addToken("list");
-	for (int i=0; i<predicate->getValency(); ++i)
-		predicate->getDeclaration(i).accept(this);
+	predicate->getParams().accept(this);
 	addParanthesis(CLOSING);
-	// Statement
-	predicate->getDefinition()->accept(this);
-}
-
-void Writer::visit(const PredicateDef *predicate)
-{
-	addParanthesis(OPENING);
-	addToken("predicate");
-	predicate->getDefinition().accept(this);
-	addParanthesis(CLOSING);
+	if (const_Expr_ptr expr = predicate->getDefinition())
+		expr->accept(this);
 }
 
 void Writer::visit(const AtomicExpr *expression)
@@ -106,8 +79,8 @@ void Writer::visit(const PredicateExpr *expression)
 {
 	addParanthesis(OPENING);
 	addToken(expression->getPredicate()->getName());
-	for (int i=0; i<expression->getPredicate()->getValency(); ++i)
-		expression->getArg(i)->accept(this);
+	for (auto arg : *expression)
+		arg->accept(this);
 	addParanthesis(CLOSING);
 }
 
@@ -122,7 +95,7 @@ void Writer::visit(const NegationExpr *expression)
 void Writer::visit(const ConnectiveExpr *expression)
 {
 	addParanthesis(OPENING);
-	switch (expression->getType()) {
+	switch (expression->getVariant()) {
 		case ConnectiveExpr::AND:
 			addToken("and");
 			break;
@@ -144,7 +117,7 @@ void Writer::visit(const ConnectiveExpr *expression)
 void Writer::visit(const QuantifierExpr *expression)
 {
 	addParanthesis(OPENING);
-	switch (expression->getType()) {
+	switch (expression->getVariant()) {
 	case QuantifierExpr::EXISTS:
 		addToken("exists");
 		break;
@@ -152,7 +125,7 @@ void Writer::visit(const QuantifierExpr *expression)
 		addToken("forall");
 		break;
 	}
-	expression->getPredicateLambda().accept(this);
+	expression->getPredicate()->accept(this);
 	addParanthesis(CLOSING);
 }
 

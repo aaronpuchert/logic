@@ -13,7 +13,8 @@ BUILDDIR = build
 TARGET = logic
 TEST_TARGET = $(BUILDDIR)/testsuite
 
-CPPS =	core/atom.cpp \
+CPPS =	core/base.cpp \
+	core/expression.cpp \
 	core/lisp.cpp \
 	core/logic.cpp \
 	core/theory.cpp \

@@ -21,6 +21,7 @@
 #define CORE_LOGIC_HPP
 #include "forward.hpp"
 #include "theory.hpp"
+#include "base.hpp"
 #include <vector>
 #include <string>
 #include <memory>
@@ -36,7 +37,7 @@ namespace Core {
 	class Rule : public Node {
 	public:
 		Rule(const std::string& name, Theory &&params)
-			: Node(name, Node::RULE), params(std::move(params)) {}
+			: Node(rule_type, name), params(std::move(params)) {}
 		const Theory* getVars() const
 			{return &params;}
 

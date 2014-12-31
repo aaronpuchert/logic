@@ -1,5 +1,5 @@
 #include "../core/logic.hpp"
-#include "../core/theory.hpp"
+#include "../core/expression.hpp"
 #include "../core/lisp.hpp"
 #define BOOST_TEST_MODULE LispTest
 #define BOOST_TEST_DYN_LINK
@@ -27,11 +27,11 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 {
 	// Put rules in theory
 	Theory::iterator position = rules.begin();
+	Theory::iterator it;	// Iterator for within rules
 
 	// Create statement variables
-	Type_ptr statement = make_shared<Type>("statement");
-	Var_ptr stmt_a = make_shared<Variable>(statement, "a");
-	Var_ptr stmt_b = make_shared<Variable>(statement, "b");
+	Node_ptr stmt_a = make_shared<Node>(statement_type, "a");
+	Node_ptr stmt_b = make_shared<Node>(statement_type, "b");
 	Expr_ptr expr_a = make_shared<AtomicExpr>(stmt_a);
 	Expr_ptr expr_b = make_shared<AtomicExpr>(stmt_b);
 
@@ -60,8 +60,8 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	Expr_ptr impl = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL, expr_a, expr_b);
 	std::vector<Expr_ptr> premisses{impl, expr_a};
 	Theory deductionrule_theory;
-	Theory::iterator it = deductionrule_theory.add(stmt_a, deductionrule_theory.begin());
-	deductionrule_theory.add(stmt_b, it);
+	it = deductionrule_theory.add(stmt_a, deductionrule_theory.begin());
+	it = deductionrule_theory.add(stmt_b, it);
 	Rule_ptr deductionrule = make_shared<DeductionRule>("ponens",
 		std::move(deductionrule_theory), premisses, expr_b);
 
@@ -75,24 +75,32 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	Theory::iterator position = theory.begin();
 
 	// (type person)
-	Type_ptr person = make_shared<Type>("person");
-	checkResult(person.get(), "(type person)\n");
-	position = theory.add(person, position);
+	Node_ptr person_node = make_shared<Node>(type_type, "person");
+	Type_ptr person = make_shared<VariableType>(person_node);
+	checkResult(person_node.get(), "(type person)\n");
+	position = theory.add(person_node, position);
 
 	// (predicate schüler? (list person))
-	std::shared_ptr<PredicateDecl> student = make_shared<PredicateDecl>("schüler?", 1);
-	student->setParameterType(0, person);
-	checkResult(student.get(), "(predicate schüler? (list person))\n");
+	Theory student_theory;
+	Node_ptr var_x = make_shared<Node>(person, "x");
+	student_theory.add(var_x, student_theory.begin());
+	Expr_ptr student_expr = make_shared<PredicateLambda>(std::move(student_theory));
+	Node_ptr student = make_shared<Node>(predicate_type, "schüler?");
+	student->setDefinition(student_expr);
+	checkResult(student.get(), "(predicate schüler? (list (person x)))\n");
 	position = theory.add(student, position);
 
 	// (predicate dumm? (list person))
-	std::shared_ptr<PredicateDecl> stupid = make_shared<PredicateDecl>("dumm?", 1);
-	stupid->setParameterType(0, person);
-	checkResult(stupid.get(), "(predicate dumm? (list person))\n");
+	Theory stupid_theory;
+	stupid_theory.add(var_x, stupid_theory.begin());
+	Expr_ptr stupid_expr = make_shared<PredicateLambda>(std::move(stupid_theory));
+	Node_ptr stupid = make_shared<Node>(predicate_type, "dumm?");
+	stupid->setDefinition(stupid_expr);
+	checkResult(stupid.get(), "(predicate dumm? (list (person x)))\n");
 	position = theory.add(stupid, position);
 
 	// (person fritz) ; this is in fact a constant, but what is the difference?
-	Var_ptr fritz = make_shared<Variable>(person, "fritz");
+	Node_ptr fritz = make_shared<Node>(person, "fritz");
 	checkResult(fritz.get(), "(person fritz)\n");
 	position = theory.add(fritz, position);
 	Expr_ptr fritz_expr = make_shared<AtomicExpr>(fritz);
@@ -105,7 +113,8 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	position = theory.add(axiom1, position);
 
 	// (axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))
-	Var_ptr var_x = make_shared<Variable>(person, "x");
+	Theory axiom_theory;
+	axiom_theory.add(var_x, axiom_theory.end());
 	Expr_ptr expr_x = make_shared<AtomicExpr>(var_x);
 	Expr_ptr student_x = make_shared<PredicateExpr>(student,
 		std::vector<Expr_ptr>{expr_x});
@@ -113,7 +122,9 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 		std::vector<Expr_ptr>{expr_x});
 	Expr_ptr impl = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL,
 		student_x, stupid_x);
-	PredicateLambda impl_pred(std::vector<Variable>{*var_x}, impl);
+	std::shared_ptr<PredicateLambda> impl_pred =
+		make_shared<PredicateLambda>(std::move(axiom_theory));
+	impl_pred->setDefinition(impl);
 	Expr_ptr forall_expr = make_shared<QuantifierExpr>
 		(QuantifierExpr::FORALL, impl_pred);
 	Statement_ptr axiom2 = make_shared<Statement>("", forall_expr);

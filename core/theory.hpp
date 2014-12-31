@@ -20,7 +20,7 @@
 #ifndef CORE_THEORY_HPP
 #define CORE_THEORY_HPP
 #include "forward.hpp"
-#include "expression.hpp"
+#include "base.hpp"
 #include <string>
 #include <vector>
 #include <list>
@@ -92,7 +92,7 @@ namespace Core {
 		enum StatementType {AXIOM, STATEMENT};
 
 		Statement(const std::string &name, Expr_ptr expr)
-			: Node(name, Node::STATEMENT), expr(expr) {}
+			: Node(statement_type, name), expr(expr) {}
 		StatementType getType() const
 			{return proof ? STATEMENT : AXIOM;}
 		const_Expr_ptr getStatement() const

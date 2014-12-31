@@ -1,5 +1,5 @@
 /*
- *   Data structures for expressions.
+ *   Data structures for expressions such as variables and predicates.
  *   Copyright (C) 2014 Aaron Puchert
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,8 @@
 #ifndef CORE_EXPRESSION_HPP
 #define CORE_EXPRESSION_HPP
 #include "forward.hpp"
-#include "atom.hpp"
+#include "base.hpp"
+#include "theory.hpp"
 #include <vector>
 #include <memory>
 #include "traverse.hpp"
@@ -34,15 +35,15 @@ namespace Core {
 	 */
 	class AtomicExpr : public Expression {
 	public:
-		AtomicExpr(const_Var_ptr var)
-			: var(var) {}
-		const_Var_ptr getAtom() const
-			{return var;}
+		AtomicExpr(const_Node_ptr node)
+			: node(node) {}
+		const_Node_ptr getAtom() const
+			{return node;}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
 	private:
-		const_Var_ptr var;
+		const_Node_ptr node;
 	};
 
 	/**
@@ -50,17 +51,21 @@ namespace Core {
 	 */
 	class PredicateExpr : public Expression {
 	public:
-		PredicateExpr(const_Pred_ptr pred, std::vector<Expr_ptr> &&args)
-			: pred(pred), args(std::move(args)) {}
-		const_Pred_ptr getPredicate() const
-			{return pred;}
-		const_Expr_ptr getArg(int n) const
-			{return args[n];}
+		PredicateExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args)
+			: node(node), args(std::move(args)) {}
+		const_Node_ptr getPredicate() const
+			{return node;}
+
+		// Iteration
+		typedef std::vector<Expr_ptr>::const_iterator const_iterator;
+		const_iterator begin() const;
+		const_iterator end() const;
+
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
 	private:
-		const_Pred_ptr pred;
+		const_Node_ptr node;
 		std::vector<Expr_ptr> args;
 	};
 
@@ -83,17 +88,17 @@ namespace Core {
 	 */
 	class ConnectiveExpr : public Expression {
 	public:
-		enum Type {AND, OR, IMPL, EQUIV};
-		ConnectiveExpr(Type type, Expr_ptr first,
-			Expr_ptr second) : type(type), expr{first, second} {}
-		Type getType() const {return type;}
+		enum Variant {AND, OR, IMPL, EQUIV};
+		ConnectiveExpr(Variant variant, Expr_ptr first,
+			Expr_ptr second) : variant(variant), expr{first, second} {}
+		Variant getVariant() const {return variant;}
 		Expr_ptr getFirstExpr() const {return expr[0];}
 		Expr_ptr getSecondExpr() const {return expr[1];}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
 	private:
-		Type type;
+		Variant variant;
 		Expr_ptr expr[2];
 	};
 
@@ -102,19 +107,19 @@ namespace Core {
 	 */
 	class QuantifierExpr : public Expression {
 	public:
-		enum Type {EXISTS, FORALL};
-		QuantifierExpr(Type type, const PredicateLambda &pred)
-			: type(type), pred(pred) {}
-		Type getType() const
-			{return type;}
-		const PredicateLambda& getPredicateLambda() const
-			{return pred;}
+		enum Variant {EXISTS, FORALL};
+		QuantifierExpr(Variant variant, const_Expr_ptr predicate)
+			: variant(variant), predicate(predicate) {}
+		Variant getVariant() const
+			{return variant;}
+		const_Expr_ptr getPredicate() const
+			{return predicate;}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
 	private:
-		Type type;
-		PredicateLambda pred;
+		Variant variant;
+		const_Expr_ptr predicate;
 	};
 
 	/**
@@ -122,6 +127,33 @@ namespace Core {
 	 */
 	// class LongImplication : public Expression {};
 	// class LongConjunction : public Expression {};
+
+	/**
+	 * Predicate lambda expressions.
+	 */
+	class PredicateLambda : public Expression {
+	public:
+		PredicateLambda(Theory &&params);
+		const Theory& getParams() const
+			{return params;}
+		const_Expr_ptr getDefinition() const
+			{return expression;}
+		void setDefinition(const_Expr_ptr new_expression);
+
+		// Iterating through arguments
+		Theory::const_iterator begin() const;
+		Theory::const_iterator end() const;
+
+		void accept(Visitor *visitor) const;
+
+	private:
+		Theory params;
+		const_Expr_ptr expression;
+	};
+
+	/**
+	 * Functions, relations?
+	 */
 }	// End of namespace Core
 
 #endif
