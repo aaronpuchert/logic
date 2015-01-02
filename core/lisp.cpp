@@ -55,9 +55,6 @@ void Writer::visit(const BuiltInType *type)
 	case BuiltInType::TYPE:
 		addToken("type");
 		break;
-	case BuiltInType::PREDICATE:
-		addToken("predicate");
-		break;
 	case BuiltInType::STATEMENT:
 		addToken("statement");   // TODO: that's actually not so easy.
 		break;
@@ -73,6 +70,19 @@ void Writer::visit(const BuiltInType *type)
 void Writer::visit(const VariableType *type)
 {
 	addToken(type->getName());
+}
+
+void Writer::visit(const LambdaType *type)
+{
+	addParanthesis(OPENING);
+	addToken("lambda");
+	type->getReturnType()->accept(this);
+	addParanthesis(OPENING);
+	addToken("list");
+	for (const_Type_ptr arg_type : *type)
+		arg_type->accept(this);
+	addParanthesis(CLOSING);
+	addParanthesis(CLOSING);
 }
 
 void Writer::visit(const Node *node)

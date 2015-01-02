@@ -63,6 +63,7 @@ namespace Core {
 		void visit(const Node *node);
 		void visit(const BuiltInType *type);
 		void visit(const VariableType *type);
+		void visit(const LambdaType *type);
 		void visit(const AtomicExpr *expression);
 		void visit(const PredicateExpr *expression);
 		void visit(const NegationExpr *expression);

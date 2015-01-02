@@ -46,8 +46,8 @@ PredicateExpr::const_iterator PredicateExpr::end() const
  * @method PredicateLambda::PredicateLambda
  * @param params Parameters to the lambda expression.
  */
-PredicateLambda::PredicateLambda(Theory &&params)
-	: params(std::move(params)) {}
+PredicateLambda::PredicateLambda(Theory &&params, const_Expr_ptr expression)
+	: params(std::move(params)), expression(expression) {}
 
 /**
  * Set definition expression for predicate lambda.

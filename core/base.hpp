@@ -22,6 +22,7 @@
 #include "forward.hpp"
 #include <string>
 #include <memory>
+#include <vector>
 #include "traverse.hpp"
 
 /**
@@ -51,7 +52,7 @@ namespace Core {
 	 */
 	class BuiltInType : public Type {
 	public:
-		enum Variant {UNDEFINED, TYPE, PREDICATE, STATEMENT, RULE}
+		enum Variant {UNDEFINED, TYPE, STATEMENT, RULE}
 			const variant;
 
 		BuiltInType(Variant variant);
@@ -59,7 +60,7 @@ namespace Core {
 
 		// Global standard types
 		static const const_Type_ptr
-			type, predicate, statement, rule, undefined;
+			type, statement, rule, undefined;
 	};
 
 	/**
@@ -75,6 +76,27 @@ namespace Core {
 
 	private:
 		const_Node_ptr node;
+	};
+
+	/**
+	 * Lambda type.
+	 */
+	class LambdaType : public Type {
+	public:
+		LambdaType(const std::vector<const_Type_ptr> &&args,
+			const_Type_ptr return_type = BuiltInType::statement);
+		const_Type_ptr getReturnType() const;
+
+		// Iterate over argument types...
+		typedef std::vector<const_Type_ptr>::const_iterator const_iterator;
+		const_iterator begin() const;
+		const_iterator end() const;
+
+		void accept(Visitor *visitor) const;
+
+	private:
+		const_Type_ptr return_type;
+		std::vector<const_Type_ptr> args;
 	};
 
 	/**

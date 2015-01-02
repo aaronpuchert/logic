@@ -37,7 +37,6 @@ void BuiltInType::accept(Visitor *visitor) const
 // GLOBAL standard types.
 const const_Type_ptr
 	BuiltInType::type = std::make_shared<BuiltInType>(BuiltInType::TYPE),
-	BuiltInType::predicate = std::make_shared<BuiltInType>(BuiltInType::PREDICATE),
 	BuiltInType::statement = std::make_shared<BuiltInType>(BuiltInType::STATEMENT),
 	BuiltInType::rule = std::make_shared<BuiltInType>(BuiltInType::RULE),
 	BuiltInType::undefined = std::make_shared<BuiltInType>(BuiltInType::UNDEFINED);
@@ -74,6 +73,51 @@ const std::string& VariableType::getName() const
 }
 
 void VariableType::accept(Visitor *visitor) const
+{
+	visitor->visit(this);
+}
+
+/**
+ * Construct a LambdaType.
+ * @method LambdaType::LambdaType
+ * @param args Vector of argument types.
+ * @param return_type Type of return value, defaults to statement.
+ */
+LambdaType::LambdaType(const std::vector<const_Type_ptr> &&args,
+	const_Type_ptr return_type)
+	: return_type(return_type), args(std::move(args)) {}
+
+/**
+ * Get the return type of the lambda.
+ * @method LambdaType::getReturnType
+ * @return Pointer to the return type.
+ */
+const_Type_ptr LambdaType::getReturnType() const
+{
+	return return_type;
+}
+
+/**
+ * Return an iterator to the beginning of the argument list.
+ * @method LambdaType::begin
+ * @return Begin iterator.
+ */
+LambdaType::const_iterator LambdaType::begin() const
+{
+	return args.begin();
+}
+
+/**
+ * Return an iterator to the beginning of the argument list.
+ * @method LambdaType::end
+ * @return End iterator.
+ */
+LambdaType::const_iterator LambdaType::end() const
+{
+	return args.end();
+}
+
+void LambdaType::accept(Visitor *visitor) const
 {
 	visitor->visit(this);
 }

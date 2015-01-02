@@ -65,10 +65,8 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	Node_ptr type_decl = make_shared<Node>(BuiltInType::type, "T");
 	Type_ptr gen_type = make_shared<VariableType>(type_decl);
 
-	Node_ptr var_x = make_shared<Node>(gen_type, "x");
-	Expr_ptr predicate = make_shared<PredicateLambda>(Theory{var_x});
-	Node_ptr pred_node = make_shared<Node>(BuiltInType::predicate, "P");
-	pred_node->setDefinition(predicate);
+	Type_ptr pred_type = make_shared<LambdaType>(std::vector<const_Type_ptr>{gen_type});
+	Node_ptr pred_node = make_shared<Node>(pred_type, "P");
 
 	Node_ptr var_y = make_shared<Node>(gen_type, "y");
 
@@ -82,7 +80,7 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 		"specialization", Theory{type_decl, pred_node, var_y},
 		std::vector<Expr_ptr>{forall_expr}, pred_expr);
 
-	checkResult(specializationrule.get(), "(deductionrule specialization (list (type T) (predicate P (list (T x))) (T y)) (list (forall P)) (P y))\n");
+	checkResult(specializationrule.get(), "(deductionrule specialization (list (type T) ((lambda statement (list T)) P) (T y)) (list (forall P)) (P y))\n");
 	position = rules.add(specializationrule, position);
 }
 
@@ -98,18 +96,14 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	position = theory.add(person_node, position);
 
 	// (predicate schüler? (list person))
-	Node_ptr var_x = make_shared<Node>(person, "x");
-	Expr_ptr student_expr = make_shared<PredicateLambda>(Theory{var_x});
-	Node_ptr student = make_shared<Node>(BuiltInType::predicate, "schüler?");
-	student->setDefinition(student_expr);
-	checkResult(student.get(), "(predicate schüler? (list (person x)))\n");
+	Type_ptr pred_type = make_shared<LambdaType>(std::vector<const_Type_ptr>{person});
+	Node_ptr student = make_shared<Node>(pred_type, "schüler?");
+	checkResult(student.get(), "((lambda statement (list person)) schüler?)\n");
 	position = theory.add(student, position);
 
 	// (predicate dumm? (list person))
-	Expr_ptr stupid_expr = make_shared<PredicateLambda>(Theory{var_x});
-	Node_ptr stupid = make_shared<Node>(BuiltInType::predicate, "dumm?");
-	stupid->setDefinition(stupid_expr);
-	checkResult(stupid.get(), "(predicate dumm? (list (person x)))\n");
+	Node_ptr stupid = make_shared<Node>(pred_type, "dumm?");
+	checkResult(stupid.get(), "((lambda statement (list person)) dumm?)\n");
 	position = theory.add(stupid, position);
 
 	// (person fritz) ; this is in fact a constant, but what is the difference?
@@ -126,6 +120,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	position = theory.add(axiom1, position);
 
 	// (axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))
+	Node_ptr var_x = make_shared<Node>(person, "x");
 	Expr_ptr expr_x = make_shared<AtomicExpr>(var_x);
 	Expr_ptr student_x = make_shared<PredicateExpr>(student,
 		std::vector<Expr_ptr>{expr_x});
@@ -134,8 +129,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	Expr_ptr impl = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL,
 		student_x, stupid_x);
 	std::shared_ptr<PredicateLambda> impl_pred =
-		make_shared<PredicateLambda>(Theory{var_x});
-	impl_pred->setDefinition(impl);
+		make_shared<PredicateLambda>(Theory{var_x}, impl);
 	Expr_ptr forall_expr = make_shared<QuantifierExpr>
 		(QuantifierExpr::FORALL, impl_pred);
 	Statement_ptr axiom2 = make_shared<Statement>("", forall_expr);

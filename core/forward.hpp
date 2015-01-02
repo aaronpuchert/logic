@@ -35,6 +35,7 @@ namespace Core {
 	typedef std::shared_ptr<const Type> const_Type_ptr;
 	class BuiltInType;
 	class VariableType;
+	class LambdaType;
 	class Node;
 	typedef std::shared_ptr<Node> Node_ptr;
 	typedef std::shared_ptr<const Node> const_Node_ptr;

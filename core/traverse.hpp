@@ -32,6 +32,7 @@ namespace Core {
 	public:
 		virtual void visit(const BuiltInType *type);
 		virtual void visit(const VariableType *type);
+		virtual void visit(const LambdaType *type);
 		virtual void visit(const Node *node);
 		virtual void visit(const AtomicExpr *expression);
 		virtual void visit(const PredicateExpr *expression);

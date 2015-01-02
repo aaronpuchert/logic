@@ -5,17 +5,26 @@ found in the following sections. Theories are lists of nodes, which are simply
 names (identifiers). Nodes with just a name can be understood as declarations.
 It is also possible to give an expression for a node, i.e. a definition.
 
+## Types ##
 Expressions and nodes are statically typed. There are a few built-in types:
 
-* type
-* predicate
-* statement
-* rule
+	<type> := type | statement | rule
 
 It is also possible to define your own types anywhere in a theory. Nodes of a
-certain type are then declared or defined via:
+certain type are then declared via:
 
-	<node> = (<type> <name> [<definition>])
+	<node> := (<type> <type-name>)
+	<type> |= <type-name>
+
+While these types are all atomic, there are also compound types to describe
+lambda expressions such as predicates.
+
+	<type> |= (lambda <return-type> (list <argument-type>*))
+
+Say we have a type `number` and want a 1-valued predicate on numbers, then its
+type would be
+
+	(lambda statement (list number))
 
 ## Basic logic ##
 ### Statements (Propositional calculus) ###
@@ -37,25 +46,23 @@ The can be composed in the following ways:
 Hence these are operators that accept statements as their input and return a
 statement.
 
-### Types, Predicates and Quantifiers (Predicate logic) ###
-Types reduce the scope of predicates and quantifiers. A type is simply declared
-by
+### Predicates and Quantifiers (Predicate logic) ###
+Predicates and quantifiers are statically typed. Individuals of a type are
+defined by
 
-	<declaration> := (type <typename>)
-
-This allows as to make statements about statements and predicates. As soon as we
-have a type, we can define individuals of this type by
-
-	<declaration> |= (<typename> <name>)
+	<declaration> |= (<type> <name>)
 
 Predicates can be declared, only giving the types of arguments, or be defined,
 giving a statement that depends on the arguments:
 
-	<declaration> |= (predicate <pred-name> <predicate-lambda>)
-	<predicate-lambda> = <dec-list> [<statement>]
+	<declaration> |= (<predicate-type> <pred-name> [<predicate-lambda>])
+	<predicate-lambda> = <dec-list> <statement>
 	<dec-list> := (list <declaration>*)
 
-A predicate-lambda is an expression, that can be used within other expressions.
+If a predicate lambda is given, the predicate type can be deduced and we can
+just write `predicate` (or `auto`?)
+
+A predicate-lambda is an expression that can be used within other expressions.
 The `<statement>` may depend on the variables given in `<dec-list>`. “Calling” a
 predicate is now done by
 

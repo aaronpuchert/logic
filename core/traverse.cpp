@@ -33,6 +33,11 @@ void Visitor::visit(const VariableType *type)
 	//
 }
 
+void Visitor::visit(const LambdaType *type)
+{
+   //
+}
+
 void Visitor::visit(const Node *node)
 {
 	//

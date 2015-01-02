@@ -133,7 +133,7 @@ namespace Core {
 	 */
 	class PredicateLambda : public Expression {
 	public:
-		PredicateLambda(Theory &&params);
+		PredicateLambda(Theory &&params, const_Expr_ptr expression);
 		const Theory& getParams() const
 			{return params;}
 		const_Expr_ptr getDefinition() const
