@@ -92,12 +92,9 @@ namespace Core {
 	 */
 	class Statement : public Node {
 	public:
-		enum StatementType {AXIOM, STATEMENT};
-
-		Statement(const std::string &name, Expr_ptr expr)
-			: Node(BuiltInType::statement, name), expr(expr) {}
-		StatementType getType() const
-			{return proof ? STATEMENT : AXIOM;}
+		Statement(const std::string &name, Expr_ptr expr);
+		bool hasProof() const
+			{return (bool)proof;}
 		const_Expr_ptr getStatement() const
 			{return expr;}
 

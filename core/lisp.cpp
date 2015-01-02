@@ -212,16 +212,12 @@ void Writer::visit(const DeductionRule *rule)
 void Writer::visit(const Statement *statement)
 {
 	addParanthesis(OPENING);
-	switch (statement->getType()) {
-	case Statement::AXIOM:
+	if (statement->hasProof())
+		addToken("lemma");
+	else
 		addToken("axiom");
-		break;
-	case Statement::STATEMENT:
-		addToken("statement");
-		break;
-	};
 	statement->getStatement()->accept(this);
-	if (statement->getType() == Statement::STATEMENT)
+	if (statement->hasProof())
 		statement->getProof()->accept(this);
 	addParanthesis(CLOSING);
 }

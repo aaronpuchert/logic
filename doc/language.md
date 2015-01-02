@@ -111,16 +111,16 @@ a theory is just a list of objects like these:
 
 	<theory> := (<declaration>
 		| <theory-axiom>
-		| <theory-statement>)*
+		| <theory-lemma>)*
 
 ### Axioms and statements ###
 Axioms are statements without proof. Their syntax is
 
 	<theory-axiom> := (axiom [<name>] <statement>)
 
-Statements (with proof) have the following syntax:
+Statements with proof have the following syntax:
 
-	<theory-statement> := (statement [<name>] <statement> <proof>)
+	<theory-lemma> := (lemma [<name>] <statement> <proof>)
 
 A name, if given, serves as identifier for references.
 

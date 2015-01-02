@@ -175,5 +175,5 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  	)
 	//  )
 	statement->addProof(proof);
-	checkResult(statement.get(), "(statement (dumm? fritz) (proof (statement (impl (schüler? fritz) (dumm? fritz)) (specialization (list person (list (person x)) (impl (schüler? x) (dumm? x)) fritz) (list parent~1))) (statement (dumm? fritz) (ponens (list (schüler? fritz) (dumm? fritz)) (list parent~2 this~1)))))\n");
+	checkResult(statement.get(), "(lemma (dumm? fritz) (proof (lemma (impl (schüler? fritz) (dumm? fritz)) (specialization (list person (list (person x)) (impl (schüler? x) (dumm? x)) fritz) (list parent~1))) (lemma (dumm? fritz) (ponens (list (schüler? fritz) (dumm? fritz)) (list parent~2 this~1)))))\n");
 }
