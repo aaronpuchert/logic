@@ -20,7 +20,7 @@ CPPS =	core/base.cpp \
 	core/theory.cpp \
 	core/traverse.cpp
 
-TESTS = write
+TESTS = core
 TEST_CPPS = $(patsubst %,test/%.cpp,$(TESTS))
 
 OBJS = $(patsubst %.cpp,$(BUILDDIR)/%.o,$(CPPS))

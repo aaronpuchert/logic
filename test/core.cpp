@@ -1,7 +1,7 @@
 #include "../core/logic.hpp"
 #include "../core/expression.hpp"
 #include "../core/lisp.hpp"
-#define BOOST_TEST_MODULE LispTest
+#define BOOST_TEST_MODULE CoreTest
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 #include <sstream>
@@ -9,6 +9,31 @@
 
 using namespace Core;
 using std::make_shared;
+
+BOOST_AUTO_TEST_CASE(type_comparator_test)
+{
+	Node_ptr type_def[2];
+	Type_ptr variable[3], lambda[2];
+
+	type_def[0] = make_shared<Node>(BuiltInType::type, "type1");
+	type_def[1] = make_shared<Node>(BuiltInType::type, "type2");
+	variable[0] = make_shared<VariableType>(type_def[0]);
+	variable[1] = make_shared<VariableType>(type_def[0]);
+	variable[2] = make_shared<VariableType>(type_def[1]);
+
+	lambda[0] = make_shared<LambdaType>(std::vector<const_Type_ptr>{BuiltInType::statement, variable[0]});
+	lambda[1] =  make_shared<LambdaType>(std::vector<const_Type_ptr>{variable[2]}, variable[0]);
+
+	TypeComparator compare;
+	BOOST_CHECK(compare(BuiltInType::statement.get(), BuiltInType::statement.get()));
+	BOOST_CHECK(!compare(BuiltInType::statement.get(), variable[1].get()));
+	BOOST_CHECK(!compare(BuiltInType::statement.get(), lambda[0].get()));
+	BOOST_CHECK(compare(variable[0].get(), variable[1].get()));
+	BOOST_CHECK(!compare(variable[0].get(), variable[2].get()));
+	BOOST_CHECK(compare(variable[2].get(), variable[2].get()));
+	BOOST_CHECK(compare(lambda[1].get(), lambda[1].get()));
+	BOOST_CHECK(!compare(lambda[0].get(), lambda[1].get()));
+}
 
 template <typename T>
 void checkResult(const T *object, const std::string& result)
