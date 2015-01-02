@@ -84,6 +84,7 @@ namespace Core {
 	private:
 		const Reason reason;
 		const std::string name;
+		mutable std::string description;
 	};
 
 	/**

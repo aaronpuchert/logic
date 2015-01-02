@@ -141,7 +141,8 @@ const char* NamespaceException::what() const noexcept
 		break;
 	}
 
-	return str.str().c_str();
+	description = str.str();
+	return description.c_str();
 }
 
 /**
