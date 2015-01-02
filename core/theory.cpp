@@ -146,7 +146,22 @@ const char* NamespaceException::what() const noexcept
 }
 
 /**
+ * Construct a statement node.
+ * @method Statement::Statement
+ * @param name Name of the statement.
+ * @param expr Contents of the statement.
+ */
+Statement::Statement(const std::string &name, Expr_ptr expr)
+	: Node(BuiltInType::statement, name), expr(expr)
+{
+	const_Type_ptr type = expr->getType();
+	if (type != BuiltInType::statement)
+		throw TypeException(type, BuiltInType::statement);
+}
+
+/**
  * Add a proof to a statement.
+ * @method Statement::addProof
  * @param proof Pointer to the proof to be added.
  * @return [later] Return if the proof could be accepted.
  */

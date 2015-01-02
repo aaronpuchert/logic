@@ -39,6 +39,7 @@ namespace Core {
 			: node(node) {}
 		const_Node_ptr getAtom() const
 			{return node;}
+		const_Type_ptr getType() const;
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
@@ -51,10 +52,10 @@ namespace Core {
 	 */
 	class PredicateExpr : public Expression {
 	public:
-		PredicateExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args)
-			: node(node), args(std::move(args)) {}
+		PredicateExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args);
 		const_Node_ptr getPredicate() const
 			{return node;}
+		const_Type_ptr getType() const;
 
 		// Iteration
 		typedef std::vector<Expr_ptr>::const_iterator const_iterator;
@@ -74,10 +75,11 @@ namespace Core {
 	 */
 	class NegationExpr : public Expression {
 	public:
-		NegationExpr(Expr_ptr expr) : expr(expr) {}
+		NegationExpr(Expr_ptr expr);
 		Expr_ptr getExpr() const {return expr;}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
+		const_Type_ptr getType() const;
 
 	private:
 		Expr_ptr expr;
@@ -89,11 +91,12 @@ namespace Core {
 	class ConnectiveExpr : public Expression {
 	public:
 		enum Variant {AND, OR, IMPL, EQUIV};
-		ConnectiveExpr(Variant variant, Expr_ptr first,
-			Expr_ptr second) : variant(variant), expr{first, second} {}
+		ConnectiveExpr(Variant variant, Expr_ptr first, Expr_ptr second);
 		Variant getVariant() const {return variant;}
 		Expr_ptr getFirstExpr() const {return expr[0];}
 		Expr_ptr getSecondExpr() const {return expr[1];}
+		const_Type_ptr getType() const;
+
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
@@ -108,12 +111,13 @@ namespace Core {
 	class QuantifierExpr : public Expression {
 	public:
 		enum Variant {EXISTS, FORALL};
-		QuantifierExpr(Variant variant, const_Expr_ptr predicate)
-			: variant(variant), predicate(predicate) {}
+		QuantifierExpr(Variant variant, const_Expr_ptr predicate);
 		Variant getVariant() const
 			{return variant;}
 		const_Expr_ptr getPredicate() const
 			{return predicate;}
+		const_Type_ptr getType() const;
+
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
@@ -139,6 +143,7 @@ namespace Core {
 		const_Expr_ptr getDefinition() const
 			{return expression;}
 		void setDefinition(const_Expr_ptr new_expression);
+		const_Type_ptr getType() const;
 
 		// Iterating through arguments
 		Theory::const_iterator begin() const;
@@ -148,6 +153,7 @@ namespace Core {
 
 	private:
 		Theory params;
+		mutable const_Type_ptr type;
 		const_Expr_ptr expression;
 	};
 

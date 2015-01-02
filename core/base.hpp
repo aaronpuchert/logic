@@ -36,6 +36,7 @@ namespace Core {
 	public:
 		virtual ~Expression() {}
 		virtual void accept(Visitor *visitor) const = 0;
+		virtual const_Type_ptr getType() const = 0;
 	};
 
 	/**
@@ -97,6 +98,36 @@ namespace Core {
 	private:
 		const_Type_ptr return_type;
 		std::vector<const_Type_ptr> args;
+	};
+
+	/**
+	 * Type comparison class, unfortunately not thread-safe.
+	 */
+	class TypeComparator : public Visitor {
+	public:
+		bool operator()(const Type *, const Type *);
+		void visit(const BuiltInType *type);
+		void visit(const VariableType *type);
+		void visit(const LambdaType *type);
+
+	private:
+		int yours;
+		std::vector<std::string> description[2];
+	};
+
+	/**
+	 * Exception for mismatched types.
+	 */
+	class TypeException : std::exception {
+	public:
+		TypeException(const_Type_ptr type, const_Type_ptr want,
+			const std::string &where = "");
+		TypeException(const_Type_ptr type, const std::string &want,
+			const std::string &where = "");
+		const char *what() const noexcept;
+
+	private:
+		mutable std::string description;
 	};
 
 	/**

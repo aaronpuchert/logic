@@ -53,8 +53,7 @@ namespace Core {
 	 */
 	class Tautology : public Rule {
 	public:
-		Tautology(const std::string& name, Theory &&params, Expr_ptr statement)
-			: Rule(name, std::move(params)), statement(statement) {}
+		Tautology(const std::string& name, Theory &&params, Expr_ptr statement);
 		const_Expr_ptr getStatement() const
 			{return statement;}
 		void accept(Visitor *visitor) const
@@ -73,9 +72,7 @@ namespace Core {
 	class EquivalenceRule : public Rule {
 	public:
 		EquivalenceRule(const std::string& name, Theory &&params,
-			Expr_ptr statement1, Expr_ptr statement2)
-			: Rule(name, std::move(params)),
-				statement1(statement1), statement2(statement2) {}
+			Expr_ptr statement1, Expr_ptr statement2);
 		const_Expr_ptr getStatement1() const
 			{return statement1;}
 		const_Expr_ptr getStatement2() const
@@ -96,9 +93,7 @@ namespace Core {
 	class DeductionRule : public Rule {
 	public:
 		DeductionRule(const std::string& name, Theory &&params,
-			const std::vector<Expr_ptr> &premisses, Expr_ptr conclusion)
-			: Rule(name, std::move(params)), premisses(premisses),
-				conclusion(conclusion) {}
+			const std::vector<Expr_ptr> &premisses, Expr_ptr conclusion);
 		const std::vector<Expr_ptr> &prem() const
 			{return premisses;}
 		const_Expr_ptr getConclusion() const

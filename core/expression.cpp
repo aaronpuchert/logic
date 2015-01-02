@@ -18,8 +18,58 @@
  */
 
 #include "expression.hpp"
+#include <algorithm>
+#include <sstream>
 
 using namespace Core;
+
+/**
+ * Get type of an atomic expression.
+ * @method AtomicExpr::getType
+ * @return Type of the expression.
+ */
+const_Type_ptr AtomicExpr::getType() const
+{
+	return node->getType();
+}
+
+/**
+ * Construct predicate (call) expression.
+ * @method PredicateExpr::PredicateExpr
+ * @param node Predicate to call.
+ * @param args Vector of argument expressions.
+ */
+PredicateExpr::PredicateExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args)
+	: node(node), args(std::move(args))
+{
+	// Is node a predicate?
+	std::shared_ptr<const LambdaType> pred_type =
+		std::dynamic_pointer_cast<const LambdaType>(node->getType());
+
+	if (!pred_type)
+		throw TypeException(node->getType(), "lambda expression");
+
+	if (pred_type->getReturnType() != BuiltInType::statement)
+		throw TypeException(pred_type->getReturnType(), BuiltInType::statement, "return type");
+
+	// Do the arguments have the right type?
+	TypeComparator compare;
+	auto mismatch = std::mismatch(pred_type->begin(), pred_type->end(), this->args.begin(),
+		[&compare] (const_Type_ptr a, Expr_ptr b) -> bool
+		{return compare(a.get(), b->getType().get());}
+	);
+
+	if (mismatch.first != pred_type->end() || mismatch.second != this->args.end()) {
+		std::ostringstream str;
+		str << "argument number " << mismatch.second - this->args.begin();
+		throw TypeException((*mismatch.second)->getType(), *mismatch.first, str.str());
+	}
+}
+
+const_Type_ptr PredicateExpr::getType() const
+{
+	return BuiltInType::statement;
+}
 
 /**
  * Begin iterator for iterating through the arguments.
@@ -42,12 +92,82 @@ PredicateExpr::const_iterator PredicateExpr::end() const
 }
 
 /**
+ * Construct a negation expression.
+ * @method NegationExpr::NegationExpr
+ * @param expr Statement expression to be negated.
+ */
+NegationExpr::NegationExpr(Expr_ptr expr) : expr(expr)
+{
+	const_Type_ptr type = expr->getType();
+	if (type != BuiltInType::statement)
+		throw TypeException(type, BuiltInType::statement);
+}
+
+const_Type_ptr NegationExpr::getType() const
+{
+	return BuiltInType::statement;
+}
+
+/**
+ * Construct connective expression.
+ * @method ConnectiveExpr::ConnectiveExpr
+ * @param variant One of ConnectiveExpr::{AND|OR|IMPL|EQUIV}
+ * @param first First operand of connective
+ * @param seond Second operand of connective
+ */
+ConnectiveExpr::ConnectiveExpr(Variant variant, Expr_ptr first, Expr_ptr second)
+	: variant(variant), expr{first, second}
+{
+	const_Type_ptr first_type = first->getType(), second_type = second->getType();
+	if (first_type != BuiltInType::statement)
+		throw TypeException(first_type, BuiltInType::statement, "first operand");
+	if (second_type != BuiltInType::statement)
+		throw TypeException(second_type, BuiltInType::statement, "second operand");
+}
+
+const_Type_ptr ConnectiveExpr::getType() const
+{
+	return BuiltInType::statement;
+}
+
+/**
+ * Construct a quantifier expression.
+ * @method QuantifierExpr::QuantifierExpr
+ * @param variant One of QuantifierExpr::{EXISTS|FORALL}
+ * @param predicate Lambda expression containing the predicate
+ */
+QuantifierExpr::QuantifierExpr(Variant variant, const_Expr_ptr predicate)
+	: variant(variant), predicate(predicate)
+{
+	const_Type_ptr type = predicate->getType();
+	std::shared_ptr<const LambdaType> pred_type =
+		std::dynamic_pointer_cast<const LambdaType>(type);
+	if (pred_type) {
+		const_Type_ptr return_type = pred_type->getReturnType();
+		if (return_type != BuiltInType::statement)
+			throw TypeException(return_type, BuiltInType::statement, "return value");
+	}
+	else
+		throw TypeException(type, "lambda expression");
+}
+
+const_Type_ptr QuantifierExpr::getType() const
+{
+	return BuiltInType::statement;
+}
+
+/**
  * Construct predicate lambda expression.
  * @method PredicateLambda::PredicateLambda
  * @param params Parameters to the lambda expression.
+ * @param expression Statement expression.
  */
 PredicateLambda::PredicateLambda(Theory &&params, const_Expr_ptr expression)
-	: params(std::move(params)), expression(expression) {}
+	: params(std::move(params)), expression(expression)
+{
+	if (expression->getType() != BuiltInType::statement)
+		throw TypeException(expression->getType(), BuiltInType::statement);
+}
 
 /**
  * Set definition expression for predicate lambda.
@@ -56,8 +176,29 @@ PredicateLambda::PredicateLambda(Theory &&params, const_Expr_ptr expression)
  */
 void PredicateLambda::setDefinition(const_Expr_ptr new_expression)
 {
-	// TODO: type check.
-	expression = new_expression;
+	if (new_expression->getType() == BuiltInType::statement)
+		expression = new_expression;
+	else
+		throw TypeException(new_expression->getType(), BuiltInType::statement);
+}
+
+/**
+ * Get type of Lambda expression.
+ * @method PredicateLambda::getType
+ * @return Type of Lambda expression.
+ */
+const_Type_ptr PredicateLambda::getType() const
+{
+	// Build type if required
+	if (!type) {
+		// transform can't write to an empty vector, hence initialize with dummy
+		std::vector<const_Type_ptr> types{const_Type_ptr()};
+		std::transform(params.begin(), params.end(), types.begin(),
+			[] (const_Node_ptr node) -> const_Type_ptr {return node->getType();});
+		type = std::make_shared<LambdaType>(std::move(types));
+	}
+
+	return type;
 }
 
 /**
