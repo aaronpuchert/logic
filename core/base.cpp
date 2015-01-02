@@ -147,40 +147,23 @@ bool TypeComparator::operator()(const Type *a, const Type *b)
 
 void TypeComparator::visit(const BuiltInType *type)
 {
-	description[yours].push_back("builtin");
-
-	std::string str;
-	switch (type->variant) {
-	case BuiltInType::UNDEFINED:
-		str = "undefined";
-		break;
-	case BuiltInType::TYPE:
-		str = "type";
-		break;
-	case BuiltInType::STATEMENT:
-		str = "statement";
-		break;
-	case BuiltInType::RULE:
-		str = "rule";
-		break;
-	}
-
-	description[yours].push_back(std::move(str));
+	// The following assumes that small values will never be used as adresses.
+	description[yours].push_back(reinterpret_cast<void *>(type->variant));
 }
 
 void TypeComparator::visit(const VariableType *type)
 {
-	description[yours].push_back("variable");
-	description[yours].push_back(type->getName());
+	description[yours].push_back(type->getNode().get());
 }
 
 void TypeComparator::visit(const LambdaType *type)
 {
-	description[yours].push_back("lambda");
+	// The following assumes that 0xff..ff and 0xff..fe will never be used as adresses.
+	description[yours].push_back(reinterpret_cast<void *>(-1));
 	type->getReturnType()->accept(this);
 	for (const_Type_ptr arg_type : *type)
 		arg_type->accept(this);
-	description[yours].push_back("#");
+	description[yours].push_back(reinterpret_cast<void *>(-2));
 }
 
 TypeException::TypeException(const_Type_ptr type, const_Type_ptr want, const std::string &where)

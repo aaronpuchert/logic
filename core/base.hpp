@@ -112,7 +112,7 @@ namespace Core {
 
 	private:
 		int yours;
-		std::vector<std::string> description[2];
+		std::vector<const void *> description[2];
 	};
 
 	/**
