@@ -10,6 +10,10 @@
 using namespace Core;
 using std::make_shared;
 
+//////////////////////////
+// Test type comparator //
+//////////////////////////
+
 BOOST_AUTO_TEST_CASE(type_comparator_test)
 {
 	Node_ptr type_def[2];
@@ -34,6 +38,10 @@ BOOST_AUTO_TEST_CASE(type_comparator_test)
 	BOOST_CHECK(compare(lambda[1].get(), lambda[1].get()));
 	BOOST_CHECK(!compare(lambda[0].get(), lambda[1].get()));
 }
+
+//////////////////////
+// Test type checks //
+//////////////////////
 
 bool type_exception_pred(const TypeException &ex)
 {
@@ -104,6 +112,10 @@ BOOST_AUTO_TEST_CASE(type_check_test)
 		TypeException, type_exception_pred
 	);
 }
+
+//////////////////////////////////////////
+// Test the syntax tree and Lisp writer //
+//////////////////////////////////////////
 
 template <typename T>
 void checkResult(const T *object, const std::string& result)
