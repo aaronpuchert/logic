@@ -71,7 +71,7 @@ DeductionRule::DeductionRule(const std::string& name, Theory &&params,
 
 	if (find != premisses.end()) {
 		std::ostringstream str;
-		str << "premiss number " << find - premisses.begin();
+		str << "premiss number " << find - premisses.begin() + 1;
 		throw TypeException((*find)->getType(), BuiltInType::statement, str.str());
 	}
 

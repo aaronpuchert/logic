@@ -19,8 +19,6 @@
 
 #include "base.hpp"
 #include <stdexcept>
-#include <sstream>
-#include "lisp.hpp"
 using namespace Core;
 
 /**
@@ -166,35 +164,70 @@ void TypeComparator::visit(const LambdaType *type)
 	description[yours].push_back(reinterpret_cast<void *>(-2));
 }
 
+TypeException::TypeException(const TypeException &other)
+{
+	str << other.str.str();
+}
+
 TypeException::TypeException(const_Type_ptr type, const_Type_ptr want, const std::string &where)
 {
-	std::ostringstream str;
-	Writer writer(str);
-
 	str << "expected ";
-	want->accept(&writer);
+	want->accept(this);
 	str << ", but got ";
-	type->accept(&writer);
-	str << " in " << where;
-
-	description = str.str();
+	type->accept(this);
+	if (where != "")
+		str << " in " << where;
 }
 
 TypeException::TypeException(const_Type_ptr type, const std::string &want, const std::string &where)
 {
-	std::ostringstream str;
-	Writer writer(str);
-
 	str << "expected " << want << ", but got ";
-	type->accept(&writer);
-	str << " in " << where;
+	type->accept(this);
+	if (where != "")
+		str << " in " << where;
+}
 
-	description = str.str();
+void TypeException::visit(const BuiltInType *type)
+{
+	switch (type->variant) {
+	case BuiltInType::UNDEFINED:
+		str << "undefined";
+		break;
+	case BuiltInType::TYPE:
+		str << "type";
+		break;
+	case BuiltInType::STATEMENT:
+		str << "statement";
+		break;
+	case BuiltInType::RULE:
+		str << "rule";
+		break;
+	}
+}
+
+void TypeException::visit(const VariableType *type)
+{
+	str << type->getName();
+}
+
+void TypeException::visit(const LambdaType *type)
+{
+	str << "(";
+	bool first = true;
+	for (const_Type_ptr arg_type : *type) {
+		if (!first) {
+			first = true;
+			str << ' ';
+		}
+		arg_type->accept(this);
+	}
+	str << ")->";
+	type->getReturnType()->accept(this);
 }
 
 const char *TypeException::what() const noexcept
 {
-	return description.c_str();
+	return str.str().c_str();
 }
 
 /**

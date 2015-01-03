@@ -61,7 +61,7 @@ PredicateExpr::PredicateExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args)
 
 	if (mismatch.first != pred_type->end() || mismatch.second != this->args.end()) {
 		std::ostringstream str;
-		str << "argument number " << mismatch.second - this->args.begin();
+		str << "argument number " << mismatch.second - this->args.begin() + 1;
 		throw TypeException((*mismatch.second)->getType(), *mismatch.first, str.str());
 	}
 }
