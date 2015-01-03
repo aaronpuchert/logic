@@ -6,6 +6,7 @@
 #include <boost/test/unit_test.hpp>
 #include <sstream>
 #include <iostream>
+#include <functional>
 
 using namespace Core;
 using std::make_shared;
@@ -43,10 +44,16 @@ BOOST_AUTO_TEST_CASE(type_comparator_test)
 // Test type checks //
 //////////////////////
 
-bool type_exception_pred(const TypeException &ex)
+std::function<bool (const TypeException &ex)>
+	type_exception_pred(const std::string &msg)
 {
-	std::cout << "Expected TypeException:\n\t" << ex.what() << std::endl;
-	return true;
+	return [msg] (const TypeException &ex) -> bool
+	{
+		std::cout << "Expected TypeException:\n\t" << msg << std::endl;
+		if (msg != ex.what())
+			std::cout << "but got\t" << ex.what() << std::endl;
+		return (msg == ex.what());
+	};
 }
 
 BOOST_AUTO_TEST_CASE(type_check_test)
@@ -72,7 +79,8 @@ BOOST_AUTO_TEST_CASE(type_check_test)
 	BOOST_CHECK_NO_THROW(var_def[1]->setDefinition(atomic[0]));
 	BOOST_CHECK_EXCEPTION(
 		var_def[2]->setDefinition(atomic[0]),
-		TypeException, type_exception_pred
+		TypeException,
+		type_exception_pred("expected statement, but got var_type")
 	);
 
 	// Make some lambdas
@@ -84,7 +92,8 @@ BOOST_AUTO_TEST_CASE(type_check_test)
 	BOOST_CHECK_NO_THROW(pred_expr[0] = make_shared<PredicateExpr>(lambda[0], std::vector<Expr_ptr>{atomic[0]}));
 	BOOST_CHECK_EXCEPTION(
 		pred_expr[1] = make_shared<PredicateExpr>(lambda[0], std::vector<Expr_ptr>{atomic[2]}),
-		TypeException, type_exception_pred
+		TypeException,
+		type_exception_pred("expected var_type, but got statement in argument 1")
 	);
 
 	// Define a predicate via another
@@ -93,7 +102,8 @@ BOOST_AUTO_TEST_CASE(type_check_test)
 	BOOST_CHECK_NO_THROW(lambda[2]->setDefinition(lambda_def));
 	BOOST_CHECK_EXCEPTION(
 		lambda[1]->setDefinition(lambda_def),
-		TypeException, type_exception_pred
+		TypeException,
+		type_exception_pred("expected (var_type)->var_type, but got (var_type)->statement")
 	);
 
 	// Make quantifier statements
@@ -101,7 +111,8 @@ BOOST_AUTO_TEST_CASE(type_check_test)
 	BOOST_CHECK_NO_THROW(quant_expr[1] = make_shared<QuantifierExpr>(QuantifierExpr::FORALL, make_shared<AtomicExpr>(lambda[0])));
 	BOOST_CHECK_EXCEPTION(
 		quant_expr[2] = make_shared<QuantifierExpr>(QuantifierExpr::FORALL, make_shared<AtomicExpr>(lambda[1])),
-		TypeException, type_exception_pred
+		TypeException,
+		type_exception_pred("expected statement, but got var_type in return value")
 	);
 
 	// Make some statements
@@ -109,7 +120,8 @@ BOOST_AUTO_TEST_CASE(type_check_test)
 	BOOST_CHECK_NO_THROW(statement[1] = make_shared<Statement>("", quant_expr[0]));
 	BOOST_CHECK_EXCEPTION(
 		statement[2] = make_shared<Statement>("", lambda_def),
-		TypeException, type_exception_pred
+		TypeException,
+		type_exception_pred("expected statement, but got (var_type)->statement")
 	);
 }
 
