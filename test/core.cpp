@@ -35,6 +35,76 @@ BOOST_AUTO_TEST_CASE(type_comparator_test)
 	BOOST_CHECK(!compare(lambda[0].get(), lambda[1].get()));
 }
 
+bool type_exception_pred(const TypeException &ex)
+{
+	std::cout << "Expected TypeException:\n\t" << ex.what() << std::endl;
+	return true;
+}
+
+BOOST_AUTO_TEST_CASE(type_check_test)
+{
+	Type_ptr var_type, lambda_type[2];
+	Node_ptr type_def, var_def[3], lambda[3], statement[3];
+	Expr_ptr atomic[3], lambda_def, pred_expr[2], neg_expr, quant_expr[3];
+
+	// Build types
+	type_def = make_shared<Node>(BuiltInType::type, "var_type");
+	var_type = make_shared<VariableType>(type_def);
+	lambda_type[0] = make_shared<LambdaType>(std::vector<const_Type_ptr>{var_type});
+	lambda_type[1] = make_shared<LambdaType>(std::vector<const_Type_ptr>{var_type}, var_type);
+
+	// Make some variables
+	var_def[0] = make_shared<Node>(var_type, "x");
+	var_def[1] = make_shared<Node>(var_type, "y");
+	var_def[2] = make_shared<Node>(BuiltInType::statement, "a");
+	for (int i=0; i<3; ++i)
+		atomic[i] = make_shared<AtomicExpr>(var_def[i]);
+
+	// Set definitions
+	BOOST_CHECK_NO_THROW(var_def[1]->setDefinition(atomic[0]));
+	BOOST_CHECK_EXCEPTION(
+		var_def[2]->setDefinition(atomic[0]),
+		TypeException, type_exception_pred
+	);
+
+	// Make some lambdas
+	lambda[0] = make_shared<Node>(lambda_type[0], "pred");
+	lambda[1] = make_shared<Node>(lambda_type[1], "lambda");
+	lambda[2] = make_shared<Node>(lambda_type[0], "pred");
+
+	// Call the predicate
+	BOOST_CHECK_NO_THROW(pred_expr[0] = make_shared<PredicateExpr>(lambda[0], std::vector<Expr_ptr>{atomic[0]}));
+	BOOST_CHECK_EXCEPTION(
+		pred_expr[1] = make_shared<PredicateExpr>(lambda[0], std::vector<Expr_ptr>{atomic[2]}),
+		TypeException, type_exception_pred
+	);
+
+	// Define a predicate via another
+	neg_expr = make_shared<NegationExpr>(pred_expr[0]);
+	BOOST_CHECK_NO_THROW(lambda_def = make_shared<PredicateLambda>(Theory{var_def[0]}, neg_expr));
+	BOOST_CHECK_NO_THROW(lambda[2]->setDefinition(lambda_def));
+	BOOST_CHECK_EXCEPTION(
+		lambda[1]->setDefinition(lambda_def),
+		TypeException, type_exception_pred
+	);
+
+	// Make quantifier statements
+	BOOST_CHECK_NO_THROW(quant_expr[0] = make_shared<QuantifierExpr>(QuantifierExpr::FORALL, lambda_def));
+	BOOST_CHECK_NO_THROW(quant_expr[1] = make_shared<QuantifierExpr>(QuantifierExpr::FORALL, make_shared<AtomicExpr>(lambda[0])));
+	BOOST_CHECK_EXCEPTION(
+		quant_expr[2] = make_shared<QuantifierExpr>(QuantifierExpr::FORALL, make_shared<AtomicExpr>(lambda[1])),
+		TypeException, type_exception_pred
+	);
+
+	// Make some statements
+	BOOST_CHECK_NO_THROW(statement[0] = make_shared<Statement>("", pred_expr[0]));
+	BOOST_CHECK_NO_THROW(statement[1] = make_shared<Statement>("", quant_expr[0]));
+	BOOST_CHECK_EXCEPTION(
+		statement[2] = make_shared<Statement>("", lambda_def),
+		TypeException, type_exception_pred
+	);
+}
+
 template <typename T>
 void checkResult(const T *object, const std::string& result)
 {
