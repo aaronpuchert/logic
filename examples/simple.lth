@@ -1,25 +1,26 @@
-; Deklariere einen Typ "person" und zwei Prädikate für Personen.
 (type person)
-(predicate schüler? (list person))
-(predicate dumm? (list person))
-
-; Wir kennen eine Person Fritz. Fritz ist ein Schüler.
+((lambda statement (list person)) schüler?)
+((lambda statement (list person)) dumm?)
 (person fritz)
 (axiom (schüler? fritz))
-; Alle Schüler sind dumm.
 (axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))
-
-; Also ist Fritz dumm.
-(statement
+(lemma
 	(dumm? fritz)
 	(proof
-		(statement (impl (schüler? fritz) (dumm? fritz))
+		(lemma
+			(impl (schüler? fritz) (dumm? fritz))
 			(specialization
-				(list person (list (person x)) (impl (schüler? x) (dumm? x)) fritz)
+				(list
+					person
+					(list (person x))
+					(impl (schüler? x) (dumm? x))
+					fritz
+				)
 				(list parent~1)
 			)
 		)
-		(statement (dumm? fritz)
+		(lemma
+			(dumm? fritz)
 			(ponens
 				(list (schüler? fritz) (dumm? fritz))
 				(list parent~2 this~1)

@@ -1,0 +1,9 @@
+(tautology excluded_middle (list (statement a)) (or a (not a)))
+(equivrule double_negation (list (statement a)) (not (not a)) a)
+(deductionrule ponens (list (statement a) (statement b)) (list (impl a b) a) b)
+(deductionrule
+	specialization
+	(list (type T) ((lambda statement (list T)) P) (T y))
+	(list (forall P))
+	(P y)
+)

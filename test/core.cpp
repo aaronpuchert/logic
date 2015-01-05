@@ -6,6 +6,7 @@
 #include <boost/test/unit_test.hpp>
 #include <sstream>
 #include <iostream>
+#include <boost/test/output_test_stream.hpp>
 #include <functional>
 
 using namespace Core;
@@ -139,6 +140,17 @@ void checkResult(const T *object, const std::string& result)
 	BOOST_CHECK_EQUAL(stream.str(), result);
 }
 
+// Check theories --- against files
+template <>
+void checkResult<Theory>(const Theory *theory, const std::string& filename)
+{
+	boost::test_tools::output_test_stream stream(filename, true);
+	Writer writer(stream, 80);		// wrap at 80 chars
+	theory->accept(&writer);
+
+	BOOST_CHECK(stream.match_pattern());
+}
+
 // Rule system
 Theory rules;
 
@@ -201,6 +213,9 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 
 	checkResult(specializationrule.get(), "(deductionrule specialization (list (type T) ((lambda statement (list T)) P) (T y)) (list (forall P)) (P y))\n");
 	position = rules.add(specializationrule, position);
+
+	// Check all rules with line wrapping
+	checkResult(&rules, "examples/rules.lth");
 }
 
 BOOST_AUTO_TEST_CASE(theory_writer_test)
@@ -295,4 +310,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  )
 	statement->addProof(proof);
 	checkResult(statement.get(), "(lemma (dumm? fritz) (proof (lemma (impl (schüler? fritz) (dumm? fritz)) (specialization (list person (list (person x)) (impl (schüler? x) (dumm? x)) fritz) (list parent~1))) (lemma (dumm? fritz) (ponens (list (schüler? fritz) (dumm? fritz)) (list parent~2 this~1)))))\n");
+
+	// Check the whole theory with line wrapping
+	checkResult(&theory, "examples/simple.lth");
 }
