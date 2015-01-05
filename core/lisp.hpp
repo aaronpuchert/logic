@@ -58,7 +58,8 @@ namespace Core {
 	 */
 	class Writer : public Visitor {
 	public:
-		Writer(std::ostream &output, int line_length = 80);
+		Writer(std::ostream &output, int line_length = 80,
+			int tab_size = 4, bool tabs = true);
 		~Writer();
 		void visit(const Node *node);
 		void visit(const BuiltInType *type);
@@ -102,6 +103,8 @@ namespace Core {
 		// For pretty printing
 		int max_line_length;
 		int line_length;
+		int tab_size;
+		bool tabs;
 		int write_depth;
 		std::stack<int> length;
 

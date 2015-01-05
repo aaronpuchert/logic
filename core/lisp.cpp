@@ -36,9 +36,9 @@ const std::string& LispToken::getContent() const
 /**
  * Implementation of the writer
  */
-Writer::Writer(std::ostream &output, int line_length)
-	: output(output), depth(0), max_line_length(line_length),
-	  line_length(0), write_depth(0) {}
+Writer::Writer(std::ostream &output, int line_length, int tab_size, bool tabs)
+	: output(output), depth(0), max_line_length(line_length), line_length(0),
+	  tab_size(tab_size), tabs(tabs), write_depth(0) {}
 
 Writer::~Writer()
 {
@@ -338,7 +338,7 @@ void Writer::writeQueue()
 		LispToken token(token_queue.front());
 
 		// Current line length and index of next token
-		int length = 4 * write_depth;
+		int length = tab_size * write_depth;
 		int index = 1;
 
 		switch (token.getType()) {
@@ -392,8 +392,12 @@ void Writer::writeQueue()
 void Writer::writeLine(int num_tokens)
 {
 	// Indent
-	for (int indent = 0; indent < write_depth; ++indent)
-		output << "    ";
+	if (tabs)
+		for (int indent = 0; indent < write_depth; ++indent)
+			output << '\t';
+	else
+		for (int indent = 0; indent < tab_size * write_depth; ++indent)
+			output << ' ';
 
 	// Write tokens
 	while (num_tokens--) {
