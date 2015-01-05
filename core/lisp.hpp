@@ -23,7 +23,7 @@
 #include "theory.hpp"
 #include <string>
 #include <stack>
-#include <queue>
+#include <deque>
 #include <sstream>
 #include <memory>
 #include "traverse.hpp"
@@ -46,7 +46,7 @@ namespace Core {
 
 		Type getType() const
 			{return type;}
-		std::string getContent() const;
+		const std::string& getContent() const;
 
 	private:
 		Type type;
@@ -58,7 +58,7 @@ namespace Core {
 	 */
 	class Writer : public Visitor {
 	public:
-		Writer(std::ostream &output);
+		Writer(std::ostream &output, int line_length = 80);
 		~Writer();
 		void visit(const Node *node);
 		void visit(const BuiltInType *type);
@@ -82,14 +82,28 @@ namespace Core {
 
 	private:
 		enum Change {OPENING = +1, CLOSING = -1};
+
+		// Add tokens
 		void addParanthesis(Change depth_change);
 		void addToken(const std::string &token);
 		void addToken(std::string &&token);
+		void push(LispToken &&token);
+
+		// Write to stream
 		void writeQueue();
+		void writeLine(int num_tokens);
+		void writeToken(LispToken token);
+		int tokenLength(int index);
 
 		std::ostream &output;
-		std::queue<LispToken> token_queue;
+		std::deque<LispToken> token_queue;
 		int depth;
+
+		// For pretty printing
+		int max_line_length;
+		int line_length;
+		int write_depth;
+		std::stack<int> length;
 
 		// Keeping track of where we are
 		std::stack<const Theory *> theory_stack;

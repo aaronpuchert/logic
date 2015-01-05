@@ -25,7 +25,7 @@
 #include <stdexcept>
 using namespace Core;
 
-std::string LispToken::getContent() const
+const std::string& LispToken::getContent() const
 {
 	if (type == WORD)
 		return content;
@@ -36,8 +36,9 @@ std::string LispToken::getContent() const
 /**
  * Implementation of the writer
  */
-Writer::Writer(std::ostream &output)
-	: output(output), depth(0) {}
+Writer::Writer(std::ostream &output, int line_length)
+	: output(output), depth(0), max_line_length(line_length),
+	  line_length(0), write_depth(0) {}
 
 Writer::~Writer()
 {
@@ -265,54 +266,208 @@ void Writer::visit(const Theory *theory)
 	theory_stack.pop();
 }
 
+/**
+ * Add paranthesis token.
+ * @method Writer::addParanthesis
+ * @param depth_change One of LispToken::{OPENING¦CLOSING}
+ */
 void Writer::addParanthesis(Change depth_change)
 {
 	depth += (int)depth_change;
 
 	if (depth_change == OPENING)
-		token_queue.push(LispToken(LispToken::OPENING));
+		push(LispToken(LispToken::OPENING));
 	else	// CLOSING
-		token_queue.push(LispToken(LispToken::CLOSING));
+		push(LispToken(LispToken::CLOSING));
 
-	// if conditions are met, write contents
-	if (depth == 0)
+	// If we are at level 0 or have enough material, write something.
+	if (depth == 0 || line_length > 2*max_line_length)
 		writeQueue();
 }
 
+/**
+ * Add a token string.
+ * @method Writer::addToken
+ * @param token Token string.
+ */
 void Writer::addToken(const std::string &token)
 {
-	token_queue.push(LispToken(LispToken::WORD, token));
+	push(LispToken(LispToken::WORD, token));
 }
 
+/**
+ * Add a token string we can eat up.
+ * @method Writer::addToken
+ * @param token Rvalue reference to token.
+ */
 void Writer::addToken(std::string &&token)
 {
-	token_queue.push(LispToken(LispToken::WORD, std::move(token)));
+	push(LispToken(LispToken::WORD, std::move(token)));
 }
 
+/**
+ * Push a LispToken, called by addToken and addParanthesis.
+ * @method Writer::push
+ * @param token Rvalue reference to a LispToken
+ */
+void Writer::push(LispToken &&token)
+{
+	// Add token to queue
+	token_queue.push_back(std::move(token));
+
+	// Add length of preceding token. This means we haven't accounted for the
+	// last item in queue. The last item will only be flushed if we go back to
+	// level 0, so this is a closing paranthesis.
+	// However, in writeLine we don't account for the last item as well, hence
+	// it won't hurt our character count.
+	if (token_queue.size() >= 2)
+		line_length += tokenLength(token_queue.size() - 2);
+}
+
+/**
+ * Write some tokens from the queue.
+ * We will stop at level 0, when the queue is empty, or, when in between, when
+ * there is material for just one line in it. Then we allow to refill, since we
+ * always need at least a full line to decide where to put line breaks.
+ * @method Writer::writeQueue
+ */
 void Writer::writeQueue()
 {
-	while (token_queue.size()) {
+	while ((depth == 0 && token_queue.size()) ||
+			(depth != 0 && line_length > max_line_length)) {
 		LispToken token(token_queue.front());
-		token_queue.pop();
+
+		// Current line length and index of next token
+		int length = 4 * write_depth;
+		int index = 1;
 
 		switch (token.getType()) {
-		case LispToken::WORD:
-			output << token.getContent();
-			break;
 		case LispToken::OPENING:
-			output << '(';
+			// Then count characters until ')'
+			for (int cur_depth = 1; cur_depth != 0 && length <= max_line_length; ++index) {
+				LispToken::Type type = token_queue[index].getType();
+				if (type == LispToken::OPENING)
+					cur_depth += 1;
+				else if (type == LispToken::CLOSING)
+					cur_depth -= 1;
+
+				length += tokenLength(index);
+			}
+
+			// Does it fit on the line? Then write.
+			if (length <= max_line_length)
+				writeLine(index);
+			else {
+				writeLine(token_queue[1].getType() == LispToken::OPENING ? 1 : 2);
+
+				// The closing paranthesis will be on an extra line,
+				// hence we don't have to care about it. (*)
+				--line_length;
+				++write_depth;
+			}
+
 			break;
+
+		// Closing paranthesis? Decrease depth, write it.
 		case LispToken::CLOSING:
-			output << ')';
-			break;
-		case LispToken::ENDOFFILE:		// To avoid warning.
+			++line_length;	     // compensate for forgetting in (*)
+			--write_depth;
+			// no break;
+
+		// Single word? Just write it.
+		case LispToken::WORD:
+			writeLine(1);
 			break;
 		}
+	}
+}
 
+/**
+ * Write a complete line, using a certain number of tokens from the queue.
+ * The line is indented as write_depth says, and we write the tokens with
+ * indices 0 to num_tokens-1.
+ * @method Writer::writeLine
+ * @param num_tokens Number of tokens to write
+ */
+void Writer::writeLine(int num_tokens)
+{
+	// Indent
+	for (int indent = 0; indent < write_depth; ++indent)
+		output << "    ";
+
+	// Write tokens
+	while (num_tokens--) {
+		LispToken token(token_queue.front());
+
+		// Write token and compensate in line length
+		writeToken(token);
+		// We don't compensate for the last token in the queue, see push.
+		if (token_queue.size() > 1)
+			line_length -= tokenLength(0);
+
+		token_queue.pop_front();
+
+		// Space after token if it isn't '(' and the next token isn't ')'.
+		// Also, no space after the last token in a line.
 		if (token.getType() != LispToken::OPENING && token_queue.size() &&
-				token_queue.front().getType() != LispToken::CLOSING)
+				token_queue.front().getType() != LispToken::CLOSING && num_tokens > 1)
 			output << ' ';
-	};
+	}
 
+	// New line
 	output << std::endl;
+}
+
+/**
+ * Write a single token.
+ * @method Writer::writeToken
+ * @param token Token to write
+ */
+void Writer::writeToken(LispToken token)
+{
+	switch (token.getType()) {
+	case LispToken::WORD:
+		output << token.getContent();
+		break;
+	case LispToken::OPENING:
+		output << '(';
+		break;
+	case LispToken::CLOSING:
+		output << ')';
+		break;
+	}
+}
+
+/**
+ * Compute the length of a token in the queue, accounting for space after it.
+ * This assumes that all tokens will form a single line of output. We don't
+ * concern ourselves with the case that a token might be at the end of a line.
+ * We can only compute the length of tokens that are not at the end.
+ * @method Writer::tokenLength
+ * @param index Index of token in the queue
+ * @return Length of token including a space after it.
+ */
+int Writer::tokenLength(int index)
+{
+	int length = 0;
+
+	switch (token_queue[index].getType()) {
+	case LispToken::WORD:
+		length += token_queue[index].getContent().length();
+		break;
+	case LispToken::OPENING:
+		length += 1;
+		break;
+	case LispToken::CLOSING:
+		length += 1;
+		break;
+	}
+
+	// Account for space after token.
+	// assert(token_queue.size() > index+1);
+	if (token_queue[index].getType() != LispToken::OPENING &&
+			token_queue[index+1].getType() != LispToken::CLOSING)
+		length += 1;
+
+	return length;
 }

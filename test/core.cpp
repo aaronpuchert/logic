@@ -133,7 +133,7 @@ template <typename T>
 void checkResult(const T *object, const std::string& result)
 {
 	std::ostringstream stream;
-	Writer writer(stream);
+	Writer writer(stream, std::numeric_limits<int>::max());		// don't wrap
 	object->accept(&writer);
 	std::cout << "Writer: \e[1m" << stream.str() << "\e[0m";
 	BOOST_CHECK_EQUAL(stream.str(), result);
