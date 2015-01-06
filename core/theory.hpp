@@ -58,7 +58,7 @@ namespace Core {
 		// Miscellaneous
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
-		bool verify();
+		bool verify() const;
 
 		const Theory *parent;
 		const iterator parent_node;
@@ -146,7 +146,7 @@ namespace Core {
 	class Proof {
 	public:
 		virtual ~Proof() {}
-		virtual bool proves(const Statement &statement) = 0;
+		virtual bool proves(const Statement &statement) const = 0;
 		virtual void accept(Visitor *visitor) const = 0;
 	};
 
@@ -164,7 +164,7 @@ namespace Core {
 			{return var_list;}
 		const std::vector<Reference> getReferences() const
 			{return ref_statement_list;}
-		bool proves(const Statement &statement);
+		bool proves(const Statement &statement) const;
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
@@ -182,7 +182,7 @@ namespace Core {
 		LongProof(Theory *parent, Theory::iterator parent_node)
 			: subTheory(parent, parent_node) {}
 
-		bool proves(const Statement &statement);
+		bool proves(const Statement &statement) const;
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 

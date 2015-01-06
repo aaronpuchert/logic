@@ -20,7 +20,36 @@
 #include "logic.hpp"
 #include <algorithm>
 #include <sstream>
+#include <iostream>
 using namespace Core;
+
+/**
+ * Validate the application of a Rule.
+ * @method Rule::validate
+ * @param  substitutes    Arguments for the parameters of the Expression.
+ * @param  statements     References to the statements needed.
+ * @param  statement      Statement that was deduced.
+ * @return                True, if the statement can be deduced in this way.
+ */
+bool Rule::validate(const std::vector<Expr_ptr> &substitutes,
+	const std::vector<Reference> &statements, const_Expr_ptr statement) const
+{
+	// Type check
+	// TODO: this is too strict!
+	TypeComparator compare;
+	auto mismatch = std::mismatch(params.begin(), params.end(), substitutes.begin(),
+		[&compare] (const_Node_ptr a, Expr_ptr b) -> bool
+		{return compare(a->getType().get(), b->getType().get());}
+	);
+
+	if (mismatch.first != params.end() || mismatch.second != substitutes.end()) {
+		std::ostringstream str;
+		str << "parameter " << mismatch.second - substitutes.begin() + 1;
+		throw TypeException((*mismatch.second)->getType(), (*mismatch.first)->getType(), str.str());
+	}
+
+	return validate_pass(substitutes, statements, statement);
+}
 
 /**
  * Construct a tautology: such a rule states that a certain statement is always true.
@@ -33,6 +62,18 @@ Tautology::Tautology(const std::string& name, Theory &&params, Expr_ptr statemen
 {
 	if (statement->getType() != BuiltInType::statement)
 		throw TypeException(statement->getType(), BuiltInType::statement);
+}
+
+bool Tautology::validate_pass(const std::vector<Expr_ptr> &substitutes,
+	const std::vector<Reference> &statements, const_Expr_ptr statement) const
+{
+	// Check the number of references, it should be 0
+	if (statements.size()!= 0)
+		return false;
+
+	// Check if the statement given is correct
+	// TODO: substitution algorithm
+	return true;
 }
 
 /**
@@ -50,6 +91,17 @@ EquivalenceRule::EquivalenceRule(const std::string& name, Theory &&params,
 		throw TypeException(statement1->getType(), BuiltInType::statement, "first statement");
 	if (statement2->getType() != BuiltInType::statement)
 		throw TypeException(statement2->getType(), BuiltInType::statement, "second statement");
+}
+
+bool EquivalenceRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
+	const std::vector<Reference> &statements, const_Expr_ptr statement) const
+{
+	// Check if we are given one reference
+	if (statements.size() != 1)
+		return false;
+
+	// TODO: Try substitution both ways
+	return true;
 }
 
 /**
@@ -79,20 +131,14 @@ DeductionRule::DeductionRule(const std::string& name, Theory &&params,
 		throw TypeException(conclusion->getType(), BuiltInType::statement, "conclusion");
 }
 
-bool Tautology::validate(const std::vector<Expr_ptr> &substitutes,
-	const std::vector<Expr_ptr> &statements)
+bool DeductionRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
+	const std::vector<Reference> &statements, const_Expr_ptr statement) const
 {
-	//
-}
+	// Check if we are given the right number of references
+	if (statements.size() != premisses.size())
+		return false;
+	// Check the premisses TODO
+	// Check the conclusion TODO
 
-bool EquivalenceRule::validate(const std::vector<Expr_ptr> &substitutes,
-	const std::vector<Expr_ptr> &statements)
-{
-	//
-}
-
-bool DeductionRule::validate(const std::vector<Expr_ptr> &substitutes,
-	const std::vector<Expr_ptr> &statements)
-{
-	//
+	return true;
 }

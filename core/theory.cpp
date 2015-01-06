@@ -20,6 +20,7 @@
 #include "theory.hpp"
 #include "logic.hpp"
 #include <sstream>
+#include <algorithm>
 using namespace Core;
 
 /**
@@ -115,11 +116,19 @@ Theory::const_iterator Theory::end() const
 }
 
 /**
- * verify the theory.
+ * Verify the theory.
+ * @return True, when the theory verifies, false if it doesn't.
  */
-bool Theory::verify()
+bool Theory::verify() const
 {
-	//
+	return std::all_of(nodes.begin(), nodes.end(), [] (Node_ptr node) -> bool {
+		if (node->getType() == BuiltInType::statement) {
+			auto stmt = std::dynamic_pointer_cast<Statement>(node);
+			if (stmt && stmt->hasProof())
+				return stmt->getProof()->proves(*stmt);
+		}
+		return true;
+	});
 }
 
 NamespaceException::NamespaceException(Reason reason, const std::string &name)
@@ -163,12 +172,12 @@ Statement::Statement(const std::string &name, Expr_ptr expr)
  * Add a proof to a statement.
  * @method Statement::addProof
  * @param proof Pointer to the proof to be added.
- * @return [later] Return if the proof could be accepted.
+ * @return Return if the proof works.
  */
 bool Statement::addProof(Proof_ptr proof)
 {
 	this->proof = proof;
-	return true;
+	return proof->proves(*this);
 }
 
 /**
@@ -287,16 +296,25 @@ ProofStep::ProofStep(Theory *system, const std::string &rule_name,
 
 /**
  * Does the proof step prove a certain statement?
+ * @method ProofStep::proves
+ * @param statement Statement to prove
+ * @return True, if the statement can be proven this way.
  */
-bool ProofStep::proves(const Statement &statement)
+bool ProofStep::proves(const Statement &statement) const
 {
-	//
+	return rule->validate(var_list, ref_statement_list, statement.getDefinition());
 }
 
 /**
  * Does this long proof prove a certain statement?
  */
-bool LongProof::proves(const Statement &statement)
+bool LongProof::proves(const Statement &statement) const
 {
-	//
+	// Is the theory valid?
+	if (!subTheory.verify())
+		return false;
+
+	// Is the last node a statement and the same as ours?
+	// TODO: compare
+	return true;
 }

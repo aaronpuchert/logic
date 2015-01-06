@@ -40,11 +40,15 @@ namespace Core {
 		const Theory* getVars() const
 			{return &params;}
 
-		virtual bool validate(const std::vector<Expr_ptr> &substitutes,
-			const std::vector<Expr_ptr> &statements) = 0;
+		bool validate(const std::vector<Expr_ptr> &substitutes,
+			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
 	protected:
 		Theory params;
+
+	private:
+		virtual bool validate_pass(const std::vector<Expr_ptr> &substitutes,
+			const std::vector<Reference> &statements, const_Expr_ptr statement) const = 0;
 	};
 
 	/**
@@ -58,10 +62,10 @@ namespace Core {
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
-		bool validate(const std::vector<Expr_ptr> &substitutes,
-			const std::vector<Expr_ptr> &statements);
+	private:
+		bool validate_pass(const std::vector<Expr_ptr> &substitutes,
+			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
-	protected:
 		Expr_ptr statement;
 	};
 
@@ -79,10 +83,10 @@ namespace Core {
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
-		bool validate(const std::vector<Expr_ptr> &substitutes,
-			const std::vector<Expr_ptr> &statements);
+	private:
+		bool validate_pass(const std::vector<Expr_ptr> &substitutes,
+			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
-	protected:
 		Expr_ptr statement1, statement2;
 	};
 
@@ -100,10 +104,10 @@ namespace Core {
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
-		bool validate(const std::vector<Expr_ptr> &substitutes,
-			const std::vector<Expr_ptr> &statements);
+	private:
+		bool validate_pass(const std::vector<Expr_ptr> &substitutes,
+			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
-	protected:
 		std::vector<Expr_ptr> premisses;
 		Expr_ptr conclusion;
 	};
