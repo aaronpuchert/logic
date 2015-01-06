@@ -25,7 +25,6 @@
 #include <stack>
 #include <deque>
 #include <sstream>
-#include <memory>
 #include "traverse.hpp"
 
 /**

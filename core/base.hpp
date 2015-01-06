@@ -21,7 +21,6 @@
 #define CORE_BASE_HPP
 #include "forward.hpp"
 #include <string>
-#include <memory>
 #include <vector>
 #include <sstream>
 #include "traverse.hpp"

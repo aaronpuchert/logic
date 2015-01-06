@@ -24,7 +24,6 @@
 #include "base.hpp"
 #include <vector>
 #include <string>
-#include <memory>
 #include "traverse.hpp"
 
 /**

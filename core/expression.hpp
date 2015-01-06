@@ -23,7 +23,6 @@
 #include "base.hpp"
 #include "theory.hpp"
 #include <vector>
-#include <memory>
 #include "traverse.hpp"
 
 /**
