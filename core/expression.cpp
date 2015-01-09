@@ -35,22 +35,19 @@ const_Type_ptr AtomicExpr::getType() const
 
 /**
  * Construct predicate (call) expression.
- * @method PredicateExpr::PredicateExpr
+ * @method LambdaCallExpr::LambdaCallExpr
  * @param node Predicate to call.
  * @param args Vector of argument expressions.
  */
-PredicateExpr::PredicateExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args)
+LambdaCallExpr::LambdaCallExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args)
 	: node(node), args(std::move(args))
 {
-	// Is node a predicate?
+	// Is node a lambda?
 	std::shared_ptr<const LambdaType> pred_type =
 		std::dynamic_pointer_cast<const LambdaType>(node->getType());
 
 	if (!pred_type)
 		throw TypeException(node->getType(), "lambda expression");
-
-	if (pred_type->getReturnType() != BuiltInType::statement)
-		throw TypeException(pred_type->getReturnType(), BuiltInType::statement, "return type");
 
 	// Do the arguments have the right type?
 	TypeComparator compare;
@@ -66,27 +63,29 @@ PredicateExpr::PredicateExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args)
 	}
 }
 
-const_Type_ptr PredicateExpr::getType() const
+const_Type_ptr LambdaCallExpr::getType() const
 {
-	return BuiltInType::statement;
+	std::shared_ptr<const LambdaType> pred_type =
+		std::static_pointer_cast<const LambdaType>(node->getType());
+	return pred_type->getReturnType();
 }
 
 /**
  * Begin iterator for iterating through the arguments.
- * @method PredicateExpr::begin
+ * @method LambdaCallExpr::begin
  * @return Begin iterator.
  */
-PredicateExpr::const_iterator PredicateExpr::begin() const
+LambdaCallExpr::const_iterator LambdaCallExpr::begin() const
 {
 	return args.begin();
 }
 
 /**
  * End iterator for iterating through the arguments.
- * @method PredicateExpr::end
+ * @method LambdaCallExpr::end
  * @return End iterator.
  */
-PredicateExpr::const_iterator PredicateExpr::end() const
+LambdaCallExpr::const_iterator LambdaCallExpr::end() const
 {
 	return args.end();
 }
@@ -157,37 +156,35 @@ const_Type_ptr QuantifierExpr::getType() const
 }
 
 /**
- * Construct predicate lambda expression.
- * @method PredicateLambda::PredicateLambda
+ * Construct lambda expression.
+ * @method LambdaExpr::LambdaExpr
  * @param params Parameters to the lambda expression.
- * @param expression Statement expression.
+ * @param expression Lambda body.
  */
-PredicateLambda::PredicateLambda(Theory &&params, const_Expr_ptr expression)
-	: params(std::move(params)), expression(expression)
-{
-	if (expression->getType() != BuiltInType::statement)
-		throw TypeException(expression->getType(), BuiltInType::statement);
-}
+LambdaExpr::LambdaExpr(Theory &&params, const_Expr_ptr expression)
+	: params(std::move(params)), expression(expression) {}
 
 /**
- * Set definition expression for predicate lambda.
- * @method PredicateLambda::setDefinition
+ * Set definition expression for lambda.
+ * @method LambdaExpr::setDefinition
  * @param  expression Expression defining the predicate.
  */
-void PredicateLambda::setDefinition(const_Expr_ptr new_expression)
+void LambdaExpr::setDefinition(const_Expr_ptr new_expression)
 {
-	if (new_expression->getType() == BuiltInType::statement)
-		expression = new_expression;
-	else
-		throw TypeException(new_expression->getType(), BuiltInType::statement);
+	// We shouldn't accept it if the return type changes.
+	TypeComparator compare;
+	if (!compare(expression->getType().get(), new_expression->getType().get()))
+		throw TypeException(new_expression->getType(), expression->getType(), "return type");
+
+	expression = new_expression;
 }
 
 /**
  * Get type of Lambda expression.
- * @method PredicateLambda::getType
+ * @method LambdaExpr::getType
  * @return Type of Lambda expression.
  */
-const_Type_ptr PredicateLambda::getType() const
+const_Type_ptr LambdaExpr::getType() const
 {
 	// Build type if required
 	if (!type) {
@@ -195,7 +192,7 @@ const_Type_ptr PredicateLambda::getType() const
 		std::vector<const_Type_ptr> types{const_Type_ptr()};
 		std::transform(params.begin(), params.end(), types.begin(),
 			[] (const_Node_ptr node) -> const_Type_ptr {return node->getType();});
-		type = std::make_shared<LambdaType>(std::move(types));
+		type = std::make_shared<LambdaType>(std::move(types), expression->getType());
 	}
 
 	return type;
@@ -203,25 +200,25 @@ const_Type_ptr PredicateLambda::getType() const
 
 /**
  * Begin iterator for iterating through the paramenters.
- * @method PredicateLambda::begin
+ * @method LambdaExpr::begin
  * @return Begin iterator.
  */
-Theory::const_iterator PredicateLambda::begin() const
+Theory::const_iterator LambdaExpr::begin() const
 {
 	return params.begin();
 }
 
 /**
  * End iterator for iterating through the parameters.
- * @method PredicateLambda::end
+ * @method LambdaExpr::end
  * @return End iterator.
  */
-Theory::const_iterator PredicateLambda::end() const
+Theory::const_iterator LambdaExpr::end() const
 {
 	return params.end();
 }
 
-void PredicateLambda::accept(Core::Visitor *visitor) const
+void LambdaExpr::accept(Core::Visitor *visitor) const
 {
 	visitor->visit(this);
 }

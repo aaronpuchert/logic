@@ -47,12 +47,12 @@ namespace Core {
 	};
 
 	/**
-	 * Predicate expression
+	 * Lambda call expression
 	 */
-	class PredicateExpr : public Expression {
+	class LambdaCallExpr : public Expression {
 	public:
-		PredicateExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args);
-		const_Node_ptr getPredicate() const
+		LambdaCallExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args);
+		const_Node_ptr getLambda() const
 			{return node;}
 		const_Type_ptr getType() const;
 
@@ -132,11 +132,11 @@ namespace Core {
 	// class LongConjunction : public Expression {};
 
 	/**
-	 * Predicate lambda expressions.
+	 * Lambda expressions.
 	 */
-	class PredicateLambda : public Expression {
+	class LambdaExpr : public Expression {
 	public:
-		PredicateLambda(Theory &&params, const_Expr_ptr expression);
+		LambdaExpr(Theory &&params, const_Expr_ptr expression);
 		const Theory& getParams() const
 			{return params;}
 		const_Expr_ptr getDefinition() const

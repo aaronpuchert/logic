@@ -65,11 +65,11 @@ namespace Core {
 		void visit(const VariableType *type);
 		void visit(const LambdaType *type);
 		void visit(const AtomicExpr *expression);
-		void visit(const PredicateExpr *expression);
+		void visit(const LambdaCallExpr *expression);
 		void visit(const NegationExpr *expression);
 		void visit(const ConnectiveExpr *expression);
 		void visit(const QuantifierExpr *expression);
-		void visit(const PredicateLambda *predicate);
+		void visit(const LambdaExpr *expression);
 		void write_varlist(const Rule *rule);
 		void visit(const Tautology *rule);
 		void visit(const EquivalenceRule *rule);

@@ -90,16 +90,16 @@ BOOST_AUTO_TEST_CASE(type_check_test)
 	lambda[2] = make_shared<Node>(lambda_type[0], "pred");
 
 	// Call the predicate
-	BOOST_CHECK_NO_THROW(pred_expr[0] = make_shared<PredicateExpr>(lambda[0], std::vector<Expr_ptr>{atomic[0]}));
+	BOOST_CHECK_NO_THROW(pred_expr[0] = make_shared<LambdaCallExpr>(lambda[0], std::vector<Expr_ptr>{atomic[0]}));
 	BOOST_CHECK_EXCEPTION(
-		pred_expr[1] = make_shared<PredicateExpr>(lambda[0], std::vector<Expr_ptr>{atomic[2]}),
+		pred_expr[1] = make_shared<LambdaCallExpr>(lambda[0], std::vector<Expr_ptr>{atomic[2]}),
 		TypeException,
 		type_exception_pred("expected var_type, but got statement in argument 1")
 	);
 
 	// Define a predicate via another
 	neg_expr = make_shared<NegationExpr>(pred_expr[0]);
-	BOOST_CHECK_NO_THROW(lambda_def = make_shared<PredicateLambda>(Theory{var_def[0]}, neg_expr));
+	BOOST_CHECK_NO_THROW(lambda_def = make_shared<LambdaExpr>(Theory{var_def[0]}, neg_expr));
 	BOOST_CHECK_NO_THROW(lambda[2]->setDefinition(lambda_def));
 	BOOST_CHECK_EXCEPTION(
 		lambda[1]->setDefinition(lambda_def),
@@ -205,7 +205,7 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	Expr_ptr atomic_pred = make_shared<AtomicExpr>(pred_node);
 	Expr_ptr forall_expr = make_shared<QuantifierExpr>(QuantifierExpr::FORALL,
 		atomic_pred);
-	Expr_ptr pred_expr = make_shared<PredicateExpr>(pred_node,
+	Expr_ptr pred_expr = make_shared<LambdaCallExpr>(pred_node,
 		std::vector<Expr_ptr>{expr_y});
 	Rule_ptr specializationrule = make_shared<DeductionRule>(
 		"specialization", Theory{type_decl, pred_node, var_y},
@@ -247,7 +247,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	Expr_ptr fritz_expr = make_shared<AtomicExpr>(fritz);
 
 	// (axiom (schüler? fritz))
-	Expr_ptr axiom1_expr = make_shared<PredicateExpr>(student,
+	Expr_ptr axiom1_expr = make_shared<LambdaCallExpr>(student,
 		std::vector<Expr_ptr>{fritz_expr});
 	Statement_ptr axiom1 = make_shared<Statement>("", axiom1_expr);
 	checkResult(axiom1.get(), "(axiom (schüler? fritz))\n");
@@ -256,14 +256,14 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	// (axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))
 	Node_ptr var_x = make_shared<Node>(person, "x");
 	Expr_ptr expr_x = make_shared<AtomicExpr>(var_x);
-	Expr_ptr student_x = make_shared<PredicateExpr>(student,
+	Expr_ptr student_x = make_shared<LambdaCallExpr>(student,
 		std::vector<Expr_ptr>{expr_x});
-	Expr_ptr stupid_x = make_shared<PredicateExpr>(stupid,
+	Expr_ptr stupid_x = make_shared<LambdaCallExpr>(stupid,
 		std::vector<Expr_ptr>{expr_x});
 	Expr_ptr impl = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL,
 		student_x, stupid_x);
-	std::shared_ptr<PredicateLambda> impl_pred =
-		make_shared<PredicateLambda>(Theory{var_x}, impl);
+	std::shared_ptr<LambdaExpr> impl_pred =
+		make_shared<LambdaExpr>(Theory{var_x}, impl);
 	Expr_ptr forall_expr = make_shared<QuantifierExpr>
 		(QuantifierExpr::FORALL, impl_pred);
 	Statement_ptr axiom2 = make_shared<Statement>("", forall_expr);
@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 
 	//  (statement
 	//  	(dumm? fritz)
-	Expr_ptr statement_expr = make_shared<PredicateExpr>(stupid,
+	Expr_ptr statement_expr = make_shared<LambdaCallExpr>(stupid,
 		std::vector<Expr_ptr>{fritz_expr});
 	Statement_ptr statement = make_shared<Statement>("", statement_expr);
 	position = theory.add(statement, position);

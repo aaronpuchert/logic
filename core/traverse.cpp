@@ -48,7 +48,7 @@ void Visitor::visit(const AtomicExpr *expression)
 	//
 }
 
-void Visitor::visit(const PredicateExpr *expression)
+void Visitor::visit(const LambdaCallExpr *expression)
 {
 	//
 }
@@ -68,7 +68,7 @@ void Visitor::visit(const QuantifierExpr *expression)
 	//
 }
 
-void Visitor::visit(const PredicateLambda *predicate)
+void Visitor::visit(const LambdaExpr *expression)
 {
 	//
 }

@@ -96,14 +96,14 @@ void Writer::visit(const Node *node)
 	addParanthesis(CLOSING);
 }
 
-void Writer::visit(const PredicateLambda *predicate)
+void Writer::visit(const LambdaExpr *expression)
 {
 	// Declaration list
 	addParanthesis(OPENING);
 	addToken("list");
-	predicate->getParams().accept(this);
+	expression->getParams().accept(this);
 	addParanthesis(CLOSING);
-	if (const_Expr_ptr expr = predicate->getDefinition())
+	if (const_Expr_ptr expr = expression->getDefinition())
 		expr->accept(this);
 }
 
@@ -112,10 +112,10 @@ void Writer::visit(const AtomicExpr *expression)
 	addToken(expression->getAtom()->getName());
 }
 
-void Writer::visit(const PredicateExpr *expression)
+void Writer::visit(const LambdaCallExpr *expression)
 {
 	addParanthesis(OPENING);
-	addToken(expression->getPredicate()->getName());
+	addToken(expression->getLambda()->getName());
 	for (auto arg : *expression)
 		arg->accept(this);
 	addParanthesis(CLOSING);

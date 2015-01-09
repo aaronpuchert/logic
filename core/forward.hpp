@@ -43,11 +43,11 @@ namespace Core {
 
 	// expression.hpp
 	class AtomicExpr;
-	class PredicateExpr;
+	class LambdaCallExpr;
 	class NegationExpr;
 	class ConnectiveExpr;
 	class QuantifierExpr;
-	class PredicateLambda;
+	class LambdaExpr;
 
 	// logic.hpp
 	class Rule;

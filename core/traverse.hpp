@@ -35,11 +35,11 @@ namespace Core {
 		virtual void visit(const LambdaType *type);
 		virtual void visit(const Node *node);
 		virtual void visit(const AtomicExpr *expression);
-		virtual void visit(const PredicateExpr *expression);
+		virtual void visit(const LambdaCallExpr *expression);
 		virtual void visit(const NegationExpr *expression);
 		virtual void visit(const ConnectiveExpr *expression);
 		virtual void visit(const QuantifierExpr *expression);
-		virtual void visit(const PredicateLambda *predicate);
+		virtual void visit(const LambdaExpr *expression);
 		virtual void visit(const Tautology *rule);
 		virtual void visit(const EquivalenceRule *rule);
 		virtual void visit(const DeductionRule *rule);
