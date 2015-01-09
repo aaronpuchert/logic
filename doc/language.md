@@ -3,17 +3,16 @@ We follow the Lisp syntax. There are two central structures: nodes and
 expressions. Expressions are defined recursively as usual, more details can be
 found in the following sections. Theories are lists of nodes, which are simply
 names (identifiers). Nodes with just a name can be understood as declarations.
-It is also possible to give an expression for a node, i.e. a definition.
+It is also possible to give a definition for a node, i.e. an expression.
 
 ## Types ##
 Expressions and nodes are statically typed. There are a few built-in types:
 
 	<type> := type | statement | rule
 
-It is also possible to define your own types anywhere in a theory. Nodes of a
-certain type are then declared via:
+You can also declare your own types anywhere in a theory:
 
-	<node> := (<type> <type-name>)
+	<node> := (type <type-name>)
 	<type> |= <type-name>
 
 While these types are all atomic, there are also compound types to describe
