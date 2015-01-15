@@ -42,9 +42,9 @@ namespace Core {
 	/**
 	 * Base class for types.
 	 */
-	class Type {
+	class Type : public Expression {
 	public:
-		virtual ~Type() {}
+		const_Type_ptr getType() const;
 		virtual void accept(Visitor *visitor) const = 0;
 	};
 

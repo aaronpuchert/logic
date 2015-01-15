@@ -289,7 +289,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  				(list parent~1)
 	//  			)
 	std::shared_ptr<ProofStep> step1 = make_shared<ProofStep>(&rules, "specialization",
-		std::vector<Expr_ptr>{make_shared<AtomicExpr>(person_node), impl_pred, fritz_expr},
+		std::vector<Expr_ptr>{person, impl_pred, fritz_expr},
 		std::vector<Reference>{Reference(&theory, --position)});
 	inter1->addProof(step1);
 	sub_pos = proof->subTheory.add(inter1, sub_pos);

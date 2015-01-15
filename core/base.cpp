@@ -22,6 +22,16 @@
 using namespace Core;
 
 /**
+ * Get type of a type expression.
+ * @method Type::getType
+ * @return Type of a type, which is type.
+ */
+const_Type_ptr Type::getType() const
+{
+	return BuiltInType::type;
+}
+
+/**
  * Construct standard type.
  * @method BuiltInType::BuiltInType
  * @param variant Can be any of Type::{UNDEFINED|TYPE|STATEMENT|RULE}.
