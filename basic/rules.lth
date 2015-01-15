@@ -10,8 +10,16 @@
 (equivrule double_negation (list (statement a)) (not (not a)) a)
 
 # DeMorgan
-(equivrule demorgan_and (list (statement a) (statement b)) (not (and a b)) (or (not a) (not b)))
-(equivrule demorgan_or (list (statement a) (statement b)) (not (or a b)) (and (not a) (not b)))
+(equivrule demorgan_and
+	(list (statement a) (statement b))
+	(not (and a b))
+	(or (not a) (not b))
+)
+(equivrule demorgan_or
+	(list (statement a) (statement b))
+	(not (or a b))
+	(and (not a) (not b))
+)
 
 # Commutative laws
 (equivrule commutative_and (list (statement a) (statement b)) (and a b) (and b a))
@@ -19,18 +27,38 @@
 (equivrule commutative_equiv (list (statement a) (statement b)) (equiv a b) (equiv b a))
 
 # Contraposition
-(equivrule contraposition (list (statement a) (statement b)) (impl a b) (impl (not b) (not a)))
+(equivrule contraposition
+	(list (statement a) (statement b))
+	(impl a b)
+	(impl (not b) (not a))
+)
 
 # Modus ponens
 (deductionrule ponens (list (statement a) (statement b)) (list (impl a b) a) b)
 # Modus tollens
-(deductionrule tollens (list (statement a) (statement b)) (list (impl a b) (not b)) (not a))
+(deductionrule tollens
+	(list (statement a) (statement b))
+	(list (impl a b) (not b))
+	(not a)
+)
 # Modus Barbara
-(deductionrule barbara (list (statement a) (statement b) (statement c)) (list (impl a b) (impl b c)) (impl a c))
+(deductionrule barbara
+	(list (statement a) (statement b) (statement c))
+	(list (impl a b) (impl b c))
+	(impl a c)
+)
 
 # Distributive laws
-(equivrule distributive_and (list (statement a) (statement b) (statement c)) (and a (or b c)) (or (and a b) (and a c)))
-(equivrule distributive_or (list (statement a) (statement b) (statement c)) (or a (and b c)) (and (or a b) (or a c)))
+(equivrule distributive_and
+	(list (statement a) (statement b) (statement c))
+	(and a (or b c))
+	(or (and a b) (and a c))
+)
+(equivrule distributive_or
+	(list (statement a) (statement b) (statement c))
+	(or a (and b c))
+	(and (or a b) (or a c))
+)
 
 # Rules for 'and'
 (deductionrule and_first (list (statement a) (statement b)) (list (and a b)) a)
@@ -39,13 +67,25 @@
 # Rules for 'or'
 (deductionrule or_first (list (statement a) (statement b)) (list a) (or a b))
 (deductionrule or_second (list (statement a) (statement b)) (list b) (or a b))
-(deductionrule or_neg_first (list (statement a) (statement b)) (list (or a b) (not a)) (not b))
-(deductionrule or_neg_second (list (statement a) (statement b)) (list (or a b) (not b)) (not a))
+(deductionrule or_neg_first
+	(list (statement a) (statement b))
+	(list (or a b) (not a))
+	(not b)
+)
+(deductionrule or_neg_second
+	(list (statement a) (statement b))
+	(list (or a b) (not b))
+	(not a)
+)
 
 ###################
 # PREDICATE LOGIC #
 ###################
 
 # Specialization
-(deductionrule specialization (list (type T) ((lambda statement (list T)) P) (T y)) (list (forall P)) (P y))
+(deductionrule specialization
+	(list (type T) ((lambda statement (list T)) P) (T y))
+	(list (forall P))
+	(P y)
+)
 # What else?
