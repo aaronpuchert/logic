@@ -34,18 +34,13 @@ using namespace Core;
 bool Rule::validate(const std::vector<Expr_ptr> &substitutes,
 	const std::vector<Reference> &statements, const_Expr_ptr statement) const
 {
-	// Type check
-	// TODO: this is too strict!
-	TypeComparator compare;
-	auto mismatch = std::mismatch(params.begin(), params.end(), substitutes.begin(),
-		[&compare] (const_Node_ptr a, Expr_ptr b) -> bool
-		{return compare(a->getType().get(), b->getType().get());}
-	);
-
-	if (mismatch.first != params.end() || mismatch.second != substitutes.end()) {
-		std::ostringstream str;
-		str << "parameter " << mismatch.second - substitutes.begin() + 1;
-		throw TypeException((*mismatch.second)->getType(), (*mismatch.first)->getType(), str.str());
+	// Set parameters (which does a type check)
+	auto param_it = params.begin();
+	auto sub_it = substitutes.begin();
+	for (; param_it != params.end() && sub_it != substitutes.end();
+		++param_it, ++sub_it
+	) {
+		(*param_it)->setDefinition(*sub_it);
 	}
 
 	return validate_pass(substitutes, statements, statement);
