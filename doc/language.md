@@ -18,7 +18,7 @@ You can also declare your own types anywhere in a theory:
 While these types are all atomic, there are also compound types to describe
 lambda expressions such as predicates.
 
-	<type> |= (lambda <return-type> (list <argument-type>*))
+	<type> |= (lambda-type <return-type> (list <argument-type>*))
 
 Say we have a type `number` and want a 1-valued predicate on numbers, then its
 type would be
@@ -55,7 +55,7 @@ Predicates can be declared, only giving the types of arguments, or be defined,
 giving a statement that depends on the arguments:
 
 	<declaration> |= (<predicate-type> <pred-name> [<predicate-lambda>])
-	<predicate-lambda> = <dec-list> <statement>
+	<predicate-lambda> = (lambda <dec-list> <statement>)
 	<dec-list> := (list <declaration>*)
 
 If a predicate lambda is given, the predicate type can be deduced and we can

@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 		"specialization", Theory{type_decl, pred_node, var_y},
 		std::vector<Expr_ptr>{forall_expr}, pred_expr);
 
-	checkResult(specializationrule.get(), "(deductionrule specialization (list (type T) ((lambda statement (list T)) P) (T y)) (list (forall P)) (P y))\n");
+	checkResult(specializationrule.get(), "(deductionrule specialization (list (type T) ((lambda-type statement (list T)) P) (T y)) (list (forall P)) (P y))\n");
 	position = rules.add(specializationrule, position);
 
 	// Check all rules with line wrapping
@@ -232,12 +232,12 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	// (predicate schüler? (list person))
 	Type_ptr pred_type = make_shared<LambdaType>(std::vector<const_Type_ptr>{person});
 	Node_ptr student = make_shared<Node>(pred_type, "schüler?");
-	checkResult(student.get(), "((lambda statement (list person)) schüler?)\n");
+	checkResult(student.get(), "((lambda-type statement (list person)) schüler?)\n");
 	position = theory.add(student, position);
 
 	// (predicate dumm? (list person))
 	Node_ptr stupid = make_shared<Node>(pred_type, "dumm?");
-	checkResult(stupid.get(), "((lambda statement (list person)) dumm?)\n");
+	checkResult(stupid.get(), "((lambda-type statement (list person)) dumm?)\n");
 	position = theory.add(stupid, position);
 
 	// (person fritz) ; this is in fact a constant, but what is the difference?
@@ -267,7 +267,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	Expr_ptr forall_expr = make_shared<QuantifierExpr>
 		(QuantifierExpr::FORALL, impl_pred);
 	Statement_ptr axiom2 = make_shared<Statement>("", forall_expr);
-	checkResult(axiom2.get(), "(axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))\n");
+	checkResult(axiom2.get(), "(axiom (forall (lambda (list (person x)) (impl (schüler? x) (dumm? x)))))\n");
 	position = theory.add(axiom2, position);
 
 	//  (statement
@@ -309,7 +309,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  	)
 	//  )
 	statement->addProof(proof);
-	checkResult(statement.get(), "(lemma (dumm? fritz) (proof (lemma (impl (schüler? fritz) (dumm? fritz)) (specialization (list person (list (person x)) (impl (schüler? x) (dumm? x)) fritz) (list parent~1))) (lemma (dumm? fritz) (ponens (list (schüler? fritz) (dumm? fritz)) (list this~1 parent~2)))))\n");
+	checkResult(statement.get(), "(lemma (dumm? fritz) (proof (lemma (impl (schüler? fritz) (dumm? fritz)) (specialization (list person (lambda (list (person x)) (impl (schüler? x) (dumm? x))) fritz) (list parent~1))) (lemma (dumm? fritz) (ponens (list (schüler? fritz) (dumm? fritz)) (list this~1 parent~2)))))\n");
 
 	// Check the whole theory with line wrapping
 	checkResult(&theory, "examples/simple.lth");

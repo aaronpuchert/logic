@@ -84,34 +84,34 @@
 
 # Specialization
 (deductionrule specialization
-	(list (type T) ((lambda statement (list T)) P) (T y))
+	(list (type T) ((lambda-type statement (list T)) P) (T y))
 	(list (forall P))
 	(P y)
 )
 # Generalization
 (deductionrule generalization
-	(list (type T) ((lambda statement (list T)) P) (T y))
+	(list (type T) ((lambda-type statement (list T)) P) (T y))
 	(list (P y))
 	(exists P)
 )
 
 # Negation
 (equivrule negate_forall
-	(list (type T) ((lambda statement (list T)) P))
+	(list (type T) ((lambda-type statement (list T)) P))
 	(not (forall P))
-	(exists (list (T x)) (not (P x)))
+	(exists (lambda (list (T x)) (not (P x))))
 )
 (equivrule negate_exists
-	(list (type T) ((lambda statement (list T)) P))
+	(list (type T) ((lambda-type statement (list T)) P))
 	(not (exists P))
-	(forall (list (T x)) (not (P x)))
+	(forall (lambda (list (T x)) (not (P x))))
 )
 
 # Commutative laws
 # We don't need forall <-> forall and exists <-> exists, because that is build
 # into the language
 (deductionrule exchange_quantifiers
-	(list (type T1) (type T2) ((lambda statement (list T1 T2)) P))
-	(list (exists (list (T1 x)) (forall (list (T2 x)) (P x y))))
-	(forall (list (T2 x)) (exists (list (T1 x)) (P x y)))
+	(list (type T1) (type T2) ((lambda-type statement (list T1 T2)) P))
+	(list (exists (lambda (list (T1 x)) (forall (lambda (list (T2 x)) (P x y))))))
+	(forall (lambda (list (T2 x)) (exists (lambda (list (T1 x)) (P x y)))))
 )

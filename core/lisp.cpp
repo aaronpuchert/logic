@@ -76,7 +76,7 @@ void Writer::visit(const VariableType *type)
 void Writer::visit(const LambdaType *type)
 {
 	addParanthesis(OPENING);
-	addToken("lambda");
+	addToken("lambda-type");
 	type->getReturnType()->accept(this);
 	addParanthesis(OPENING);
 	addToken("list");
@@ -98,6 +98,8 @@ void Writer::visit(const Node *node)
 
 void Writer::visit(const LambdaExpr *expression)
 {
+	addParanthesis(OPENING);
+	addToken("lambda");
 	// Declaration list
 	addParanthesis(OPENING);
 	addToken("list");
@@ -105,6 +107,7 @@ void Writer::visit(const LambdaExpr *expression)
 	addParanthesis(CLOSING);
 	if (const_Expr_ptr expr = expression->getDefinition())
 		expr->accept(this);
+	addParanthesis(CLOSING);
 }
 
 void Writer::visit(const AtomicExpr *expression)

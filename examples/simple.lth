@@ -1,9 +1,9 @@
 (type person)
-((lambda statement (list person)) schüler?)
-((lambda statement (list person)) dumm?)
+((lambda-type statement (list person)) schüler?)
+((lambda-type statement (list person)) dumm?)
 (person fritz)
 (axiom (schüler? fritz))
-(axiom (forall (list (person x)) (impl (schüler? x) (dumm? x))))
+(axiom (forall (lambda (list (person x)) (impl (schüler? x) (dumm? x)))))
 (lemma
 	(dumm? fritz)
 	(proof
@@ -12,8 +12,7 @@
 			(specialization
 				(list
 					person
-					(list (person x))
-					(impl (schüler? x) (dumm? x))
+					(lambda (list (person x)) (impl (schüler? x) (dumm? x)))
 					fritz
 				)
 				(list parent~1)

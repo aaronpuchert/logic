@@ -3,7 +3,7 @@
 (deductionrule ponens (list (statement a) (statement b)) (list (impl a b) a) b)
 (deductionrule
 	specialization
-	(list (type T) ((lambda statement (list T)) P) (T y))
+	(list (type T) ((lambda-type statement (list T)) P) (T y))
 	(list (forall P))
 	(P y)
 )
