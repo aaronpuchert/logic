@@ -23,7 +23,7 @@
 			(dumm? fritz)
 			(ponens
 				(list (schüler? fritz) (dumm? fritz))
-				(list parent~2 this~1)
+				(list this~1 parent~2)
 			)
 		)
 	)

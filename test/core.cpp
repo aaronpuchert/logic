@@ -302,14 +302,14 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  			)
 	std::shared_ptr<ProofStep> step2 = make_shared<ProofStep>(&rules,
 		"ponens", std::vector<Expr_ptr>{axiom1_expr, statement_expr},
-		std::vector<Reference>{Reference(&theory, --position), Reference(&proof->subTheory, sub_pos)});
+		std::vector<Reference>{Reference(&proof->subTheory, sub_pos), Reference(&theory, --position)});
 	inter2->addProof(step2);
 	sub_pos = proof->subTheory.add(inter2, sub_pos);
 	//  		)
 	//  	)
 	//  )
 	statement->addProof(proof);
-	checkResult(statement.get(), "(lemma (dumm? fritz) (proof (lemma (impl (schüler? fritz) (dumm? fritz)) (specialization (list person (list (person x)) (impl (schüler? x) (dumm? x)) fritz) (list parent~1))) (lemma (dumm? fritz) (ponens (list (schüler? fritz) (dumm? fritz)) (list parent~2 this~1)))))\n");
+	checkResult(statement.get(), "(lemma (dumm? fritz) (proof (lemma (impl (schüler? fritz) (dumm? fritz)) (specialization (list person (list (person x)) (impl (schüler? x) (dumm? x)) fritz) (list parent~1))) (lemma (dumm? fritz) (ponens (list (schüler? fritz) (dumm? fritz)) (list this~1 parent~2)))))\n");
 
 	// Check the whole theory with line wrapping
 	checkResult(&theory, "examples/simple.lth");
