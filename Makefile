@@ -18,7 +18,8 @@ CPPS =	core/base.cpp \
 	core/lisp.cpp \
 	core/logic.cpp \
 	core/theory.cpp \
-	core/traverse.cpp
+	core/traverse.cpp \
+	core/tree.cpp
 
 TESTS = core
 TEST_CPPS = $(patsubst %,test/%.cpp,$(TESTS))

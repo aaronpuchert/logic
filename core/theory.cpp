@@ -142,6 +142,11 @@ bool Theory::verify() const
 	});
 }
 
+/**
+ * Define empty theory for use elsewhere.
+ */
+const Theory Theory::empty;
+
 NamespaceException::NamespaceException(Reason reason, const std::string &name)
 	: reason(reason), name(name) {}
 
