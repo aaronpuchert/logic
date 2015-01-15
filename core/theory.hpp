@@ -93,6 +93,7 @@ namespace Core {
 	class Statement : public Node {
 	public:
 		Statement(const std::string &name, Expr_ptr expr);
+		Node_ptr clone() const;
 		bool hasProof() const
 			{return (bool)proof;}
 

@@ -249,6 +249,16 @@ const char *TypeException::what() const noexcept
 }
 
 /**
+ * Clone node object
+ * @method Node::clone
+ * @return Pointer to new node object.
+ */
+Node_ptr Node::clone() const
+{
+	return std::make_shared<Node>(*this);
+}
+
+/**
  * Set definition for a node.
  * @method Node::setDefinition
  * @param  new_expression Expression to serve as new definition.

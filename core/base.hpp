@@ -143,6 +143,7 @@ namespace Core {
 		Node(const_Type_ptr type, const std::string &name)
 			: type(type), name(name) {}
 		virtual ~Node() {}
+		virtual Node_ptr clone() const;
 
 		const std::string &getName() const
 			{return name;}

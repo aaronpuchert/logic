@@ -59,6 +59,16 @@ Tautology::Tautology(const std::string& name, Theory &&params, Expr_ptr statemen
 		throw TypeException(statement->getType(), BuiltInType::statement);
 }
 
+/**
+ * Clone tautology
+ * @method Tautology::clone
+ * @return Pointer to new tautology.
+ */
+Node_ptr Tautology::clone() const
+{
+	return std::make_shared<Tautology>(*this);
+}
+
 bool Tautology::validate_pass(const std::vector<Expr_ptr> &substitutes,
 	const std::vector<Reference> &statements, const_Expr_ptr statement) const
 {
@@ -86,6 +96,16 @@ EquivalenceRule::EquivalenceRule(const std::string& name, Theory &&params,
 		throw TypeException(statement1->getType(), BuiltInType::statement, "first statement");
 	if (statement2->getType() != BuiltInType::statement)
 		throw TypeException(statement2->getType(), BuiltInType::statement, "second statement");
+}
+
+/**
+ * Clone equivalence rule
+ * @method EquivalenceRule::clone
+ * @return Pointer to new equivalence rule.
+ */
+Node_ptr EquivalenceRule::clone() const
+{
+	return std::make_shared<EquivalenceRule>(*this);
 }
 
 bool EquivalenceRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
@@ -124,6 +144,16 @@ DeductionRule::DeductionRule(const std::string& name, Theory &&params,
 
 	if (conclusion->getType() != BuiltInType::statement)
 		throw TypeException(conclusion->getType(), BuiltInType::statement, "conclusion");
+}
+
+/**
+ * Clone deduction rule
+ * @method DeductionRule::clone
+ * @return Pointer to new deduction rule.
+ */
+Node_ptr DeductionRule::clone() const
+{
+	return std::make_shared<DeductionRule>(*this);
 }
 
 bool DeductionRule::validate_pass(const std::vector<Expr_ptr> &substitutes,

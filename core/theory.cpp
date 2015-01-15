@@ -171,6 +171,16 @@ Statement::Statement(const std::string &name, Expr_ptr expr)
 }
 
 /**
+ * Clone statement object
+ * @method Statement::clone
+ * @return Pointer to new statement object.
+ */
+Node_ptr Statement::clone() const
+{
+	return std::make_shared<Statement>(*this);
+}
+
+/**
  * Add a proof to a statement.
  * @method Statement::addProof
  * @param proof Pointer to the proof to be added.
