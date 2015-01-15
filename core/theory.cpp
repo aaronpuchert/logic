@@ -200,12 +200,10 @@ Node_ptr Statement::clone() const
  * Add a proof to a statement.
  * @method Statement::addProof
  * @param proof Pointer to the proof to be added.
- * @return Return if the proof works.
  */
-bool Statement::addProof(Proof_ptr proof)
+void Statement::addProof(Proof_ptr proof)
 {
 	this->proof = proof;
-	return proof->proves(*this);
 }
 
 /**

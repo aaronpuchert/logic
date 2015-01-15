@@ -103,7 +103,7 @@ namespace Core {
 
 		const_Proof_ptr getProof() const
 			{return proof;}
-		bool addProof(Proof_ptr proof);
+		void addProof(Proof_ptr proof);
 
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}

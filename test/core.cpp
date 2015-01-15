@@ -313,4 +313,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 
 	// Check the whole theory with line wrapping
 	checkResult(&theory, "examples/simple.lth");
+
+	// Verify the theory
+	BOOST_CHECK(theory.verify());
 }
