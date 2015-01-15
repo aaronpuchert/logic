@@ -20,6 +20,7 @@
 #include "logic.hpp"
 #include <algorithm>
 #include <sstream>
+#include "tree.hpp"
 #include <iostream>
 using namespace Core;
 
@@ -73,12 +74,12 @@ bool Tautology::validate_pass(const std::vector<Expr_ptr> &substitutes,
 	const std::vector<Reference> &statements, const_Expr_ptr statement) const
 {
 	// Check the number of references, it should be 0
-	if (statements.size()!= 0)
+	if (statements.size() != 0)
 		return false;
 
 	// Check if the statement given is correct
-	// TODO: substitution algorithm
-	return true;
+	Substitution subst(statement, &params);
+	return subst.check(statement.get());
 }
 
 /**
@@ -115,8 +116,16 @@ bool EquivalenceRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
 	if (statements.size() != 1)
 		return false;
 
-	// TODO: Try substitution both ways
-	return true;
+	// Resolve reference
+	const_Expr_ptr alt_statement =
+		std::static_pointer_cast<const Statement>(*statements[0])->getDefinition();
+
+	// Try substitution both ways
+	Substitution subst1(statement1, &params);
+	Substitution subst2(statement2, &params);
+
+	return (subst1.check(alt_statement.get()) && subst2.check(statement.get()))
+		|| (subst1.check(statement.get()) && subst2.check(alt_statement.get()));
 }
 
 /**
@@ -162,8 +171,22 @@ bool DeductionRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
 	// Check if we are given the right number of references
 	if (statements.size() != premisses.size())
 		return false;
-	// Check the premisses TODO
-	// Check the conclusion TODO
 
-	return true;
+	// Check the premisses
+	auto mismatch = std::mismatch(premisses.begin(), premisses.end(), statements.begin(),
+		[this] (const_Expr_ptr premiss, const Reference ref) -> bool {
+			Substitution subst(premiss, &params);
+			const Statement *stmt = static_cast<const Statement *>((*ref).get());
+			return subst.check(stmt->getDefinition().get());
+		}
+	);
+
+	if (mismatch.first != premisses.end() || mismatch.second != statements.end()) {
+		std::cout << "-> Couldn't verify!\n";
+		return false;
+	}
+
+	// Check the conclusion
+	Substitution subst(conclusion, &params);
+	return subst.check(statement.get());
 }
