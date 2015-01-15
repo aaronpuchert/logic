@@ -95,8 +95,6 @@ namespace Core {
 		Statement(const std::string &name, Expr_ptr expr);
 		bool hasProof() const
 			{return (bool)proof;}
-		const_Expr_ptr getStatement() const
-			{return expr;}
 
 		const_Proof_ptr getProof() const
 			{return proof;}
@@ -106,7 +104,6 @@ namespace Core {
 			{visitor->visit(this);}
 
 	private:
-		Expr_ptr expr;
 		Proof_ptr proof;
 	};
 

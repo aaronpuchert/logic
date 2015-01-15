@@ -217,7 +217,7 @@ void Writer::visit(const Statement *statement)
 		addToken("lemma");
 	else
 		addToken("axiom");
-	statement->getStatement()->accept(this);
+	statement->getDefinition()->accept(this);
 	if (statement->hasProof())
 		statement->getProof()->accept(this);
 	addParanthesis(CLOSING);

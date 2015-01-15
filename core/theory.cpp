@@ -161,10 +161,12 @@ const char* NamespaceException::what() const noexcept
  * @param expr Contents of the statement.
  */
 Statement::Statement(const std::string &name, Expr_ptr expr)
-	: Node(BuiltInType::statement, name), expr(expr)
+	: Node(BuiltInType::statement, name)
 {
 	const_Type_ptr type = expr->getType();
-	if (type != BuiltInType::statement)
+	if (type == BuiltInType::statement)
+		setDefinition(expr);
+	else
 		throw TypeException(type, BuiltInType::statement);
 }
 
