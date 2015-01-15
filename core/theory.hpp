@@ -44,6 +44,8 @@ namespace Core {
 		Theory();
 		Theory(Theory *parent, iterator parent_node);
 		Theory(std::initializer_list<Node_ptr> nodes);
+		Theory(const Theory &theory);
+		Theory(Theory &&theory) = default;
 
 		// Iterate through nodes
 		iterator begin();

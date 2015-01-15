@@ -48,11 +48,22 @@ Theory::Theory(Theory* parent, iterator parent_node)
  * Construct a theory from a list of nodes.
  * @param nodes List of nodes.
  */
-Theory::Theory(std::initializer_list<Node_ptr> nodes)
+Theory::Theory(std::initializer_list<Node_ptr> nodes) : parent(nullptr)
 {
 	iterator it = begin();
 	for (Node_ptr node : nodes)
 		it = add(node, it);
+}
+
+/**
+ * Copy construct a theory.
+ * @param theory Other theory.
+ */
+Theory::Theory(const Theory &theory) : parent(nullptr)
+{
+	iterator it = begin();
+	for (const_Node_ptr node : theory)
+		it = add(node->clone(), it);
 }
 
 /**
