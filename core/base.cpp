@@ -161,7 +161,15 @@ void TypeComparator::visit(const BuiltInType *type)
 
 void TypeComparator::visit(const VariableType *type)
 {
-	description[yours].push_back(type->getNode().get());
+	// If there is a definition, look at that.
+	const_Node_ptr node = type->getNode();
+	if (const_Expr_ptr expr = node->getDefinition()) {
+		// Should be a type expression
+		const_Type_ptr ref_type = std::static_pointer_cast<const Type>(expr);
+		ref_type->accept(this);
+	}
+	else
+		description[yours].push_back(type->getNode().get());
 }
 
 void TypeComparator::visit(const LambdaType *type)
