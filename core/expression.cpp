@@ -40,7 +40,7 @@ const_Type_ptr AtomicExpr::getType() const
  * @param args Vector of argument expressions.
  */
 LambdaCallExpr::LambdaCallExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args)
-	: node(node), args(std::move(args))
+	: Expression(Expression::LAMBDACALL), node(node), args(std::move(args))
 {
 	// Is node a lambda?
 	std::shared_ptr<const LambdaType> pred_type =
@@ -95,7 +95,8 @@ LambdaCallExpr::const_iterator LambdaCallExpr::end() const
  * @method NegationExpr::NegationExpr
  * @param expr Statement expression to be negated.
  */
-NegationExpr::NegationExpr(Expr_ptr expr) : expr(expr)
+NegationExpr::NegationExpr(Expr_ptr expr)
+	: Expression(Expression::NEGATION), expr(expr)
 {
 	const_Type_ptr type = expr->getType();
 	if (type != BuiltInType::statement)
@@ -115,7 +116,7 @@ const_Type_ptr NegationExpr::getType() const
  * @param seond Second operand of connective
  */
 ConnectiveExpr::ConnectiveExpr(Variant variant, Expr_ptr first, Expr_ptr second)
-	: variant(variant), expr{first, second}
+	: Expression(Expression::CONNECTIVE), variant(variant), expr{first, second}
 {
 	const_Type_ptr first_type = first->getType(), second_type = second->getType();
 	if (first_type != BuiltInType::statement)
@@ -136,7 +137,7 @@ const_Type_ptr ConnectiveExpr::getType() const
  * @param predicate Lambda expression containing the predicate
  */
 QuantifierExpr::QuantifierExpr(Variant variant, const_Expr_ptr predicate)
-	: variant(variant), predicate(predicate)
+	: Expression(Expression::QUANTIFIER), variant(variant), predicate(predicate)
 {
 	const_Type_ptr type = predicate->getType();
 	std::shared_ptr<const LambdaType> pred_type =
@@ -162,7 +163,7 @@ const_Type_ptr QuantifierExpr::getType() const
  * @param expression Lambda body.
  */
 LambdaExpr::LambdaExpr(Theory &&params, const_Expr_ptr expression)
-	: params(std::move(params)), expression(expression) {}
+	: Expression(Expression::LAMBDA), params(std::move(params)), expression(expression) {}
 
 /**
  * Set definition expression for lambda.

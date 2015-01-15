@@ -35,7 +35,7 @@ namespace Core {
 	class AtomicExpr : public Expression {
 	public:
 		AtomicExpr(const_Node_ptr node)
-			: node(node) {}
+			: Expression(Expression::ATOMIC), node(node) {}
 		const_Node_ptr getAtom() const
 			{return node;}
 		const_Type_ptr getType() const;

@@ -34,6 +34,9 @@ namespace Core {
 	 */
 	class Expression {
 	public:
+		enum Class {TYPE, ATOMIC, LAMBDACALL, NEGATION, CONNECTIVE, QUANTIFIER,
+			LAMBDA} const cls;
+		Expression(Class cls) : cls(cls) {}
 		virtual ~Expression() {}
 		virtual void accept(Visitor *visitor) const = 0;
 		virtual const_Type_ptr getType() const = 0;
@@ -44,6 +47,7 @@ namespace Core {
 	 */
 	class Type : public Expression {
 	public:
+		Type() : Expression(Expression::TYPE) {}
 		const_Type_ptr getType() const;
 		virtual void accept(Visitor *visitor) const = 0;
 	};
