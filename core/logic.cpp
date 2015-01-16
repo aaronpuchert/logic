@@ -20,7 +20,6 @@
 #include "logic.hpp"
 #include <algorithm>
 #include <sstream>
-#include "tree.hpp"
 #include <iostream>
 using namespace Core;
 
@@ -54,7 +53,7 @@ bool Rule::validate(const std::vector<Expr_ptr> &substitutes,
  * @param statement Statement that is always true.
  */
 Tautology::Tautology(const std::string& name, Theory &&params, Expr_ptr tautology)
-	: Rule(name, std::move(params)), tautology(tautology)
+	: Rule(name, std::move(params)), subst(tautology, &this->params)
 {
 	if (tautology->getType() != BuiltInType::statement)
 		throw TypeException(tautology->getType(), BuiltInType::statement);
@@ -78,7 +77,6 @@ bool Tautology::validate_pass(const std::vector<Expr_ptr> &substitutes,
 		return false;
 
 	// Check if the statement given is correct
-	Substitution subst(tautology, &params);
 	return subst.check(statement.get());
 }
 
@@ -91,7 +89,8 @@ bool Tautology::validate_pass(const std::vector<Expr_ptr> &substitutes,
  */
 EquivalenceRule::EquivalenceRule(const std::string& name, Theory &&params,
 	Expr_ptr statement1, Expr_ptr statement2)
-	: Rule(name, std::move(params)), statement1(statement1), statement2(statement2)
+	: Rule(name, std::move(params)), subst1(statement1, &this->params),
+		subst2(statement2, &this->params)
 {
 	if (statement1->getType() != BuiltInType::statement)
 		throw TypeException(statement1->getType(), BuiltInType::statement, "first statement");
@@ -121,9 +120,6 @@ bool EquivalenceRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
 		std::static_pointer_cast<const Statement>(*statements[0])->getDefinition();
 
 	// Try substitution both ways
-	Substitution subst1(statement1, &params);
-	Substitution subst2(statement2, &params);
-
 	return (subst1.check(alt_statement.get()) && subst2.check(statement.get()))
 		|| (subst1.check(statement.get()) && subst2.check(alt_statement.get()));
 }
@@ -138,8 +134,7 @@ bool EquivalenceRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
  */
 DeductionRule::DeductionRule(const std::string& name, Theory &&params,
 	const std::vector<Expr_ptr> &premisses, Expr_ptr conclusion)
-	: Rule(name, std::move(params)), premisses(premisses),
-		conclusion(conclusion)
+	: Rule(name, std::move(params)), premisses(premisses), subst_conclusion(conclusion, &this->params)
 {
 	auto find = std::find_if(premisses.begin(), premisses.end(),
 		[] (Expr_ptr expr) -> bool {return (expr->getType() != BuiltInType::statement);}
@@ -153,6 +148,10 @@ DeductionRule::DeductionRule(const std::string& name, Theory &&params,
 
 	if (conclusion->getType() != BuiltInType::statement)
 		throw TypeException(conclusion->getType(), BuiltInType::statement, "conclusion");
+
+	// Build substitution vector
+	for (Expr_ptr premiss : premisses)
+		subst_premisses.push_back(Substitution(premiss, &this->params));
 }
 
 /**
@@ -165,28 +164,38 @@ Node_ptr DeductionRule::clone() const
 	return std::make_shared<DeductionRule>(*this);
 }
 
+/**
+ * Get a vector of the premisses
+ * @method DeductionRule::getPremisses
+ * @return Vector of expressions.
+ */
+const std::vector<const_Expr_ptr>& DeductionRule::getPremisses() const
+{
+	// Unfortunately, there is simply no other way.
+	const std::vector<const_Expr_ptr> *ptr = reinterpret_cast<const std::vector<const_Expr_ptr> *>(&premisses);
+	return *ptr;
+}
+
 bool DeductionRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
 	const std::vector<Reference> &statements, const_Expr_ptr statement) const
 {
 	// Check if we are given the right number of references
-	if (statements.size() != premisses.size())
+	if (statements.size() != subst_premisses.size())
 		return false;
 
 	// Check the premisses
-	auto mismatch = std::mismatch(premisses.begin(), premisses.end(), statements.begin(),
-		[this] (const_Expr_ptr premiss, const Reference ref) -> bool {
-			Substitution subst(premiss, &params);
+	auto mismatch = std::mismatch(subst_premisses.begin(), subst_premisses.end(), statements.begin(),
+		[this] (Substitution &subst, const Reference ref) -> bool {
 			const Statement *stmt = static_cast<const Statement *>((*ref).get());
 			return subst.check(stmt->getDefinition().get());
 		}
 	);
 
-	if (mismatch.first != premisses.end() || mismatch.second != statements.end()) {
+	if (mismatch.first != subst_premisses.end()) {
 		std::cout << "-> Couldn't verify!\n";
 		return false;
 	}
 
 	// Check the conclusion
-	Substitution subst(conclusion, &params);
-	return subst.check(statement.get());
+	return subst_conclusion.check(statement.get());
 }

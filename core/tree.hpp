@@ -40,6 +40,8 @@ namespace Core {
 	public:
 		// Init with expression
 		Substitution(const_Expr_ptr expr, const Theory *params);
+		const_Expr_ptr getExpr() const
+			{return expr;}
 
 		// Test against other expression
 		typedef std::pair<const_Expr_ptr, const Expression *> match;

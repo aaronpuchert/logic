@@ -21,7 +21,7 @@
 #define CORE_LOGIC_HPP
 #include "forward.hpp"
 #include "theory.hpp"
-#include "base.hpp"
+#include "tree.hpp"
 #include <vector>
 #include <string>
 #include "traverse.hpp"
@@ -44,7 +44,7 @@ namespace Core {
 			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
 	protected:
-		Theory params;
+		mutable Theory params;
 
 	private:
 		virtual bool validate_pass(const std::vector<Expr_ptr> &substitutes,
@@ -59,7 +59,7 @@ namespace Core {
 		Tautology(const std::string& name, Theory &&params, Expr_ptr tautology);
 		Node_ptr clone() const;
 		const_Expr_ptr getStatement() const
-			{return tautology;}
+			{return subst.getExpr();}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
@@ -67,7 +67,7 @@ namespace Core {
 		bool validate_pass(const std::vector<Expr_ptr> &substitutes,
 			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
-		Expr_ptr tautology;
+		mutable Substitution subst;
 	};
 
 	/**
@@ -79,9 +79,9 @@ namespace Core {
 			Expr_ptr statement1, Expr_ptr statement2);
 		Node_ptr clone() const;
 		const_Expr_ptr getStatement1() const
-			{return statement1;}
+			{return subst1.getExpr();;}
 		const_Expr_ptr getStatement2() const
-			{return statement2;}
+			{return subst2.getExpr();}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
@@ -89,7 +89,7 @@ namespace Core {
 		bool validate_pass(const std::vector<Expr_ptr> &substitutes,
 			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
-		Expr_ptr statement1, statement2;
+		mutable Substitution subst1, subst2;
 	};
 
 	/**
@@ -100,19 +100,24 @@ namespace Core {
 		DeductionRule(const std::string& name, Theory &&params,
 			const std::vector<Expr_ptr> &premisses, Expr_ptr conclusion);
 		Node_ptr clone() const;
-		const std::vector<Expr_ptr> &prem() const
-			{return premisses;}
+		const std::vector<const_Expr_ptr>& getPremisses() const;
 		const_Expr_ptr getConclusion() const
-			{return conclusion;}
+			{return subst_conclusion.getExpr();}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
+
+		class const_iterator : std::vector<Substitution>::const_iterator {
+		public:
+			const_iterator(std::vector<Substitution>::const_iterator it);
+		};
 
 	private:
 		bool validate_pass(const std::vector<Expr_ptr> &substitutes,
 			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
 		std::vector<Expr_ptr> premisses;
-		Expr_ptr conclusion;
+		mutable std::vector<Substitution> subst_premisses;
+		mutable Substitution subst_conclusion;
 	};
 }	// End of namespace Core
 

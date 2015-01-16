@@ -206,7 +206,7 @@ void Writer::visit(const DeductionRule *rule)
 	write_varlist(rule);
 	addParanthesis(OPENING);
 	addToken("list");
-	for (const_Expr_ptr expr : rule->prem())
+	for (const_Expr_ptr expr : rule->getPremisses())
 		expr->accept(this);
 	addParanthesis(CLOSING);
 	rule->getConclusion()->accept(this);
