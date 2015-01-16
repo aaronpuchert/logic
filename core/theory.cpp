@@ -341,6 +341,7 @@ bool LongProof::proves(const Statement &statement) const
 		return false;
 
 	// Is the last node a statement and the same as ours?
-	// TODO: compare
-	return true;
+	Substitution subst(statement.getDefinition(), &Theory::empty);
+	const_Node_ptr node = *(--subTheory.end());
+	return subst.check(node->getDefinition().get());
 }
