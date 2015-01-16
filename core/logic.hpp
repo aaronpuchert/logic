@@ -56,10 +56,10 @@ namespace Core {
 	 */
 	class Tautology : public Rule {
 	public:
-		Tautology(const std::string& name, Theory &&params, Expr_ptr statement);
+		Tautology(const std::string& name, Theory &&params, Expr_ptr tautology);
 		Node_ptr clone() const;
 		const_Expr_ptr getStatement() const
-			{return statement;}
+			{return tautology;}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
@@ -67,7 +67,7 @@ namespace Core {
 		bool validate_pass(const std::vector<Expr_ptr> &substitutes,
 			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
-		Expr_ptr statement;
+		Expr_ptr tautology;
 	};
 
 	/**

@@ -53,11 +53,11 @@ bool Rule::validate(const std::vector<Expr_ptr> &substitutes,
  * @param params Parameters of the rule.
  * @param statement Statement that is always true.
  */
-Tautology::Tautology(const std::string& name, Theory &&params, Expr_ptr statement)
-	: Rule(name, std::move(params)), statement(statement)
+Tautology::Tautology(const std::string& name, Theory &&params, Expr_ptr tautology)
+	: Rule(name, std::move(params)), tautology(tautology)
 {
-	if (statement->getType() != BuiltInType::statement)
-		throw TypeException(statement->getType(), BuiltInType::statement);
+	if (tautology->getType() != BuiltInType::statement)
+		throw TypeException(tautology->getType(), BuiltInType::statement);
 }
 
 /**
@@ -78,7 +78,7 @@ bool Tautology::validate_pass(const std::vector<Expr_ptr> &substitutes,
 		return false;
 
 	// Check if the statement given is correct
-	Substitution subst(statement, &params);
+	Substitution subst(tautology, &params);
 	return subst.check(statement.get());
 }
 
