@@ -33,6 +33,57 @@ const std::string& LispToken::getContent() const
 		throw std::logic_error("Only word tokens have content.");
 }
 
+Lexer::Lexer(std::istream &input)
+	: input(input), last(' ') {}
+
+LispToken Lexer::getToken()
+{
+	std::string str;
+
+	// Skip any whitespace.
+	while (std::isspace(last))
+		last = input.get();
+
+	// Word tokens: [a-zA-Z][a-zA-Z0-9]*
+	if (std::isalpha(last)) {
+		std::string token;
+		do {
+			token += last;
+			last = input.get();
+		} while (std::isalnum(last) || last == '_' || last == '-');
+
+		return LispToken(LispToken::WORD, std::move(token));
+	}
+
+	// Single-line comment
+	if (last == '#') {
+		input.ignore(std::numeric_limits<int>::max(), '\n');
+		last = input.get();
+
+		if (!input.eof())
+			return getToken();
+	}
+
+	// Otherwise, we might have parantheses
+	LispToken::Type type;
+	switch (last) {
+	case '(':
+		type = LispToken::OPENING;
+		break;
+	case ')':
+		type = LispToken::CLOSING;
+		break;
+	}
+
+	// Check for end of file.
+	if (input.eof())
+		return LispToken(LispToken::ENDOFFILE);
+
+	last = input.get();
+	return LispToken(type);
+}
+
+
 /**
  * Implementation of the writer
  */

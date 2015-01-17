@@ -53,6 +53,20 @@ namespace Core {
 	};
 
 	/**
+	 * Lisp-syntax lexer class.
+	 */
+	class Lexer {
+	public:
+		Lexer(std::istream &input);
+		LispToken getToken();
+
+	private:
+		std::istream &input;
+		int last;
+		int line_number;
+	};
+
+	/**
 	 * Lisp-syntax writer class
 	 */
 	class Writer : public Visitor {
