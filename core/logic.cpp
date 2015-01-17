@@ -191,10 +191,8 @@ bool DeductionRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
 		}
 	);
 
-	if (mismatch.first != subst_premisses.end()) {
-		std::cout << "-> Couldn't verify!\n";
+	if (mismatch.first != subst_premisses.end())
 		return false;
-	}
 
 	// Check the conclusion
 	return subst_conclusion.check(statement.get());
