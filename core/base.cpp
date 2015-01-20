@@ -93,7 +93,7 @@ void VariableType::accept(Visitor *visitor) const
  * @param args Vector of argument types.
  * @param return_type Type of return value, defaults to statement.
  */
-LambdaType::LambdaType(const std::vector<const_Type_ptr> &&args,
+LambdaType::LambdaType(std::vector<const_Type_ptr> &&args,
 	const_Type_ptr return_type)
 	: return_type(return_type), args(std::move(args)) {}
 

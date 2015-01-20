@@ -88,7 +88,7 @@ namespace Core {
 	 */
 	class LambdaType : public Type {
 	public:
-		LambdaType(const std::vector<const_Type_ptr> &&args,
+		LambdaType(std::vector<const_Type_ptr> &&args,
 			const_Type_ptr return_type = BuiltInType::statement);
 		const_Type_ptr getReturnType() const;
 
