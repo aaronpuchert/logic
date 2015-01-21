@@ -17,9 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "theory.hpp"
-#include "logic.hpp"
 #include "lisp.hpp"
+#include "logic.hpp"
 #include "expression.hpp"
 #include <limits>
 #include <stdexcept>
@@ -196,9 +195,638 @@ ParserErrorHandler& ParserErrorHandler::operator <<(const_Type_ptr type)
 	return *this;
 }
 
+//////////////////////////////////
+// Implementation of the Parser //
+//////////////////////////////////
+
 /**
- * Implementation of the writer
+ * Construct a parser.
+ * @param input Stream to read from.
+ * @param error_output ParserErrorHandler object to tell problems occured.
  */
+Parser::Parser(std::istream& input, std::ostream &output, const std::string &descriptor)
+	: lexer(input), error_output(lexer, output, descriptor), token(lexer.getToken()) {}
+
+void Parser::nextToken()
+{
+	token = lexer.getToken();
+}
+
+/**
+ * Check if the current token has a certain type.
+ * Write an error message if it doesn't.
+ * @param type Token type expected.
+ * @return True, if the current token is of the expected type.
+ */
+bool Parser::expect(LispToken::Type type)
+{
+	if (token.getType() == type)
+		return true;
+	else {
+		error_output << ParserErrorHandler::ERROR << "expected " << type
+			<< ", but read " << token.getType();
+		return false;
+	}
+}
+
+/**
+ * Get the node denoted by the current token.
+ * @return Node from a theory or undefined_node, if nothng was found.
+ */
+const_Node_ptr Parser::getIdentifier()
+{
+	Theory *theory = stack.top();
+	Theory::const_iterator it = theory->get(token.getContent());
+
+	if (it == theory->end()) {
+		error_output << ParserErrorHandler::ERROR << "undeclared identifier "
+			<< token.getContent();
+		return undefined_node;
+	}
+	else
+		return *it;
+}
+
+/**
+ * Try to recover after an error: skip everything until the next ')'.
+ */
+void Parser::recover()
+{
+	while (token.getType() != LispToken::CLOSING)
+		nextToken();
+	error_output << ParserErrorHandler::NOTE << "ignored everything until ')'";
+}
+
+/**
+ * Dummy objects used when errors occured.
+ */
+const Node_ptr Parser::undefined_node = std::make_shared<Node>(BuiltInType::undefined, "");
+const Expr_ptr Parser::undefined_expr = std::make_shared<AtomicExpr>(undefined_node);
+
+/**
+ * Dispatch table for nodes.
+ */
+typedef Node_ptr (Parser::*NodeParser)();
+const std::map<std::string, NodeParser> Parser::node_dispatch = {
+	{"axiom", &Parser::parseStatement},
+	{"lemma", &Parser::parseStatement},
+	{"tautology", &Parser::parseTautology},
+	{"equivrule", &Parser::parseEquivalenceRule},
+	{"deductionrule", &Parser::parseDeductionRule}
+};
+
+/**
+ * Parses a node of a theory.
+ * @method Parser::parseNode
+ * @return Pointer to a node.
+ * @pre The current token is the beginning of a node, the enclosing theory is
+ *      top on the stack.
+ * @post The current token is the token right after the closing paranthesis.
+ */
+Node_ptr Parser::parseNode()
+{
+	// parse (
+	if (!expect(LispToken::OPENING))
+		return undefined_node;
+	nextToken();
+
+	// Dispatch
+	Node_ptr node;
+	std::map<std::string, NodeParser>::const_iterator parse_function;
+	if (token.getType() == LispToken::WORD &&
+		(parse_function = node_dispatch.find(token.getContent()))
+			!= node_dispatch.end()) {
+		node = (this->*(parse_function->second))();
+	}
+	else {
+		// Get Type
+		const_Type_ptr type = parseType();
+
+		// Name
+		if (expect(LispToken::WORD))
+			node = std::make_shared<Node>(type, token.getContent());
+		else
+			return undefined_node;
+
+		// parse Definition, if there is one
+		nextToken();
+		if (token.getType() != LispToken::CLOSING) {
+			Expr_ptr def = parseExpression();
+			node->setDefinition(def);
+		}
+	}
+
+	// parse )
+	if (expect(LispToken::CLOSING))
+		nextToken();
+	else
+		recover();
+
+	return node;
+}
+
+const std::map<std::string, const_Type_ptr> type_dispatch = {
+	{"type", BuiltInType::type},
+	{"statement", BuiltInType::statement}
+};
+
+/**
+ * Parse a type expression.
+ * @method Parser::parseType
+ * @return Pointer to a type object.
+ * @pre The current token is the first token of a type expression.
+ * @post The current token is the token right after the type expression.
+ */
+const_Type_ptr Parser::parseType()
+{
+	const_Type_ptr type;
+
+	if (token.getType() == LispToken::WORD) {
+		// First token = word -> built-in type or variable type
+		auto find = type_dispatch.find(token.getContent());
+		if (find != type_dispatch.end())
+			type = find->second;
+		else {
+			const_Node_ptr node = getIdentifier();
+			type = std::make_shared<VariableType>(node);
+		}
+
+		nextToken();
+	}
+	else if (token.getType() == LispToken::OPENING) {
+		// First token = ( -> lambda-type, i.e. recursive descent
+		nextToken();
+		if (token.getType() != LispToken::WORD
+				|| token.getContent() != "lambda-type")
+			error_output << ParserErrorHandler::ERROR << "expected 'lambda-type'";
+		nextToken();
+
+		// Read return type
+		const_Type_ptr return_type = parseType();
+
+		// Read parameter list
+		std::vector<const_Type_ptr> argument_types;
+
+		// '('
+		if (expect(LispToken::OPENING)) {
+			nextToken();
+
+			// 'list'
+			if (expect(LispToken::WORD) && token.getContent() == "list")
+				nextToken();
+
+			while (token.getType() != LispToken::CLOSING)
+				argument_types.push_back(parseType());
+
+			// ')'
+			nextToken();
+		}
+		else {
+			// Try to recover
+			recover();
+		}
+
+		// ')'
+		if (expect(LispToken::CLOSING))
+			nextToken();
+
+		// Build type
+		type = std::make_shared<LambdaType>(std::move(argument_types), return_type);
+	}
+	else {
+		error_output << ParserErrorHandler::ERROR
+			<< "expected beginning of type expression";
+		type = BuiltInType::undefined;
+	}
+
+	return type;
+}
+
+/**
+ * Dispatch table for expressions.
+ */
+const std::map<std::string, Expr_ptr (Parser::*)()> Parser::expr_dispatch = {
+	{"not", (&Parser::parseNegationExpr)},
+	{"and", (&Parser::parseConnectiveExpr)},
+	{"or", (&Parser::parseConnectiveExpr)},
+	{"impl", (&Parser::parseConnectiveExpr)},
+	{"equiv", (&Parser::parseConnectiveExpr)},
+	{"forall", (&Parser::parseQuantifierExpr)},
+	{"exists", (&Parser::parseQuantifierExpr)},
+	{"lambda", (&Parser::parseLambda)}
+};
+
+/**
+ * Dispatcher for expressions.
+ * @method Parser::parseExpression
+ * @return Pointer to an expression.
+ * @pre The current token is the beginning of an expression.
+ * @post The current token is the token right after the expression.
+ */
+Expr_ptr Parser::parseExpression()
+{
+	Expr_ptr expr;
+
+	// Does it start with a paranthesis?
+	if (token.getType() == LispToken::OPENING) {
+		// Then it is a compound expression
+		nextToken();
+
+		if (expect(LispToken::WORD)) {
+			// Dispatch
+			auto parse_function = expr_dispatch.find(token.getContent());
+			if (parse_function != expr_dispatch.end())
+				expr = (this->*(parse_function->second))();
+			else
+				expr = parseLambdaCallExpr();
+		}
+		else {
+			// Try to recover
+			recover();
+			expr = undefined_expr;
+		}
+	}
+	else if (token.getType() == LispToken::WORD) {
+		expr = parseAtomicExpr();
+	}
+	else {
+		error_output << ParserErrorHandler::ERROR
+			<< "expected beginning of expression";
+		expr = undefined_expr;
+	}
+
+	return expr;
+}
+
+/**
+ * Parse an atomic expression.
+ * @method Parser::parseAtomicExpr
+ * @return Pointer to an expression.
+ * @pre The current token is an atomic expression.
+ * @post The current token is the token right after the atomic expression.
+ */
+Expr_ptr Parser::parseAtomicExpr()
+{
+	const_Node_ptr node = getIdentifier();
+	nextToken();
+	return std::make_shared<AtomicExpr>(node);
+}
+
+/**
+ * Parse a lambda call expression.
+ * @method Parser::parseLambdaCallExpr
+ * @return Pointer to an expression.
+ * @pre The current token is a word token (denoting a lambda node) at the
+ *      beginning of a lambda call expression.
+ * @post The current token is the token right after the closing paranthesis.
+ */
+Expr_ptr Parser::parseLambdaCallExpr()
+{
+	// Must ba a lambda call expression
+	const_Node_ptr lambda_node = getIdentifier();
+	nextToken();
+
+	// parse arguments
+	std::vector<Expr_ptr> args;
+	while (token.getType() != LispToken::CLOSING)
+		args.push_back(parseExpression());
+
+	// skip ')'
+	nextToken();
+
+	// build expression
+	return std::make_shared<LambdaCallExpr>(lambda_node, std::move(args));
+}
+
+/**
+ * Parse a negation expression.
+ * @method Parser::parseNegationExpr
+ * @return Pointer to an expression
+ * @pre The current token is `not`, preceded by an opening paranthesis.
+ * @post The current token is the token right after the closing paranthesis.
+ */
+Expr_ptr Parser::parseNegationExpr()
+{
+	// Parse next expression
+	nextToken();
+	Expr_ptr expr = parseExpression();
+
+	// Hope for a )
+	if (expect(LispToken::CLOSING))
+		nextToken();
+	else
+		recover();
+
+	return std::make_shared<NegationExpr>(expr);
+}
+
+/**
+ * Dispatch table for connective expressions.
+ */
+const std::map<std::string, ConnectiveExpr::Variant> Parser::connective_dispatch = {
+	{"and", ConnectiveExpr::AND},
+	{"or", ConnectiveExpr::OR},
+	{"impl", ConnectiveExpr::IMPL},
+	{"equiv", ConnectiveExpr::EQUIV},
+};
+
+/**
+ * Parse a and, or, implication or equivalence expression.
+ * @method Parser::parseConnectiveExpr
+ * @return Pointer to an expression.
+ * @pre The current token is a connective, preceded by an opening paranthesis.
+ * @post The current token is the token right after the closing paranthesis.
+ */
+Expr_ptr Parser::parseConnectiveExpr()
+{
+	// Which kind of connective?
+	auto connective = connective_dispatch.find(token.getContent());
+	// By precondition, we have connective != connective_dispatch.end()
+	nextToken();
+
+	// Parse both guys
+	Expr_ptr expr1, expr2;
+	expr1 = parseExpression();
+	expr2 = parseExpression();
+
+	// Hope for a )
+	if (expect(LispToken::CLOSING))
+		nextToken();
+	else
+		recover();
+
+	// Build connective
+	return std::make_shared<ConnectiveExpr>(connective->second, expr1, expr2);
+}
+
+/**
+ * Parse a forall or exists quantifier expression.
+ * @method Parser::parseQuantifierExpr
+ * @return Pointer to an expression.
+ * @pre The current token denotes the quantifier, i.e. either 'forall' or 'exists'.
+ * @post The current token is the token right after the closing paranthesis.
+ */
+Expr_ptr Parser::parseQuantifierExpr()
+{
+	// Which quantifier?
+	QuantifierExpr::Variant variant;
+	if (token.getContent() == "forall")
+		variant = QuantifierExpr::FORALL;
+	else                // == "exists" by precondition
+		variant = QuantifierExpr::EXISTS;
+	nextToken();
+
+	// Parse predicate
+	Expr_ptr expr = parseExpression();
+
+	// Hope for a )
+	if (expect(LispToken::CLOSING))
+		nextToken();
+	else
+		recover();
+
+	// Build expression
+	return std::make_shared<QuantifierExpr>(variant, expr);
+}
+
+/**
+ * Parse a lambda expression.
+ * @method Parser::parseLam
+ * @return Pointer to an expression.
+ * @pre The current token is the word "lambda", preceded by an opening paranthesis.
+ * @post The current token is the token right after the closing paranthesis.
+ */
+Expr_ptr Parser::parseLambda()
+{
+	// skip "lambda"
+	nextToken();
+
+	// parse parameter list
+	if (expect(LispToken::OPENING) && (nextToken(), expect(LispToken::WORD))
+			&& token.getContent() == "list")
+		nextToken();
+	else
+		return undefined_expr;
+	Theory params(parseTheory());
+	// skip ')'
+	nextToken();
+
+	// parse expression
+	Expr_ptr expr = parseExpression();
+
+	// Hope for a )
+	if (expect(LispToken::CLOSING))
+		nextToken();
+	else
+		recover();
+
+	// build
+	return std::make_shared<LambdaExpr>(std::move(params), expr);
+}
+
+/**
+ * Parse a tautology rule.
+ * @method Parser::parseTautology
+ * @return Pointer to a node.
+ * @pre The current token is the word "tautology", preceded by an opening paranthesis.
+ * @post The current token is the token right after the closing paranthesis.
+ */
+Node_ptr Parser::parseTautology()
+{
+	// skip 'tautology'
+	nextToken();
+
+	// parse name
+	if (!expect(LispToken::WORD)) {
+		recover();
+		return undefined_node;
+	}
+	std::string name = token.getContent();
+	nextToken();
+
+	// parse parameters
+	if (expect(LispToken::OPENING)) {
+		nextToken();
+		// next should be "list"
+		if (expect(LispToken::WORD) && token.getContent() == "list")
+			nextToken();
+		else {
+			recover();
+			return undefined_node;
+		}
+	}
+	else
+		return undefined_node;
+
+	Theory params(parseTheory());
+	// skip ')'
+	nextToken();
+
+	// parse expression
+	stack.push(&params);
+	Expr_ptr expr = parseExpression();
+	stack.pop();
+
+	// build
+	return std::make_shared<Tautology>(name, std::move(params), expr);
+}
+
+/**
+ * Parse a equivalence rule.
+ * @method Parser::parseEquivalenceRule
+ * @return Pointer to a node.
+ * @pre The current token is the word "equivrule", preceded by an opening paranthesis.
+ * @post The current token is the token right after the closing paranthesis.
+ */
+Node_ptr Parser::parseEquivalenceRule()
+{
+	// skip 'equivrule'
+	nextToken();
+
+	// parse name
+	if (!expect(LispToken::WORD)) {
+		recover();
+		return undefined_node;
+	}
+	std::string name = token.getContent();
+	nextToken();
+
+	// parse parameters
+	if (expect(LispToken::OPENING)) {
+		nextToken();
+		// next should be "list"
+		if (expect(LispToken::WORD) && token.getContent() == "list")
+			nextToken();
+		else {
+			recover();
+			return undefined_node;
+		}
+	}
+	else
+		return undefined_node;
+
+	Theory params(parseTheory());
+	// skip ')'
+	nextToken();
+
+	// parse expression
+	stack.push(&params);
+	Expr_ptr expr1, expr2;
+	expr1 = parseExpression();
+	expr2 = parseExpression();
+	stack.pop();
+
+	// build
+	return std::make_shared<EquivalenceRule>(name, std::move(params), expr1, expr2);
+}
+
+/**
+ * Parse a deduction rule.
+ * @method Parser::parseDeductionRule
+ * @return Pointer to a node.
+ * @pre The current token is the word "deductionrule", preceded by an opening paranthesis.
+ * @post The current token is the token right after the closing paranthesis.
+ */
+Node_ptr Parser::parseDeductionRule()
+{
+	// skip 'deductionrule'
+	nextToken();
+
+	// parse name
+	std::string name;
+	if (expect(LispToken::WORD)) {
+		name = token.getContent();
+		nextToken();
+	}
+	// else: interpret as missing name
+
+	// parse parameters
+	if (expect(LispToken::OPENING)) {
+		nextToken();
+		// next should be "list"
+		if (expect(LispToken::WORD) && token.getContent() == "list")
+			nextToken();
+		else {
+			recover();
+			return undefined_node;
+		}
+	}
+	else
+		return undefined_node;
+
+	Theory params(parseTheory());
+	// skip ')'
+	nextToken();
+
+	// parse premisses
+	stack.push(&params);
+	std::vector<Expr_ptr> premisses;
+	if (expect(LispToken::OPENING)) {
+		nextToken();
+		if (expect(LispToken::WORD) && token.getContent() == "list") {
+			nextToken();
+			while (token.getType() != LispToken::CLOSING)
+				premisses.push_back(parseExpression());
+			// skip ')'
+			nextToken();
+		}
+		else
+			recover();
+	}
+	// else: interpret as missing premisses list.
+
+	// parse conclusion
+	Expr_ptr conclusion = parseExpression();
+	stack.pop();
+
+	// build
+	return std::make_shared<DeductionRule>(name, std::move(params), premisses, conclusion);
+}
+
+/**
+ * Parse a statement.
+ * @method Parser::parseStatement
+ * @return Pointer to a node.
+ * @pre The current token is either "axiom" or "lemma", preceded by an opening
+ *      paranthesis.
+ * @post The current token is the token right after the closing paranthesis.
+ */
+Node_ptr Parser::parseStatement()
+{
+	// parse name
+	// parse expression
+	// build
+	// parse proof, if we have one
+}
+
+/**
+ * Parse a theory.
+ * @method Parser::parseTheory
+ * @return Theory object.
+ * @pre The current token is the beginning of the first node of the theory.
+ * @post The current token is the token right after the last node of the theory.
+ */
+Theory Parser::parseTheory()
+{
+	Theory theory;	// set parent and node?
+	Theory::iterator it = theory.begin();
+
+	stack.push(&theory);
+
+	while (token.getType() != LispToken::CLOSING &&
+			token.getType() != LispToken::ENDOFFILE)
+		it = theory.add(parseNode(), it);
+
+	stack.pop();
+
+	return theory;
+}
+
+
+//////////////////////////////////
+// Implementation of the Writer //
+//////////////////////////////////
+
 Writer::Writer(std::ostream &output, int line_length, int tab_size, bool tabs)
 	: output(output), depth(0), max_line_length(line_length), line_length(0),
 	  tab_size(tab_size), tabs(tabs), write_depth(0) {}

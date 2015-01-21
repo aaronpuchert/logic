@@ -20,7 +20,7 @@
 #ifndef CORE_LISP_HPP
 #define CORE_LISP_HPP
 #include "forward.hpp"
-#include "theory.hpp"
+#include "expression.hpp"
 #include <string>
 #include <stack>
 #include <deque>
@@ -100,6 +100,59 @@ namespace Core {
 
 		std::ostream &output;
 		TypeWriter writer;
+	};
+
+	/**
+	 * Lisp-Syntax parser class
+	 */
+	class Parser {
+	public:
+		Parser(std::istream &input, std::ostream &output,
+			const std::string &descriptor);
+
+		Node_ptr parseNode();
+		const_Type_ptr parseType();
+		Type_ptr parseLambdaType();
+
+		Expr_ptr parseExpression();
+		Expr_ptr parseAtomicExpr();
+		Expr_ptr parseLambdaCallExpr();
+		Expr_ptr parseNegationExpr();
+		Expr_ptr parseConnectiveExpr();
+		Expr_ptr parseQuantifierExpr();
+		Expr_ptr parseLambda();
+
+		Node_ptr parseTautology();
+		Node_ptr parseEquivalenceRule();
+		Node_ptr parseDeductionRule();
+
+		Node_ptr parseStatement();
+		// Reference, ProofStep, LongProof
+		Theory parseTheory();
+
+	private:
+		void nextToken();
+		bool expect(LispToken::Type type);
+		const_Node_ptr getIdentifier();
+		void recover();
+
+		// Our lexer object
+		Lexer lexer;
+		// Where we write errors
+		ParserErrorHandler error_output;
+
+		// The current token and theory stack
+		LispToken token;
+		std::stack<Theory *> stack;
+
+		// Dispatch tables
+		static const std::map<std::string, Node_ptr (Parser::*)()> node_dispatch;
+		static const std::map<std::string, Expr_ptr (Parser::*)()> expr_dispatch;
+		static const std::map<std::string, ConnectiveExpr::Variant> connective_dispatch;
+
+		// Dummy objects to use in the case of errors
+		static const Node_ptr undefined_node;
+		static const Expr_ptr undefined_expr;
 	};
 
 	/**
