@@ -33,8 +33,13 @@ const std::string& LispToken::getContent() const
 		throw std::logic_error("Only word tokens have content.");
 }
 
+
+///////////////////////////
+// Parser helper classes //
+///////////////////////////
+
 Lexer::Lexer(std::istream &input)
-	: input(input), last(' ') {}
+	: input(input), last(' '), line_number(1), column_number(0) {}
 
 LispToken Lexer::getToken()
 {
@@ -42,14 +47,14 @@ LispToken Lexer::getToken()
 
 	// Skip any whitespace.
 	while (std::isspace(last))
-		last = input.get();
+		nextChar();
 
 	// Word tokens: [a-zA-Z][a-zA-Z0-9]*
 	if (std::isalpha(last)) {
 		std::string token;
 		do {
 			token += last;
-			last = input.get();
+			nextChar();
 		} while (std::isalnum(last) || last == '_' || last == '-');
 
 		return LispToken(LispToken::WORD, std::move(token));
@@ -57,11 +62,8 @@ LispToken Lexer::getToken()
 
 	// Single-line comment
 	if (last == '#') {
-		input.ignore(std::numeric_limits<int>::max(), '\n');
-		last = input.get();
-
-		if (!input.eof())
-			return getToken();
+		skipLine();
+		return getToken();
 	}
 
 	// Otherwise, we might have parantheses
@@ -79,10 +81,120 @@ LispToken Lexer::getToken()
 	if (input.eof())
 		return LispToken(LispToken::ENDOFFILE);
 
-	last = input.get();
+	nextChar();
 	return LispToken(type);
 }
 
+void Lexer::nextChar()
+{
+	last = input.get();
+	if (last == '\n') {
+		++line_number;
+		column_number = 0;
+	}
+	else
+		++column_number;
+}
+
+void Lexer::skipLine()
+{
+	input.ignore(std::numeric_limits<int>::max(), '\n');
+	++line_number;
+	column_number = 0;
+	nextChar();
+}
+
+/**
+ * Construct a parser error handler.
+ * @param lexer Lexer reference to deliver line and column numbers.
+ * @param output Output stream for errors, warnings and notes.
+ * @param descriptor String that denotes the input stream, e.g. a file name.
+ */
+ParserErrorHandler::ParserErrorHandler(const Lexer &lexer, std::ostream &output, const std::string &descriptor)
+	: lexer(lexer), descriptor(descriptor), error_count(0), warning_count(0), output(output), writer(output) {}
+
+/**
+ * Desctruct ParserErrorHandler and write error and warning count.
+ */
+ParserErrorHandler::~ParserErrorHandler()
+{
+	output << "\n\n*** " << descriptor << ": "
+		<< error_count << " errors, "
+		<< warning_count << " warnings.\n";
+}
+
+/**
+ * Write new error, warning or note.
+ * @param level One of ParserErrorHandler::{ERROR|WARNING|NOTE}.
+ */
+ParserErrorHandler& ParserErrorHandler::operator <<(Level level)
+{
+	output << std::endl << descriptor << ':' << lexer.getLine()
+		<< ':' << lexer.getColumn() << ':';
+
+	switch(level) {
+	case ERROR:
+		output << " error: ";
+		++error_count;
+		break;
+	case WARNING:
+		output << " warning: ";
+		++warning_count;
+		break;
+	case NOTE:
+		output << " note: ";
+		break;
+	}
+
+	return *this;
+}
+
+/**
+ * Write string.
+ * @param str String.
+ */
+ParserErrorHandler& ParserErrorHandler::operator <<(const std::string &str)
+{
+	output << str;
+
+	return *this;
+}
+
+/**
+ * Write token type.
+ * @param type Token type.
+ */
+ParserErrorHandler& ParserErrorHandler::operator <<(LispToken::Type type)
+{
+	switch(type) {
+	case LispToken::WORD:
+		output << "word";
+		break;
+	case LispToken::OPENING:
+		output << "opening paranthesis";
+		break;
+	case LispToken::CLOSING:
+		output << "closing paranthesis";
+		break;
+	case LispToken::ENDOFFILE:
+		output << "end of file";
+		break;
+	}
+
+	return *this;
+}
+
+/**
+ * Write type signature.
+ * @param type Pointer to type object.
+ */
+ParserErrorHandler& ParserErrorHandler::operator <<(const_Type_ptr type)
+{
+	TypeWriter writer(output);
+	writer.write(type.get());
+
+	return *this;
+}
 
 /**
  * Implementation of the writer

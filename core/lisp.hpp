@@ -25,6 +25,7 @@
 #include <stack>
 #include <deque>
 #include <sstream>
+#include "debug.hpp"
 #include "traverse.hpp"
 
 /**
@@ -59,11 +60,46 @@ namespace Core {
 	public:
 		Lexer(std::istream &input);
 		LispToken getToken();
+		int getLine() const {return line_number;}
+		int getColumn() const {return column_number;}
 
 	private:
+		void nextChar();
+		void skipLine();
+
 		std::istream &input;
+
+		// State
 		int last;
 		int line_number;
+		int column_number;
+	};
+
+	/**
+	 * Parser error-handling.
+	 */
+	class ParserErrorHandler {
+	public:
+		// Problem level
+		enum Level {ERROR, WARNING, NOTE};
+
+		ParserErrorHandler(const Lexer &lexer, std::ostream &output, const std::string &descriptor);
+		~ParserErrorHandler();
+
+		// Formatting operators
+		ParserErrorHandler& operator <<(Level level);
+		ParserErrorHandler& operator <<(const std::string &str);
+		ParserErrorHandler& operator <<(LispToken::Type type);
+		ParserErrorHandler& operator <<(const_Type_ptr type);
+
+	private:
+		const Lexer &lexer;
+		std::string descriptor;
+		int error_count;
+		int warning_count;
+
+		std::ostream &output;
+		TypeWriter writer;
 	};
 
 	/**
