@@ -30,20 +30,31 @@ namespace Core {
 	/**
 	 * Exception for mismatched types.
 	 */
-	class TypeException : public std::exception, public Visitor {
+	class TypeException : public std::exception {
 	public:
-		TypeException(const TypeException &other);
 		TypeException(const_Type_ptr type, const_Type_ptr want,
 			const std::string &where = "");
 		TypeException(const_Type_ptr type, const std::string &want,
 			const std::string &where = "");
-		void visit(const BuiltInType *type);
-		void visit(const VariableType *type);
-		void visit(const LambdaType *type);
 		const char *what() const noexcept;
 
 	private:
-		std::ostringstream str;
+		std::string description;
+	};
+
+	/**
+	 * Type writer
+	 */
+	class TypeWriter : public Visitor {
+	public:
+		TypeWriter(std::ostream &str) : str(str) {}
+		void write(const Type *type);
+		void visit(const BuiltInType *type);
+		void visit(const VariableType *type);
+		void visit(const LambdaType *type);
+
+	private:
+		std::ostream &str;
 	};
 
 	/**

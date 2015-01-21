@@ -22,11 +22,6 @@
 #include <stdexcept>
 using namespace Core;
 
-TypeException::TypeException(const TypeException &other)
-{
-	str << other.str.str();
-}
-
 /**
  * Construct a TypeException.
  * @param type The type we got.
@@ -35,12 +30,15 @@ TypeException::TypeException(const TypeException &other)
  */
 TypeException::TypeException(const_Type_ptr type, const_Type_ptr want, const std::string &where)
 {
+	std::ostringstream str;
+	TypeWriter writer(str);
 	str << "expected ";
-	want->accept(this);
+	writer.write(want.get());
 	str << ", but got ";
-	type->accept(this);
+	writer.write(type.get());
 	if (where != "")
 		str << " in " << where;
+	description = str.str();
 }
 
 /**
@@ -51,13 +49,34 @@ TypeException::TypeException(const_Type_ptr type, const_Type_ptr want, const std
  */
 TypeException::TypeException(const_Type_ptr type, const std::string &want, const std::string &where)
 {
+	std::ostringstream str;
+	TypeWriter writer(str);
 	str << "expected " << want << ", but got ";
-	type->accept(this);
+	writer.write(type.get());
 	if (where != "")
 		str << " in " << where;
+	description = str.str();
 }
 
-void TypeException::visit(const BuiltInType *type)
+/**
+ * Get description of a type exception.
+ * @return Description.
+ */
+const char *TypeException::what() const noexcept
+{
+	return description.c_str();
+}
+
+/**
+ * Write type to output stream
+ * @param type Pointer to type object
+ */
+void TypeWriter::write(const Type *type)
+{
+	type->accept(this);
+}
+
+void TypeWriter::visit(const BuiltInType *type)
 {
 	switch (type->variant) {
 	case BuiltInType::UNDEFINED:
@@ -75,12 +94,12 @@ void TypeException::visit(const BuiltInType *type)
 	}
 }
 
-void TypeException::visit(const VariableType *type)
+void TypeWriter::visit(const VariableType *type)
 {
 	str << type->getName();
 }
 
-void TypeException::visit(const LambdaType *type)
+void TypeWriter::visit(const LambdaType *type)
 {
 	str << "(";
 	bool first = true;
@@ -94,16 +113,6 @@ void TypeException::visit(const LambdaType *type)
 	str << ")->";
 	type->getReturnType()->accept(this);
 }
-
-/**
- * Get description of a type exception.
- * @return Description.
- */
-const char *TypeException::what() const noexcept
-{
-	return str.str().c_str();
-}
-
 
 /**
  * Construct a NamespaceException.
