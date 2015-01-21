@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <sstream>
 #include <iostream>
+#include "debug.hpp"
 using namespace Core;
 
 /**

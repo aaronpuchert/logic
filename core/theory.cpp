@@ -19,8 +19,8 @@
 
 #include "theory.hpp"
 #include "logic.hpp"
-#include <sstream>
 #include <algorithm>
+#include "debug.hpp"
 using namespace Core;
 
 /**
@@ -146,29 +146,6 @@ bool Theory::verify() const
  * Define empty theory for use elsewhere.
  */
 const Theory Theory::empty;
-
-NamespaceException::NamespaceException(Reason reason, const std::string &name)
-	: reason(reason), name(name) {}
-
-/**
- * Return exception description.
- */
-const char* NamespaceException::what() const noexcept
-{
-	std::ostringstream str;
-
-	switch (reason) {
-	case NOTFOUND:
-		str << "Did not find symbol: " << name;
-		break;
-	case DUPLICATE:
-		str << "Duplicate symbol: " << name;
-		break;
-	}
-
-	description = str.str();
-	return description.c_str();
-}
 
 /**
  * Construct a statement node.
@@ -317,7 +294,7 @@ ProofStep::ProofStep(Theory *system, const std::string &rule_name,
 	if (rule_it != system->end() && (*rule_it)->getType() == BuiltInType::rule)
 		rule = std::static_pointer_cast<Rule>(*rule_it).get();
 	else
-		return; 	// TODO: exception
+		throw NamespaceException(NamespaceException::NOTFOUND, rule_name);
 }
 
 /**

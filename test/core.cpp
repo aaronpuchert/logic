@@ -1,6 +1,7 @@
 #include "../core/logic.hpp"
 #include "../core/expression.hpp"
 #include "../core/lisp.hpp"
+#include "../core/debug.hpp"
 #define BOOST_TEST_MODULE CoreTest
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>

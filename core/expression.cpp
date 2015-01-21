@@ -18,6 +18,7 @@
  */
 
 #include "expression.hpp"
+#include "debug.hpp"
 #include <algorithm>
 #include <sstream>
 

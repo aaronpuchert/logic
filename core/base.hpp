@@ -22,7 +22,6 @@
 #include "forward.hpp"
 #include <string>
 #include <vector>
-#include <sstream>
 #include "traverse.hpp"
 
 /**
@@ -117,25 +116,6 @@ namespace Core {
 	private:
 		int yours;
 		std::vector<const void *> description[2];
-	};
-
-	/**
-	 * Exception for mismatched types.
-	 */
-	class TypeException : public std::exception, public Visitor {
-	public:
-		TypeException(const TypeException &other);
-		TypeException(const_Type_ptr type, const_Type_ptr want,
-			const std::string &where = "");
-		TypeException(const_Type_ptr type, const std::string &want,
-			const std::string &where = "");
-		void visit(const BuiltInType *type);
-		void visit(const VariableType *type);
-		void visit(const LambdaType *type);
-		const char *what() const noexcept;
-
-	private:
-		std::ostringstream str;
 	};
 
 	/**

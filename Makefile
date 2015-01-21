@@ -14,6 +14,7 @@ TARGET = logic
 TEST_TARGET = $(BUILDDIR)/testsuite
 
 CPPS =	core/base.cpp \
+	core/debug.cpp \
 	core/expression.cpp \
 	core/lisp.cpp \
 	core/logic.cpp \

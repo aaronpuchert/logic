@@ -77,21 +77,6 @@ namespace Core {
 	};
 
 	/**
-	 * Exception for not finding entries
-	 */
-	class NamespaceException : public std::exception {
-	public:
-		enum Reason {NOTFOUND, DUPLICATE};
-		NamespaceException(Reason reason, const std::string &name);
-		const char* what() const noexcept;
-
-	private:
-		const Reason reason;
-		const std::string name;
-		mutable std::string description;
-	};
-
-	/**
 	 * Class for statements.
 	 */
 	class Statement : public Node {
