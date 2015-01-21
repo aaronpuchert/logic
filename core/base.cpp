@@ -59,7 +59,7 @@ const const_Type_ptr
 VariableType::VariableType(const_Node_ptr node) : node(node)
 {
 	if (node->getType() != BuiltInType::type)
-		std::runtime_error("Can't construct a VariableType from a non-type node.");
+		throw TypeException(node->getType(), BuiltInType::type);
 }
 
 /**
