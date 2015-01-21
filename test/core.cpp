@@ -7,6 +7,7 @@
 #include <boost/test/unit_test.hpp>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 #include <boost/test/output_test_stream.hpp>
 #include <functional>
 
@@ -317,4 +318,16 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 
 	// Verify the theory
 	BOOST_CHECK(theory.verify());
+}
+
+//////////////////////
+// Check the parser //
+//////////////////////
+
+BOOST_AUTO_TEST_CASE(parser_test)
+{
+	std::ifstream file("examples/rules.lth");
+	Parser parser(file, std::cout, "examples/rules.lth");
+	Theory rules = parser.parseTheory();
+	BOOST_CHECK_EQUAL(parser.getErrors(), 0);
 }

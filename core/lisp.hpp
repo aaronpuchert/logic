@@ -92,6 +92,10 @@ namespace Core {
 		ParserErrorHandler& operator <<(LispToken::Type type);
 		ParserErrorHandler& operator <<(const_Type_ptr type);
 
+		// Get statistics
+		int getErrors() const {return error_count;}
+		int getWarnings() const {return warning_count;}
+
 	private:
 		const Lexer &lexer;
 		std::string descriptor;
@@ -129,6 +133,10 @@ namespace Core {
 		Node_ptr parseStatement();
 		// Reference, ProofStep, LongProof
 		Theory parseTheory();
+
+		// Get statistics
+		int getErrors() const {return error_output.getErrors();}
+		int getWarnings() const {return error_output.getWarnings();}
 
 	private:
 		void nextToken();
