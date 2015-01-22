@@ -114,7 +114,7 @@ namespace Core {
 		Parser(std::istream &input, std::ostream &output,
 			const std::string &descriptor);
 
-		Node_ptr parseNode();
+		void parseNode();
 		const_Type_ptr parseType();
 		Type_ptr parseLambdaType();
 
@@ -126,13 +126,13 @@ namespace Core {
 		Expr_ptr parseQuantifierExpr();
 		Expr_ptr parseLambda();
 
-		Node_ptr parseTautology();
-		Node_ptr parseEquivalenceRule();
-		Node_ptr parseDeductionRule();
+		void parseTautology();
+		void parseEquivalenceRule();
+		void parseDeductionRule();
 
-		Node_ptr parseStatement();
+		void parseStatement();
 		// Reference, ProofStep, LongProof
-		Theory parseTheory();
+		Theory parseTheory(bool standalone = false);
 
 		// Get statistics
 		int getErrors() const {return error_output.getErrors();}
@@ -141,7 +141,8 @@ namespace Core {
 	private:
 		void nextToken();
 		bool expect(LispToken::Type type);
-		const_Node_ptr getIdentifier();
+		Theory::iterator addNode(Node_ptr node);
+		const_Node_ptr getNode();
 		void recover();
 
 		// Our lexer object
@@ -151,10 +152,11 @@ namespace Core {
 
 		// The current token and theory stack
 		LispToken token;
-		std::stack<Theory *> stack;
+		std::stack<Theory *> theory_stack;
+		std::stack<Theory::iterator> iterator_stack;
 
 		// Dispatch tables
-		static const std::map<std::string, Node_ptr (Parser::*)()> node_dispatch;
+		static const std::map<std::string, void (Parser::*)()> node_dispatch;
 		static const std::map<std::string, Expr_ptr (Parser::*)()> expr_dispatch;
 		static const std::map<std::string, ConnectiveExpr::Variant> connective_dispatch;
 
