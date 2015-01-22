@@ -41,8 +41,7 @@ namespace Core {
 		using iterator = std::list<Node_ptr>::iterator;
 		using const_iterator = std::list<Node_ptr>::const_iterator;
 
-		Theory();
-		Theory(Theory *parent, iterator parent_node);
+		Theory(Theory *parent = nullptr, iterator parent_node = iterator());
 		Theory(std::initializer_list<Node_ptr> nodes);
 		Theory(const Theory &theory);
 		Theory(Theory &&theory) = default;

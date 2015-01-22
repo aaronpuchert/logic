@@ -32,11 +32,6 @@ bool Theory::NodeCompare::operator ()(const Node *x, const Node *y) const
 }
 
 /**
- * Construct a root theory.
- */
-Theory::Theory() : parent(nullptr) {}
-
-/**
  * Construct a theory.
  * @param parent The parent theory, if this is a subtheory, otherwise nullptr.
  * @param parent_node Iterator to the node referring to this theory.
