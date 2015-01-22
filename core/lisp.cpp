@@ -48,24 +48,32 @@ LispToken Lexer::getToken()
 	while (std::isspace(last))
 		nextChar();
 
-	// Word tokens: [a-zA-Z][a-zA-Z0-9]*
-	if (std::isalpha(last)) {
-		std::string token;
-		do {
-			token += last;
-			nextChar();
-		} while (std::isalnum(last) || last == '_' || last == '-');
-
-		return LispToken(LispToken::WORD, std::move(token));
-	}
-
 	// Single-line comment
 	if (last == '#') {
 		skipLine();
 		return getToken();
 	}
 
-	// Otherwise, we might have parantheses
+	// Check for end of file.
+	if (input.eof())
+		return LispToken(LispToken::ENDOFFILE);
+
+	// Word tokens: [^ \t\r\n()]*. Since we got here, we can assume
+	// that we are not at eof and last is neither a space nor '#'.
+	if (last != '(' && last != ')') {
+		std::string token;
+		bool valid;
+		do {
+			token += last;
+			nextChar();
+			valid = !std::isspace(last) && last != -1 && last != '('
+				&& last != ')' && last != '#';
+		} while (valid);
+
+		return LispToken(LispToken::WORD, std::move(token));
+	}
+
+	// Otherwise, we will have parantheses
 	LispToken::Type type;
 	switch (last) {
 	case '(':
@@ -75,10 +83,6 @@ LispToken Lexer::getToken()
 		type = LispToken::CLOSING;
 		break;
 	}
-
-	// Check for end of file.
-	if (input.eof())
-		return LispToken(LispToken::ENDOFFILE);
 
 	nextChar();
 	return LispToken(type);
