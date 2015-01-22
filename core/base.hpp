@@ -141,7 +141,7 @@ namespace Core {
 
 	protected:
 		const_Type_ptr type;
-		std::string name;
+		const std::string name;
 		Expr_ptr expression;
 	};
 
