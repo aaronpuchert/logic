@@ -155,10 +155,6 @@ namespace Core {
 		mutable const_Type_ptr type;
 		const_Expr_ptr expression;
 	};
-
-	/**
-	 * Functions, relations?
-	 */
 }	// End of namespace Core
 
 #endif
