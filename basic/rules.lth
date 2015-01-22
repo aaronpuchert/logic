@@ -112,6 +112,6 @@
 # into the language
 (deductionrule exchange_quantifiers
 	(list (type T1) (type T2) ((lambda-type statement (list T1 T2)) P))
-	(list (exists (lambda (list (T1 x)) (forall (lambda (list (T2 x)) (P x y))))))
-	(forall (lambda (list (T2 x)) (exists (lambda (list (T1 x)) (P x y)))))
+	(list (exists (lambda (list (T1 x)) (forall (lambda (list (T2 y)) (P x y))))))
+	(forall (lambda (list (T2 y)) (exists (lambda (list (T1 x)) (P x y)))))
 )
