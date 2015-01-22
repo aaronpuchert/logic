@@ -161,9 +161,3 @@ of variables in the `<variable-list>` part of the rule and the number of further
 arguments (which are statements) given minus one, respectively. So there is no
 reference needed for applying a tautology, one for applying a equivalence rule,
 and `n` for applying a deduction rule with `n` premisses.
-
-A composite proof consists of statements:
-
-	<proof> |= (proof <theory-statement>*)
-
-It may also contain definitions, assumptions, etc. — maybe later.

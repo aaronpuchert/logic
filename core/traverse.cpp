@@ -103,11 +103,6 @@ void Visitor::visit(const ProofStep *proofstep)
 	//
 }
 
-void Visitor::visit(const LongProof *longproof)
-{
-	//
-}
-
 void Visitor::visit(const Theory *theory)
 {
 	//

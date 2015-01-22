@@ -46,7 +46,6 @@ namespace Core {
 		virtual void visit(const Statement *statement);
 		virtual void visit(const Reference *reference);
 		virtual void visit(const ProofStep *proofstep);
-		virtual void visit(const LongProof *longproof);
 		virtual void visit(const Theory *theory);
 
 	protected:

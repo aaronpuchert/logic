@@ -131,7 +131,7 @@ namespace Core {
 		void parseDeductionRule();
 
 		void parseStatement();
-		// Reference, ProofStep, LongProof
+		// Reference, ProofStep
 		Theory parseTheory(bool standalone = false);
 
 		// Get statistics
@@ -190,7 +190,6 @@ namespace Core {
 		void visit(const Statement *statement);
 		void visit(const Reference *reference);
 		void visit(const ProofStep *proofstep);
-		void visit(const LongProof *longproof);
 		void visit(const Theory *theory);
 
 	private:

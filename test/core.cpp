@@ -272,46 +272,39 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	checkResult(axiom2.get(), "(axiom (forall (lambda (list (person x)) (impl (schüler? x) (dumm? x)))))\n");
 	position = theory.add(axiom2, position);
 
-	//  (statement
-	//  	(dumm? fritz)
+	// We want to prove: fritz is stupid
 	Expr_ptr statement_expr = make_shared<LambdaCallExpr>(stupid,
 		std::vector<Expr_ptr>{fritz_expr});
-	Statement_ptr statement = make_shared<Statement>("", statement_expr);
-	position = theory.add(statement, position);
 
-	//  	(proof
-	std::shared_ptr<LongProof> proof = make_shared<LongProof>(&theory, position);
-	Theory::iterator sub_pos = proof->subTheory.begin();
-	//  		(statement (impl (schüler? fritz) (dumm? fritz))
-	Expr_ptr inter1_expr = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL,
+	//  (lemma (impl (schüler? fritz) (dumm? fritz))
+	Expr_ptr lemma1_expr = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL,
 		axiom1_expr, statement_expr);
-	Statement_ptr inter1 = make_shared<Statement>("", inter1_expr);
-	//  			(specialization
-	//  				(list person (list (person x)) (impl (schüler? x) (dumm? x)) fritz)
-	//  				(list parent~1)
-	//  			)
+	Statement_ptr lemma1 = make_shared<Statement>("", lemma1_expr);
+	position = theory.add(lemma1, position);
+	//  	(specialization
+	//  		(list person (list (person x)) (impl (schüler? x) (dumm? x)) fritz)
+	//  		(list this~1)
+	//  	)
+	Reference this1(&theory, position);
 	std::shared_ptr<ProofStep> step1 = make_shared<ProofStep>(&rules, "specialization",
 		std::vector<Expr_ptr>{person, impl_pred, fritz_expr},
-		std::vector<Reference>{Reference(&theory, --position)});
-	inter1->addProof(step1);
-	sub_pos = proof->subTheory.add(inter1, sub_pos);
-	//  		)
-	//  		(statement (dumm? fritz)
-	Statement_ptr inter2 = make_shared<Statement>("", statement_expr);
-	//  			(ponens
-	//  				(list (schüler? fritz) (dumm? fritz))
-	//  				(list parent~2 this~1)
-	//  			)
+		std::vector<Reference>{this1 - 1});
+	lemma1->addProof(step1);
+	//  )
+
+	//  (lemma (dumm? fritz)
+	Statement_ptr lemma2 = make_shared<Statement>("", statement_expr);
+	position = theory.add(lemma2, position);
+	//  	(ponens
+	//  		(list (schüler? fritz) (dumm? fritz))
+	//  		(list this~1 this~3)
+	//  	)
+	Reference this2(&theory, position);
 	std::shared_ptr<ProofStep> step2 = make_shared<ProofStep>(&rules,
 		"ponens", std::vector<Expr_ptr>{axiom1_expr, statement_expr},
-		std::vector<Reference>{Reference(&proof->subTheory, sub_pos), Reference(&theory, --position)});
-	inter2->addProof(step2);
-	sub_pos = proof->subTheory.add(inter2, sub_pos);
-	//  		)
-	//  	)
+		std::vector<Reference>{this2 - 1, this2 - 3});
+	lemma2->addProof(step2);
 	//  )
-	statement->addProof(proof);
-	checkResult(statement.get(), "(lemma (dumm? fritz) (proof (lemma (impl (schüler? fritz) (dumm? fritz)) (specialization (list person (lambda (list (person x)) (impl (schüler? x) (dumm? x))) fritz) (list parent~1))) (lemma (dumm? fritz) (ponens (list (schüler? fritz) (dumm? fritz)) (list this~1 parent~2)))))\n");
 
 	// Check the whole theory with line wrapping
 	checkResult(&theory, "examples/simple.lth");

@@ -1065,14 +1065,6 @@ void Writer::visit(const ProofStep *proofstep)
 	addParanthesis(CLOSING);
 }
 
-void Writer::visit(const LongProof *longproof)
-{
-	addParanthesis(OPENING);
-	addToken("proof");
-	longproof->subTheory.accept(this);
-	addParanthesis(CLOSING);
-}
-
 void Writer::visit(const Theory *theory)
 {
 	theory_stack.push(theory);

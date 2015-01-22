@@ -297,19 +297,3 @@ bool ProofStep::proves(const Statement &statement) const
 {
 	return rule->validate(var_list, ref_statement_list, statement.getDefinition());
 }
-
-/**
- * Does this long proof prove a certain statement?
- */
-bool LongProof::proves(const Statement &statement) const
-{
-	// Is the theory valid?
-	if (!subTheory.verify())
-		return false;
-
-	// Is the last node a statement and the same as ours?
-	Theory empty;
-	Substitution subst(statement.getDefinition(), &empty);
-	const_Node_ptr node = *(--subTheory.end());
-	return subst.check(node->getDefinition().get());
-}

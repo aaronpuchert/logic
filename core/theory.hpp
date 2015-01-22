@@ -157,21 +157,6 @@ namespace Core {
 		std::vector<Expr_ptr> var_list;
 		std::vector<Reference> ref_statement_list;
 	};
-
-	/**
-	 * Class for more difficult proofs.
-	 */
-	class LongProof : public Proof {
-	public:
-		LongProof(Theory *parent, Theory::iterator parent_node)
-			: subTheory(parent, parent_node) {}
-
-		bool proves(const Statement &statement) const;
-		void accept(Visitor *visitor) const
-			{visitor->visit(this);}
-
-		Theory subTheory;
-	};
 }	// End of namespace Core
 
 #endif
