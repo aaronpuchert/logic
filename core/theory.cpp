@@ -138,11 +138,6 @@ bool Theory::verify() const
 }
 
 /**
- * Define empty theory for use elsewhere.
- */
-const Theory Theory::empty;
-
-/**
  * Construct a statement node.
  * @method Statement::Statement
  * @param name Name of the statement.
@@ -313,7 +308,8 @@ bool LongProof::proves(const Statement &statement) const
 		return false;
 
 	// Is the last node a statement and the same as ours?
-	Substitution subst(statement.getDefinition(), &Theory::empty);
+	Theory empty;
+	Substitution subst(statement.getDefinition(), &empty);
 	const_Node_ptr node = *(--subTheory.end());
 	return subst.check(node->getDefinition().get());
 }

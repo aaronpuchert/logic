@@ -64,8 +64,6 @@ namespace Core {
 		const Theory *parent;
 		const iterator parent_node;
 
-		static const Theory empty;
-
 	private:
 		// Dependencies?
 		std::list<Node_ptr> nodes;
