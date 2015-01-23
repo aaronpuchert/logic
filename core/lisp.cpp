@@ -808,14 +808,111 @@ void Parser::parseDeductionRule()
  * @method Parser::parseStatement
  * @pre The current token is either "axiom" or "lemma", preceded by an opening
  *      paranthesis.
- * @post The current token is the token right after the closing paranthesis.
+ * @post The current token is the token right after the last token of the content.
  */
 void Parser::parseStatement()
 {
-	// parse name
-	// parse expression
-	// build
-	// parse proof, if we have one
+	// Axiom or lemma?
+	bool expect_proof = (token.getContent() != "axiom");
+	nextToken();
+
+	// Name
+	std::string name;
+	if (token.getType() == LispToken::WORD) {
+		name = token.getContent();
+		nextToken();
+	}
+
+	// Parse expression and build statement
+	Expr_ptr expr = parseExpression();
+	Statement_ptr stmt = std::make_shared<Statement>(name, expr);
+	addNode(stmt);
+
+	// Parse proof
+	if (expect_proof) {
+		Proof_ptr proof = parseProofStep();
+		stmt->addProof(proof);
+	}
+}
+
+/**
+ * Parse a proof step.
+ * @method Parser::parseProofStep
+ * @return Pointer to proof
+ * @pre The current token is the beginning of a proof step.
+ * @post The current token is the token right after the closing paranthesis.
+ */
+Proof_ptr Parser::parseProofStep()
+{
+	// parse '('
+	if (!expect(LispToken::OPENING))
+		return Proof_ptr();
+	nextToken();
+
+	// get name of rule
+	if (!expect(LispToken::WORD))
+		return Proof_ptr();
+	std::string rule_name = token.getContent();
+	nextToken();
+
+	// parse expression list
+	std::vector<Expr_ptr> var_list;
+	if (expect(LispToken::OPENING)) {
+		nextToken();
+		if (expect(LispToken::WORD) && token.getContent() == "list") {
+			nextToken();
+			while (token.getType() != LispToken::CLOSING)
+				var_list.push_back(parseExpression());
+			// skip ')'
+			nextToken();
+		}
+		else
+			recover();
+	}
+	// else: interpret as missing expression list.
+
+	// parse reference list
+	std::vector<Reference> references;
+	if (expect(LispToken::OPENING)) {
+		nextToken();
+		if (expect(LispToken::WORD) && token.getContent() == "list") {
+			nextToken();
+			while (token.getType() != LispToken::CLOSING)
+				references.push_back(parseReference());
+			// skip ')'
+			nextToken();
+		}
+		else
+			recover();
+	}
+	// else: interpret as missing references list.
+
+	// parse )
+	if (expect(LispToken::CLOSING))
+		nextToken();
+	else
+		recover();
+
+	return std::make_shared<ProofStep>(rules, rule_name, std::move(var_list),
+		std::move(references));
+}
+
+/**
+ * Parse a reference.
+ * @method Parser::parseReference
+ * @return Reference object
+ * @pre The current token is a reference token.
+ * @post The current token is the token right after the reference.
+ */
+Reference Parser::parseReference()
+{
+	if (expect(LispToken::WORD)) {
+		Reference ref(theory_stack.top(), iterator_stack.top(), token.getContent());
+		nextToken();
+		return ref;
+	}
+	else
+		return Reference(nullptr, Theory::iterator());
 }
 
 /**

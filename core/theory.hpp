@@ -100,6 +100,8 @@ namespace Core {
 	class Reference {
 	public:
 		Reference(const Theory *theory, Theory::const_iterator it);
+		Reference(const Theory *this_theory, Theory::const_iterator this_it,
+			const std::string &description);
 		std::string getDescription(const Theory *this_theory,
 			Theory::const_iterator this_it) const;
 
@@ -139,7 +141,7 @@ namespace Core {
 	 */
 	class ProofStep : public Proof {
 	public:
-		ProofStep(Theory *system, const std::string &rule_name,
+		ProofStep(const Theory *system, const std::string &rule_name,
 			std::vector<Expr_ptr> &&var_list,
 			std::vector<Reference> &&statement_list);
 		const Rule *getRule() const

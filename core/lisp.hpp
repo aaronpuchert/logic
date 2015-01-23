@@ -131,12 +131,16 @@ namespace Core {
 		void parseDeductionRule();
 
 		void parseStatement();
-		// Reference, ProofStep
+		Proof_ptr parseProofStep();
+		Reference parseReference();
 		Theory parseTheory(bool standalone = false);
 
 		// Get statistics
 		int getErrors() const {return error_output.getErrors();}
 		int getWarnings() const {return error_output.getWarnings();}
+
+		// For parsing proofs: pointer to a set of rules
+		const Theory *rules;
 
 	private:
 		void nextToken();

@@ -182,6 +182,62 @@ Reference::Reference(const Theory *theory, Theory::const_iterator it)
 	: theory(theory), ref(it) {}
 
 /**
+ * Construct reference from description string.
+ * @param description Description string.
+ */
+Reference::Reference(const Theory *this_theory, Theory::const_iterator this_it,
+	const std::string &description)
+{
+	std::string base = description;
+	int diff = 0;
+
+	// Absolute or relative?
+	int pos_tilde = description.find('~');
+	if (pos_tilde) {
+		// Relative: Use the hierarchy or stack
+		base = description.substr(0, pos_tilde);
+		std::istringstream str(description.substr(pos_tilde+1));
+		str >> diff;
+	}
+
+	// We have to find base. Following possibilities:
+	// - this
+	if (base == "this") {
+		theory = this_theory;
+		ref = this_it;
+	}
+	// - parent
+	else if (base == "parent") {
+		theory = this_theory->parent;
+		ref = this_theory->parent_node;
+	}
+	// - parent^<n>
+	else if (base.substr(0, 6) == "parent^") {
+		int level;
+		std::istringstream str(base.substr(7));
+		str >> level;
+
+		// get up
+		theory = this_theory;
+		ref = this_it;
+		while (level--) {
+			theory = theory->parent;
+			ref = theory->parent_node;
+		}
+	}
+	// - <name>
+	else {
+		// How do we get base_theory? We might not need it, but this is ugly.
+		ref = this_theory->get(base);
+	}
+
+	// Now step back...
+	while (diff--)
+		--ref;
+
+}
+
+/**
  * Create description of reference.
  * @param this_theory Theory which contains `this`.
  * @param this_it Iterator to `this`.
@@ -275,7 +331,7 @@ int Core::operator -(const Reference& a, const Reference& b)
  * @param var_list List of expressions which substitute the rule variables.
  * @param statement_list List of statements referenced.
  */
-ProofStep::ProofStep(Theory *system, const std::string &rule_name,
+ProofStep::ProofStep(const Theory *system, const std::string &rule_name,
 	std::vector<Expr_ptr> &&var_list,
 	std::vector<Reference> &&statement_list)
 	: var_list(std::move(var_list)), ref_statement_list(std::move(statement_list))
