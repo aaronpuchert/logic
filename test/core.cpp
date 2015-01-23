@@ -317,10 +317,22 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 // Check the parser //
 //////////////////////
 
-BOOST_AUTO_TEST_CASE(parser_test)
+BOOST_AUTO_TEST_CASE(parser_rule_test)
 {
 	std::ifstream file("basic/rules.lth");
 	Parser parser(file, std::cout, "basic/rules.lth");
 	Theory rules = parser.parseTheory();
 	BOOST_CHECK_EQUAL(parser.getErrors(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(parser_theory_test)
+{
+	std::ifstream file("examples/simple.lth");
+	Parser parser(file, std::cout, "examples/simple.lth");
+	parser.rules = &rules;
+	Theory simple = parser.parseTheory();
+	BOOST_CHECK_EQUAL(parser.getErrors(), 0);
+
+	// Verify the theory
+	BOOST_CHECK(simple.verify());
 }
