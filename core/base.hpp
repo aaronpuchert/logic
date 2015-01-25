@@ -33,74 +33,51 @@ namespace Core {
 	 */
 	class Expression {
 	public:
-		enum Class {TYPE, ATOMIC, LAMBDACALL, NEGATION, CONNECTIVE, QUANTIFIER,
-			LAMBDA} const cls;
+		enum Class {BUILTINTYPE, ATOMIC, LAMBDACALL, NEGATION, CONNECTIVE, QUANTIFIER,
+			LAMBDATYPE, LAMBDA} const cls;
 		Expression(Class cls) : cls(cls) {}
 		virtual ~Expression() {}
 		virtual void accept(Visitor *visitor) const = 0;
-		virtual const_Type_ptr getType() const = 0;
-	};
-
-	/**
-	 * Base class for types.
-	 */
-	class Type : public Expression {
-	public:
-		Type() : Expression(Expression::TYPE) {}
-		const_Type_ptr getType() const;
-		virtual void accept(Visitor *visitor) const = 0;
+		virtual const_Expr_ptr getType() const = 0;
 	};
 
 	/**
 	 * Built-in standard types.
 	 */
-	class BuiltInType : public Type {
+	class BuiltInType : public Expression {
 	public:
 		enum Variant {UNDEFINED, TYPE, STATEMENT, RULE}
 			const variant;
 
 		BuiltInType(Variant variant);
+		const_Expr_ptr getType() const;
 		void accept(Visitor *visitor) const;
 
 		// Global standard types
-		static const const_Type_ptr
+		static const const_Expr_ptr
 			type, statement, rule, undefined;
-	};
-
-	/**
-	 * Variable type.
-	 */
-	class VariableType : public Type {
-	public:
-		VariableType(const_Node_ptr node);
-		const_Node_ptr getNode() const;
-		const std::string& getName() const;
-
-		void accept(Visitor *visitor) const;
-
-	private:
-		const_Node_ptr node;
 	};
 
 	/**
 	 * Lambda type.
 	 */
-	class LambdaType : public Type {
+	class LambdaType : public Expression {
 	public:
-		LambdaType(std::vector<const_Type_ptr> &&args,
-			const_Type_ptr return_type = BuiltInType::statement);
-		const_Type_ptr getReturnType() const;
+		LambdaType(std::vector<const_Expr_ptr> &&args,
+			const_Expr_ptr return_type = BuiltInType::statement);
+		const_Expr_ptr getType() const;
+		const_Expr_ptr getReturnType() const;
 
 		// Iterate over argument types...
-		typedef std::vector<const_Type_ptr>::const_iterator const_iterator;
+		typedef std::vector<const_Expr_ptr>::const_iterator const_iterator;
 		const_iterator begin() const;
 		const_iterator end() const;
 
 		void accept(Visitor *visitor) const;
 
 	private:
-		const_Type_ptr return_type;
-		std::vector<const_Type_ptr> args;
+		const_Expr_ptr return_type;
+		std::vector<const_Expr_ptr> args;
 	};
 
 	/**
@@ -108,10 +85,10 @@ namespace Core {
 	 */
 	class TypeComparator : public Visitor {
 	public:
-		bool operator()(const Type *, const Type *);
+		bool operator()(const Expression *, const Expression *);
 		void visit(const BuiltInType *type);
-		void visit(const VariableType *type);
 		void visit(const LambdaType *type);
+		void visit(const AtomicExpr *type);
 
 	private:
 		int yours;
@@ -124,15 +101,14 @@ namespace Core {
 	 */
 	class Node {
 	public:
-		Node(const_Type_ptr type, const std::string &name)
-			: type(type), name(name) {}
+		Node(const_Expr_ptr type, const std::string &name);
 		virtual ~Node() {}
 		virtual Node_ptr clone() const;
 
 		const std::string &getName() const
 			{return name;}
 		void setDefinition(Expr_ptr new_expression);
-		const_Type_ptr getType() const
+		const_Expr_ptr getType() const
 			{return type;}
 		const_Expr_ptr getDefinition() const
 			{return expression;}
@@ -140,7 +116,7 @@ namespace Core {
 		virtual void accept(Visitor *visitor) const;
 
 	protected:
-		const_Type_ptr type;
+		const_Expr_ptr type;
 		const std::string name;
 		Expr_ptr expression;
 	};

@@ -38,7 +38,7 @@ namespace Core {
 			: Expression(Expression::ATOMIC), node(node) {}
 		const_Node_ptr getAtom() const
 			{return node;}
-		const_Type_ptr getType() const;
+		const_Expr_ptr getType() const;
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
@@ -54,7 +54,7 @@ namespace Core {
 		LambdaCallExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args);
 		const_Node_ptr getLambda() const
 			{return node;}
-		const_Type_ptr getType() const;
+		const_Expr_ptr getType() const;
 
 		// Iteration
 		typedef std::vector<Expr_ptr>::const_iterator const_iterator;
@@ -78,7 +78,7 @@ namespace Core {
 		Expr_ptr getExpr() const {return expr;}
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
-		const_Type_ptr getType() const;
+		const_Expr_ptr getType() const;
 
 	private:
 		Expr_ptr expr;
@@ -94,7 +94,7 @@ namespace Core {
 		Variant getVariant() const {return variant;}
 		Expr_ptr getFirstExpr() const {return expr[0];}
 		Expr_ptr getSecondExpr() const {return expr[1];}
-		const_Type_ptr getType() const;
+		const_Expr_ptr getType() const;
 
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
@@ -115,7 +115,7 @@ namespace Core {
 			{return variant;}
 		const_Expr_ptr getPredicate() const
 			{return predicate;}
-		const_Type_ptr getType() const;
+		const_Expr_ptr getType() const;
 
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
@@ -142,7 +142,7 @@ namespace Core {
 		const_Expr_ptr getDefinition() const
 			{return expression;}
 		void setDefinition(const_Expr_ptr new_expression);
-		const_Type_ptr getType() const;
+		const_Expr_ptr getType() const;
 
 		// Iterating through arguments
 		Theory::const_iterator begin() const;
@@ -152,7 +152,7 @@ namespace Core {
 
 	private:
 		Theory params;
-		mutable const_Type_ptr type;
+		mutable const_Expr_ptr type;
 		const_Expr_ptr expression;
 	};
 }	// End of namespace Core

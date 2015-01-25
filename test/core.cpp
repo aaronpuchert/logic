@@ -21,16 +21,16 @@ using std::make_shared;
 BOOST_AUTO_TEST_CASE(type_comparator_test)
 {
 	Node_ptr type_def[2];
-	Type_ptr variable[3], lambda[2];
+	Expr_ptr variable[3], lambda[2];
 
 	type_def[0] = make_shared<Node>(BuiltInType::type, "type1");
 	type_def[1] = make_shared<Node>(BuiltInType::type, "type2");
-	variable[0] = make_shared<VariableType>(type_def[0]);
-	variable[1] = make_shared<VariableType>(type_def[0]);
-	variable[2] = make_shared<VariableType>(type_def[1]);
+	variable[0] = make_shared<AtomicExpr>(type_def[0]);
+	variable[1] = make_shared<AtomicExpr>(type_def[0]);
+	variable[2] = make_shared<AtomicExpr>(type_def[1]);
 
-	lambda[0] = make_shared<LambdaType>(std::vector<const_Type_ptr>{BuiltInType::statement, variable[0]});
-	lambda[1] =  make_shared<LambdaType>(std::vector<const_Type_ptr>{variable[2]}, variable[0]);
+	lambda[0] = make_shared<LambdaType>(std::vector<const_Expr_ptr>{BuiltInType::statement, variable[0]});
+	lambda[1] =  make_shared<LambdaType>(std::vector<const_Expr_ptr>{variable[2]}, variable[0]);
 
 	TypeComparator compare;
 	BOOST_CHECK(compare(BuiltInType::statement.get(), BuiltInType::statement.get()));
@@ -62,15 +62,15 @@ std::function<bool (const TypeException &ex)>
 
 BOOST_AUTO_TEST_CASE(type_check_test)
 {
-	Type_ptr var_type, lambda_type[2];
+	Expr_ptr var_type, lambda_type[2];
 	Node_ptr type_def, var_def[3], lambda[3], statement[3];
 	Expr_ptr atomic[3], lambda_def, pred_expr[2], neg_expr, quant_expr[3];
 
 	// Build types
 	type_def = make_shared<Node>(BuiltInType::type, "var_type");
-	var_type = make_shared<VariableType>(type_def);
-	lambda_type[0] = make_shared<LambdaType>(std::vector<const_Type_ptr>{var_type});
-	lambda_type[1] = make_shared<LambdaType>(std::vector<const_Type_ptr>{var_type}, var_type);
+	var_type = make_shared<AtomicExpr>(type_def);
+	lambda_type[0] = make_shared<LambdaType>(std::vector<const_Expr_ptr>{var_type});
+	lambda_type[1] = make_shared<LambdaType>(std::vector<const_Expr_ptr>{var_type}, var_type);
 
 	// Make some variables
 	var_def[0] = make_shared<Node>(var_type, "x");
@@ -196,9 +196,9 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 
 	// The specialization rule
 	Node_ptr type_decl = make_shared<Node>(BuiltInType::type, "T");
-	Type_ptr gen_type = make_shared<VariableType>(type_decl);
+	Expr_ptr gen_type = make_shared<AtomicExpr>(type_decl);
 
-	Type_ptr pred_type = make_shared<LambdaType>(std::vector<const_Type_ptr>{gen_type});
+	Expr_ptr pred_type = make_shared<LambdaType>(std::vector<const_Expr_ptr>{gen_type});
 	Node_ptr pred_node = make_shared<Node>(pred_type, "P");
 
 	Node_ptr var_y = make_shared<Node>(gen_type, "y");
@@ -227,12 +227,12 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 
 	// (type person)
 	Node_ptr person_node = make_shared<Node>(BuiltInType::type, "person");
-	Type_ptr person = make_shared<VariableType>(person_node);
+	Expr_ptr person = make_shared<AtomicExpr>(person_node);
 	checkResult(person_node.get(), "(type person)\n");
 	position = theory.add(person_node, position);
 
 	// (predicate schüler? (list person))
-	Type_ptr pred_type = make_shared<LambdaType>(std::vector<const_Type_ptr>{person});
+	Expr_ptr pred_type = make_shared<LambdaType>(std::vector<const_Expr_ptr>{person});
 	Node_ptr student = make_shared<Node>(pred_type, "schüler?");
 	checkResult(student.get(), "((lambda-type statement (list person)) schüler?)\n");
 	position = theory.add(student, position);

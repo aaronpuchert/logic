@@ -90,7 +90,7 @@ namespace Core {
 		ParserErrorHandler& operator <<(Level level);
 		ParserErrorHandler& operator <<(const std::string &str);
 		ParserErrorHandler& operator <<(LispToken::Type type);
-		ParserErrorHandler& operator <<(const_Type_ptr type);
+		ParserErrorHandler& operator <<(const_Expr_ptr type);
 
 		// Get statistics
 		int getErrors() const {return error_count;}
@@ -115,8 +115,8 @@ namespace Core {
 			const std::string &descriptor);
 
 		void parseNode();
-		const_Type_ptr parseType();
-		Type_ptr parseLambdaType();
+		const_Expr_ptr parseType();
+		Expr_ptr parseLambdaType();
 
 		Expr_ptr parseExpression();
 		Expr_ptr parseAtomicExpr();
@@ -179,7 +179,6 @@ namespace Core {
 		~Writer();
 		void visit(const Node *node);
 		void visit(const BuiltInType *type);
-		void visit(const VariableType *type);
 		void visit(const LambdaType *type);
 		void visit(const AtomicExpr *expression);
 		void visit(const LambdaCallExpr *expression);

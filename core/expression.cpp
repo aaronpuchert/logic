@@ -29,7 +29,7 @@ using namespace Core;
  * @method AtomicExpr::getType
  * @return Type of the expression.
  */
-const_Type_ptr AtomicExpr::getType() const
+const_Expr_ptr AtomicExpr::getType() const
 {
 	return node->getType();
 }
@@ -44,16 +44,15 @@ LambdaCallExpr::LambdaCallExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args
 	: Expression(Expression::LAMBDACALL), node(node), args(std::move(args))
 {
 	// Is node a lambda?
-	std::shared_ptr<const LambdaType> pred_type =
-		std::dynamic_pointer_cast<const LambdaType>(node->getType());
-
-	if (!pred_type)
+	if (node->getType()->cls != Expression::LAMBDATYPE)
 		throw TypeException(node->getType(), "lambda expression");
+
+	auto pred_type = std::static_pointer_cast<const LambdaType>(node->getType());
 
 	// Do the arguments have the right type?
 	TypeComparator compare;
 	auto mismatch = std::mismatch(pred_type->begin(), pred_type->end(), this->args.begin(),
-		[&compare] (const_Type_ptr a, Expr_ptr b) -> bool
+		[&compare] (const_Expr_ptr a, Expr_ptr b) -> bool
 		{return compare(a.get(), b->getType().get());}
 	);
 
@@ -64,10 +63,9 @@ LambdaCallExpr::LambdaCallExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args
 	}
 }
 
-const_Type_ptr LambdaCallExpr::getType() const
+const_Expr_ptr LambdaCallExpr::getType() const
 {
-	std::shared_ptr<const LambdaType> pred_type =
-		std::static_pointer_cast<const LambdaType>(node->getType());
+	auto pred_type = std::static_pointer_cast<const LambdaType>(node->getType());
 	return pred_type->getReturnType();
 }
 
@@ -99,12 +97,12 @@ LambdaCallExpr::const_iterator LambdaCallExpr::end() const
 NegationExpr::NegationExpr(Expr_ptr expr)
 	: Expression(Expression::NEGATION), expr(expr)
 {
-	const_Type_ptr type = expr->getType();
+	const_Expr_ptr type = expr->getType();
 	if (type != BuiltInType::statement)
 		throw TypeException(type, BuiltInType::statement);
 }
 
-const_Type_ptr NegationExpr::getType() const
+const_Expr_ptr NegationExpr::getType() const
 {
 	return BuiltInType::statement;
 }
@@ -119,14 +117,14 @@ const_Type_ptr NegationExpr::getType() const
 ConnectiveExpr::ConnectiveExpr(Variant variant, Expr_ptr first, Expr_ptr second)
 	: Expression(Expression::CONNECTIVE), variant(variant), expr{first, second}
 {
-	const_Type_ptr first_type = first->getType(), second_type = second->getType();
+	const_Expr_ptr first_type = first->getType(), second_type = second->getType();
 	if (first_type != BuiltInType::statement)
 		throw TypeException(first_type, BuiltInType::statement, "first operand");
 	if (second_type != BuiltInType::statement)
 		throw TypeException(second_type, BuiltInType::statement, "second operand");
 }
 
-const_Type_ptr ConnectiveExpr::getType() const
+const_Expr_ptr ConnectiveExpr::getType() const
 {
 	return BuiltInType::statement;
 }
@@ -140,11 +138,10 @@ const_Type_ptr ConnectiveExpr::getType() const
 QuantifierExpr::QuantifierExpr(Variant variant, const_Expr_ptr predicate)
 	: Expression(Expression::QUANTIFIER), variant(variant), predicate(predicate)
 {
-	const_Type_ptr type = predicate->getType();
-	std::shared_ptr<const LambdaType> pred_type =
-		std::dynamic_pointer_cast<const LambdaType>(type);
-	if (pred_type) {
-		const_Type_ptr return_type = pred_type->getReturnType();
+	const_Expr_ptr type = predicate->getType();
+	if (type->cls == Expression::LAMBDATYPE) {
+		auto pred_type = std::static_pointer_cast<const LambdaType>(type);
+		const_Expr_ptr return_type = pred_type->getReturnType();
 		if (return_type != BuiltInType::statement)
 			throw TypeException(return_type, BuiltInType::statement, "return value");
 	}
@@ -152,7 +149,7 @@ QuantifierExpr::QuantifierExpr(Variant variant, const_Expr_ptr predicate)
 		throw TypeException(type, "lambda expression");
 }
 
-const_Type_ptr QuantifierExpr::getType() const
+const_Expr_ptr QuantifierExpr::getType() const
 {
 	return BuiltInType::statement;
 }
@@ -186,14 +183,14 @@ void LambdaExpr::setDefinition(const_Expr_ptr new_expression)
  * @method LambdaExpr::getType
  * @return Type of Lambda expression.
  */
-const_Type_ptr LambdaExpr::getType() const
+const_Expr_ptr LambdaExpr::getType() const
 {
 	// Build type if required
 	if (!type) {
 		// transform can't write to an empty vector, hence initialize with dummy
-		std::vector<const_Type_ptr> types{const_Type_ptr()};
+		std::vector<const_Expr_ptr> types{const_Expr_ptr()};
 		std::transform(params.begin(), params.end(), types.begin(),
-			[] (const_Node_ptr node) -> const_Type_ptr {return node->getType();});
+			[] (const_Node_ptr node) -> const_Expr_ptr {return node->getType();});
 		type = std::make_shared<LambdaType>(std::move(types), expression->getType());
 	}
 

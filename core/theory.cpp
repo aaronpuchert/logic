@@ -146,7 +146,7 @@ bool Theory::verify() const
 Statement::Statement(const std::string &name, Expr_ptr expr)
 	: Node(BuiltInType::statement, name)
 {
-	const_Type_ptr type = expr->getType();
+	const_Expr_ptr type = expr->getType();
 	if (type == BuiltInType::statement)
 		setDefinition(expr);
 	else
@@ -234,7 +234,6 @@ Reference::Reference(const Theory *this_theory, Theory::const_iterator this_it,
 	// Now step back...
 	while (diff--)
 		--ref;
-
 }
 
 /**

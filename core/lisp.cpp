@@ -191,7 +191,7 @@ ParserErrorHandler& ParserErrorHandler::operator <<(LispToken::Type type)
  * Write type signature.
  * @param type Pointer to type object.
  */
-ParserErrorHandler& ParserErrorHandler::operator <<(const_Type_ptr type)
+ParserErrorHandler& ParserErrorHandler::operator <<(const_Expr_ptr type)
 {
 	TypeWriter writer(output);
 	writer.write(type.get());
@@ -317,7 +317,7 @@ void Parser::parseNode()
 		Node_ptr node;
 
 		// Get Type
-		const_Type_ptr type = parseType();
+		const_Expr_ptr type = parseType();
 
 		// Name
 		if (expect(LispToken::WORD))
@@ -342,7 +342,7 @@ void Parser::parseNode()
 		recover();
 }
 
-const std::map<std::string, const_Type_ptr> type_dispatch = {
+const std::map<std::string, const_Expr_ptr> type_dispatch = {
 	{"type", BuiltInType::type},
 	{"statement", BuiltInType::statement}
 };
@@ -354,9 +354,9 @@ const std::map<std::string, const_Type_ptr> type_dispatch = {
  * @pre The current token is the first token of a type expression.
  * @post The current token is the token right after the type expression.
  */
-const_Type_ptr Parser::parseType()
+const_Expr_ptr Parser::parseType()
 {
-	const_Type_ptr type;
+	const_Expr_ptr type;
 
 	if (token.getType() == LispToken::WORD) {
 		// First token = word -> built-in type or variable type
@@ -365,7 +365,7 @@ const_Type_ptr Parser::parseType()
 			type = find->second;
 		else {
 			const_Node_ptr node = getNode();
-			type = std::make_shared<VariableType>(node);
+			type = std::make_shared<AtomicExpr>(node);
 		}
 
 		nextToken();
@@ -379,10 +379,10 @@ const_Type_ptr Parser::parseType()
 		nextToken();
 
 		// Read return type
-		const_Type_ptr return_type = parseType();
+		const_Expr_ptr return_type = parseType();
 
 		// Read parameter list
-		std::vector<const_Type_ptr> argument_types;
+		std::vector<const_Expr_ptr> argument_types;
 
 		// '('
 		if (expect(LispToken::OPENING)) {
@@ -986,11 +986,6 @@ void Writer::visit(const BuiltInType *type)
 	}
 }
 
-void Writer::visit(const VariableType *type)
-{
-	addToken(type->getName());
-}
-
 void Writer::visit(const LambdaType *type)
 {
 	addParanthesis(OPENING);
@@ -998,7 +993,7 @@ void Writer::visit(const LambdaType *type)
 	type->getReturnType()->accept(this);
 	addParanthesis(OPENING);
 	addToken("list");
-	for (const_Type_ptr arg_type : *type)
+	for (const_Expr_ptr arg_type : *type)
 		arg_type->accept(this);
 	addParanthesis(CLOSING);
 	addParanthesis(CLOSING);

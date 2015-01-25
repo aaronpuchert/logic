@@ -19,17 +19,9 @@
 
 #include "base.hpp"
 #include "debug.hpp"
+#include "expression.hpp"
+#include <algorithm>
 using namespace Core;
-
-/**
- * Get type of a type expression.
- * @method Type::getType
- * @return Type of a type, which is type.
- */
-const_Type_ptr Type::getType() const
-{
-	return BuiltInType::type;
-}
 
 /**
  * Construct standard type.
@@ -37,7 +29,17 @@ const_Type_ptr Type::getType() const
  * @param variant Can be any of Type::{UNDEFINED|TYPE|STATEMENT|RULE}.
  */
 BuiltInType::BuiltInType(Variant variant)
-	: variant(variant) {}
+	: Expression(Expression::BUILTINTYPE), variant(variant) {}
+
+/**
+ * Get type of a type expression.
+ * @method BuiltInType::getType
+ * @return Type of a type, which is type.
+ */
+const_Expr_ptr BuiltInType::getType() const
+{
+	return BuiltInType::type;
+}
 
 void BuiltInType::accept(Visitor *visitor) const
 {
@@ -45,47 +47,11 @@ void BuiltInType::accept(Visitor *visitor) const
 }
 
 // GLOBAL standard types.
-const const_Type_ptr
+const const_Expr_ptr
 	BuiltInType::type = std::make_shared<BuiltInType>(BuiltInType::TYPE),
 	BuiltInType::statement = std::make_shared<BuiltInType>(BuiltInType::STATEMENT),
 	BuiltInType::rule = std::make_shared<BuiltInType>(BuiltInType::RULE),
 	BuiltInType::undefined = std::make_shared<BuiltInType>(BuiltInType::UNDEFINED);
-
-/**
- * Construct a VariableType.
- * @method VariableType::VariableType
- * @param node Pointer to a node of Type type.
- */
-VariableType::VariableType(const_Node_ptr node) : node(node)
-{
-	if (node->getType() != BuiltInType::type)
-		throw TypeException(node->getType(), BuiltInType::type);
-}
-
-/**
- * Get the node which declares the type.
- * @method VariableType::getNode
- * @return Pointer to the node.
- */
-const_Node_ptr VariableType::getNode() const
-{
-	return node;
-}
-
-/**
- * Get name of variable type.
- * @method VariableType::getName
- * @return String containing the name.
- */
-const std::string& VariableType::getName() const
-{
-	return node->getName();
-}
-
-void VariableType::accept(Visitor *visitor) const
-{
-	visitor->visit(this);
-}
 
 /**
  * Construct a LambdaType.
@@ -93,16 +59,42 @@ void VariableType::accept(Visitor *visitor) const
  * @param args Vector of argument types.
  * @param return_type Type of return value, defaults to statement.
  */
-LambdaType::LambdaType(std::vector<const_Type_ptr> &&args,
-	const_Type_ptr return_type)
-	: return_type(return_type), args(std::move(args)) {}
+LambdaType::LambdaType(std::vector<const_Expr_ptr> &&args, const_Expr_ptr return_type)
+	: Expression(Expression::LAMBDATYPE), return_type(return_type), args(std::move(args))
+{
+	// Is the return type a type?
+	if (return_type->getType() != BuiltInType::type)
+		throw TypeException(return_type->getType(), BuiltInType::type);
+
+	// Are the arguments types?
+	auto find = std::find_if(this->args.begin(), this->args.end(),
+		[] (const_Expr_ptr arg) -> bool
+		{return (arg->getType() != BuiltInType::type);}
+	);
+
+	if (find != this->args.end()) {
+		std::ostringstream str;
+		str << "argument " << find - this->args.begin() + 1;
+		throw TypeException((*find)->getType(), BuiltInType::type, str.str());
+	}
+}
+
+/**
+ * Get type of a type expression.
+ * @method LambdaType::getType
+ * @return Type of a type, which is type.
+ */
+const_Expr_ptr LambdaType::getType() const
+{
+	return BuiltInType::type;
+}
 
 /**
  * Get the return type of the lambda.
  * @method LambdaType::getReturnType
  * @return Pointer to the return type.
  */
-const_Type_ptr LambdaType::getReturnType() const
+const_Expr_ptr LambdaType::getReturnType() const
 {
 	return return_type;
 }
@@ -137,8 +129,12 @@ void LambdaType::accept(Visitor *visitor) const
  * @method TypeComparator::operator()
  * @return True, if a==b.
  */
-bool TypeComparator::operator()(const Type *a, const Type *b)
+bool TypeComparator::operator()(const Expression *a, const Expression *b)
 {
+	// Check if we have types at all
+	if (a->getType() != BuiltInType::type || b->getType() != BuiltInType::type)
+		throw std::logic_error("Trying to compare non-types in TypeComparator");
+
 	// If pointers agree, the types must be equal.
 	if (a == b)
 		return true;
@@ -159,27 +155,36 @@ void TypeComparator::visit(const BuiltInType *type)
 	description[yours].push_back(reinterpret_cast<void *>(type->variant));
 }
 
-void TypeComparator::visit(const VariableType *type)
-{
-	// If there is a definition, look at that.
-	const_Node_ptr node = type->getNode();
-	if (const_Expr_ptr expr = node->getDefinition()) {
-		// Should be a type expression
-		const_Type_ptr ref_type = std::static_pointer_cast<const Type>(expr);
-		ref_type->accept(this);
-	}
-	else
-		description[yours].push_back(type->getNode().get());
-}
-
 void TypeComparator::visit(const LambdaType *type)
 {
 	// The following assumes that 0xff..ff and 0xff..fe will never be used as adresses.
 	description[yours].push_back(reinterpret_cast<void *>(-1));
 	type->getReturnType()->accept(this);
-	for (const_Type_ptr arg_type : *type)
+	for (const_Expr_ptr arg_type : *type)
 		arg_type->accept(this);
 	description[yours].push_back(reinterpret_cast<void *>(-2));
+}
+
+void TypeComparator::visit(const AtomicExpr *type)
+{
+	// If there is a definition, look at that.
+	const_Node_ptr node = type->getAtom();
+	if (const_Expr_ptr expr = node->getDefinition())
+		expr->accept(this);
+	else
+		description[yours].push_back(node.get());
+}
+
+/**
+ * Construct a node.
+ * @param type Type of the node
+ * @param name Name or identifier of a node.
+ */
+Node::Node(const_Expr_ptr type, const std::string &name)
+	: type(type), name(name)
+{
+	if (type->getType() != BuiltInType::type)
+		throw TypeException(type->getType(), BuiltInType::type);
 }
 
 /**

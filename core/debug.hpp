@@ -32,9 +32,9 @@ namespace Core {
 	 */
 	class TypeException : public std::exception {
 	public:
-		TypeException(const_Type_ptr type, const_Type_ptr want,
+		TypeException(const_Expr_ptr type, const_Expr_ptr want,
 			const std::string &where = "");
-		TypeException(const_Type_ptr type, const std::string &want,
+		TypeException(const_Expr_ptr type, const std::string &want,
 			const std::string &where = "");
 		const char *what() const noexcept;
 
@@ -48,10 +48,10 @@ namespace Core {
 	class TypeWriter : public Visitor {
 	public:
 		TypeWriter(std::ostream &str) : str(str) {}
-		void write(const Type *type);
+		void write(const Expression *type);
 		void visit(const BuiltInType *type);
-		void visit(const VariableType *type);
 		void visit(const LambdaType *type);
+		void visit(const AtomicExpr *type);
 
 	private:
 		std::ostream &str;

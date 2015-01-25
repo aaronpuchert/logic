@@ -28,11 +28,6 @@ void Visitor::visit(const BuiltInType *type)
 	//
 }
 
-void Visitor::visit(const VariableType *type)
-{
-	//
-}
-
 void Visitor::visit(const LambdaType *type)
 {
    //

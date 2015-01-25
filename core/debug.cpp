@@ -19,6 +19,7 @@
 
 #include "debug.hpp"
 #include "base.hpp"
+#include "expression.hpp"
 #include <stdexcept>
 using namespace Core;
 
@@ -28,7 +29,7 @@ using namespace Core;
  * @param want The type we would like to see.
  * @param where Short (local) description where the problem occured.
  */
-TypeException::TypeException(const_Type_ptr type, const_Type_ptr want, const std::string &where)
+TypeException::TypeException(const_Expr_ptr type, const_Expr_ptr want, const std::string &where)
 {
 	std::ostringstream str;
 	TypeWriter writer(str);
@@ -47,7 +48,7 @@ TypeException::TypeException(const_Type_ptr type, const_Type_ptr want, const std
  * @param want Description of what we'd like to see.
  * @param where Short (local) description where the problem occured.
  */
-TypeException::TypeException(const_Type_ptr type, const std::string &want, const std::string &where)
+TypeException::TypeException(const_Expr_ptr type, const std::string &want, const std::string &where)
 {
 	std::ostringstream str;
 	TypeWriter writer(str);
@@ -71,9 +72,12 @@ const char *TypeException::what() const noexcept
  * Write type to output stream
  * @param type Pointer to type object
  */
-void TypeWriter::write(const Type *type)
+void TypeWriter::write(const Expression *type)
 {
-	type->accept(this);
+	if (type->getType() == BuiltInType::type)
+		type->accept(this);
+	else
+		throw std::logic_error("Trying to write non-type in TypeWriter");
 }
 
 void TypeWriter::visit(const BuiltInType *type)
@@ -94,16 +98,11 @@ void TypeWriter::visit(const BuiltInType *type)
 	}
 }
 
-void TypeWriter::visit(const VariableType *type)
-{
-	str << type->getName();
-}
-
 void TypeWriter::visit(const LambdaType *type)
 {
 	str << "(";
 	bool first = true;
-	for (const_Type_ptr arg_type : *type) {
+	for (const_Expr_ptr arg_type : *type) {
 		if (!first) {
 			first = true;
 			str << ' ';
@@ -112,6 +111,11 @@ void TypeWriter::visit(const LambdaType *type)
 	}
 	str << ")->";
 	type->getReturnType()->accept(this);
+}
+
+void TypeWriter::visit(const AtomicExpr *type)
+{
+	str << type->getAtom()->getName();
 }
 
 /**
