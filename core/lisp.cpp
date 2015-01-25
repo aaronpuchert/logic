@@ -975,10 +975,10 @@ void Writer::visit(const BuiltInType *type)
 		addToken("type");
 		break;
 	case BuiltInType::STATEMENT:
-		addToken("statement");   // TODO: that's actually not so easy.
+		addToken("statement");
 		break;
 	case BuiltInType::RULE:
-		addToken("rule");        // TODO: not so easy as well.
+		addToken("rule");
 		break;
 	default:
 		addToken("undefined");
