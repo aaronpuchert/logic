@@ -116,7 +116,7 @@ namespace Core {
 
 		void parseNode();
 		const_Expr_ptr parseType();
-		Expr_ptr parseLambdaType();
+		const_Expr_ptr parseLambdaType();
 
 		Expr_ptr parseExpression();
 		Expr_ptr parseAtomicExpr();

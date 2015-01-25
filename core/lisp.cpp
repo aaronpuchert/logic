@@ -342,11 +342,6 @@ void Parser::parseNode()
 		recover();
 }
 
-const std::map<std::string, const_Expr_ptr> type_dispatch = {
-	{"type", BuiltInType::type},
-	{"statement", BuiltInType::statement}
-};
-
 /**
  * Parse a type expression.
  * @method Parser::parseType
@@ -360,9 +355,10 @@ const_Expr_ptr Parser::parseType()
 
 	if (token.getType() == LispToken::WORD) {
 		// First token = word -> built-in type or variable type
-		auto find = type_dispatch.find(token.getContent());
-		if (find != type_dispatch.end())
-			type = find->second;
+		if (token.getContent() == "type")
+			type = BuiltInType::type;
+		else if (token.getContent() == "statement")
+			type = BuiltInType::statement;
 		else {
 			const_Node_ptr node = getNode();
 			type = std::make_shared<AtomicExpr>(node);
@@ -372,43 +368,7 @@ const_Expr_ptr Parser::parseType()
 	}
 	else if (token.getType() == LispToken::OPENING) {
 		// First token = ( -> lambda-type, i.e. recursive descent
-		nextToken();
-		if (token.getType() != LispToken::WORD
-				|| token.getContent() != "lambda-type")
-			error_output << ParserErrorHandler::ERROR << "expected 'lambda-type'";
-		nextToken();
-
-		// Read return type
-		const_Expr_ptr return_type = parseType();
-
-		// Read parameter list
-		std::vector<const_Expr_ptr> argument_types;
-
-		// '('
-		if (expect(LispToken::OPENING)) {
-			nextToken();
-
-			// 'list'
-			if (expect(LispToken::WORD) && token.getContent() == "list")
-				nextToken();
-
-			while (token.getType() != LispToken::CLOSING)
-				argument_types.push_back(parseType());
-
-			// ')'
-			nextToken();
-		}
-		else {
-			// Try to recover
-			recover();
-		}
-
-		// ')'
-		if (expect(LispToken::CLOSING))
-			nextToken();
-
-		// Build type
-		type = std::make_shared<LambdaType>(std::move(argument_types), return_type);
+		type = parseLambdaType();
 	}
 	else {
 		error_output << ParserErrorHandler::ERROR
@@ -417,6 +377,53 @@ const_Expr_ptr Parser::parseType()
 	}
 
 	return type;
+}
+
+/**
+ * Parse a lambda type expression.
+ * @method Parser::parseLambdaType
+ * @return Pointer to a type object.
+ * @pre The current token is an opening paranthesis.
+ * @post The current token is the token right after the type expression.
+ */
+const_Expr_ptr Parser::parseLambdaType()
+{
+	nextToken();
+	if (token.getType() != LispToken::WORD || token.getContent() != "lambda-type")
+		error_output << ParserErrorHandler::ERROR << "expected 'lambda-type'";
+	nextToken();
+
+	// Read return type
+	const_Expr_ptr return_type = parseType();
+
+	// Read parameter list
+	std::vector<const_Expr_ptr> argument_types;
+
+	// '('
+	if (expect(LispToken::OPENING)) {
+		nextToken();
+
+		// 'list'
+		if (expect(LispToken::WORD) && token.getContent() == "list")
+			nextToken();
+
+		while (token.getType() != LispToken::CLOSING)
+			argument_types.push_back(parseType());
+
+		// ')'
+		nextToken();
+	}
+	else {
+		// Try to recover
+		recover();
+	}
+
+	// ')'
+	if (expect(LispToken::CLOSING))
+		nextToken();
+
+	// Build type
+	return std::make_shared<LambdaType>(std::move(argument_types), return_type);
 }
 
 /**
