@@ -1,7 +1,7 @@
 # Settings
 # For release builds set RELEASE=1|2|3|s, depending on the desired optimization level.
 ifeq ($(RELEASE),)
-    ADDITIONAL_FLAGS = -g -DDEBUG
+    ADDITIONAL_FLAGS = -ggdb3 -DDEBUG
 else
     ADDITIONAL_FLAGS = -O$(RELEASE)
 endif
@@ -11,7 +11,6 @@ LFLAGS = -Wall $(DEBUG)
 # Files
 BUILDDIR = build
 TARGET = logic
-TEST_TARGET = $(BUILDDIR)/testsuite
 
 CPPS =	core/base.cpp \
 	core/debug.cpp \
@@ -24,6 +23,7 @@ CPPS =	core/base.cpp \
 
 TESTS = core
 TEST_CPPS = $(patsubst %,test/%.cpp,$(TESTS))
+TEST_TARGETS = $(patsubst %,$(BUILDDIR)/test/%,$(TESTS))
 
 OBJS = $(patsubst %.cpp,$(BUILDDIR)/%.o,$(CPPS))
 TEST_OBJS = $(patsubst test/%.cpp,$(BUILDDIR)/test/%.o,$(TEST_CPPS))
@@ -31,17 +31,17 @@ TEST_OBJS = $(patsubst test/%.cpp,$(BUILDDIR)/test/%.o,$(TEST_CPPS))
 DOCS = $(patsubst %.md,%.html,$(wildcard doc/*.md))
 
 # Compile everything
-all: $(BUILDDIR)/ $(BUILDDIR)/core/ $(BUILDDIR)/test/ $(TEST_TARGET) # $(TARGET)
+all: $(BUILDDIR)/ $(BUILDDIR)/core/ $(BUILDDIR)/test/ $(TEST_TARGETS) # $(TARGET)
 
 # Main target
 $(TARGET): $(OBJS)
 	$(CXX) $(LFLAGS) -o $@ $^
 
 # Tests
-test: $(TEST_TARGET)
-	$(TEST_TARGET)
+test: $(TEST_TARGETS)
+	$(patsubst %,% &&,$(TEST_TARGETS)) true
 
-$(TEST_TARGET): $(OBJS) $(TEST_OBJS)
+$(TEST_TARGETS): %: $(OBJS) %.o
 	$(CXX) $(LFLAGS) -lboost_unit_test_framework -o $@ $^
 
 # Object files
@@ -68,7 +68,7 @@ $(DOCS): doc/%.html: doc/%.md
 
 clean:
 	-rm $(OBJS) $(TEST_OBJS) $(patsubst %.o,%.d,$(OBJS) $(TEST_OBJS))
-	-rm $(TARGET) $(TEST_TARGET)
+	-rm $(TARGET) $(TEST_TARGETS)
 	-rm $(DOCS)
 
 .PHONY: all test clean doc

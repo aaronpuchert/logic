@@ -5,4 +5,4 @@ install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y && sudo apt-get update -qq && sudo apt-get install libstdc++-4.8-dev libboost-test-dev
 script:
   - make -k all
-  - build/testsuite
+  - make -k test
