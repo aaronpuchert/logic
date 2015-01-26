@@ -27,26 +27,14 @@ using namespace Core;
 /**
  * Validate the application of a Rule.
  * @method Rule::validate
- * @param  substitutes    Arguments for the parameters of the Expression.
+ * @param  context        Arguments for the parameters of the Expression.
  * @param  statements     References to the statements needed.
  * @param  statement      Statement that was deduced.
  * @return                True, if the statement can be deduced in this way.
  */
-bool Rule::validate(const std::vector<Expr_ptr> &substitutes,
+bool Rule::validate(const Context &context,
 	const std::vector<Reference> &statements, const_Expr_ptr statement) const
 {
-	Context context;
-	TypeComparator compare(&context);
-
-	// Create context and check types
-	auto param_it = params.begin();
-	auto sub_it = substitutes.begin();
-	for (;  param_it != params.end(); ++param_it, ++sub_it) {
-		if (!compare((*param_it)->getType().get(), (*sub_it)->getType().get()))
-			throw TypeException((*param_it)->getType(), (*sub_it)->getType());
-		context.insert({*param_it, *sub_it});
-	}
-
 	return validate_pass(context, statements, statement);
 }
 

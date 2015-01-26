@@ -248,11 +248,12 @@ Theory::iterator Parser::addNode(Node_ptr node)
 
 /**
  * Get the node denoted by the current token.
+ * @param rules If true, look up in rules.
  * @return Node from a theory or undefined_node, if nothing was found.
  */
-const_Node_ptr Parser::getNode()
+const_Node_ptr Parser::getNode(bool rules)
 {
-	Theory *theory = theory_stack.top();
+	const Theory *theory = rules ? this->rules : theory_stack.top();
 	Theory::const_iterator it = theory->get(token.getContent());
 
 	if (it == theory->end()) {
@@ -857,9 +858,7 @@ Proof_ptr Parser::parseProofStep()
 	nextToken();
 
 	// get name of rule
-	if (!expect(LispToken::WORD))
-		return Proof_ptr();
-	std::string rule_name = token.getContent();
+	const_Node_ptr rule = getNode(true);
 	nextToken();
 
 	// parse expression list
@@ -900,7 +899,8 @@ Proof_ptr Parser::parseProofStep()
 	else
 		recover();
 
-	return std::make_shared<ProofStep>(rules, rule_name, std::move(var_list),
+	return std::make_shared<ProofStep>(
+		std::static_pointer_cast<const Rule>(rule), var_list,
 		std::move(references));
 }
 
@@ -1093,7 +1093,7 @@ void Writer::write_varlist(const Rule* rule)
 {
 	addParanthesis(OPENING);
 	addToken("list");
-	rule->getVars()->accept(this);
+	rule->params.accept(this);
 	addParanthesis(CLOSING);
 }
 
@@ -1157,8 +1157,8 @@ void Writer::visit(const ProofStep *proofstep)
 	addToken(proofstep->getRule()->getName());
 	addParanthesis(OPENING);
 	addToken("list");
-	for (Expr_ptr expr : proofstep->getVars())
-		expr->accept(this);
+	for (Node_ptr node : proofstep->getRule()->params)
+		(*proofstep)[node]->accept(this);
 	addParanthesis(CLOSING);
 	addParanthesis(OPENING);
 	addToken("list");

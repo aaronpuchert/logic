@@ -146,7 +146,7 @@ namespace Core {
 		void nextToken();
 		bool expect(LispToken::Type type);
 		Theory::iterator addNode(Node_ptr node);
-		const_Node_ptr getNode();
+		const_Node_ptr getNode(bool rules = false);
 		void recover();
 
 		// Our lexer object

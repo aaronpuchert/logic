@@ -325,21 +325,41 @@ int Core::operator -(const Reference& a, const Reference& b)
 
 /**
  * Initialize a proof step.
- * @param system Theory containing the desired rule.
- * @param rule_name Name of the desired rule.
+ * @param rule Pointer to the rule to be used.
  * @param var_list List of expressions which substitute the rule variables.
  * @param statement_list List of statements referenced.
  */
-ProofStep::ProofStep(const Theory *system, const std::string &rule_name,
-	std::vector<Expr_ptr> &&var_list,
-	std::vector<Reference> &&statement_list)
-	: var_list(std::move(var_list)), ref_statement_list(std::move(statement_list))
+ProofStep::ProofStep(const_Rule_ptr rule, const std::vector<Expr_ptr>& var_list, std::vector< Reference >&& statement_list )
+	: rule(rule), ref_statement_list(std::move(statement_list))
 {
-	Theory::const_iterator rule_it = system->get(rule_name);
-	if (rule_it != system->end() && (*rule_it)->getType() == BuiltInType::rule)
-		rule = std::static_pointer_cast<Rule>(*rule_it).get();
+	// Do we have a rule?
+	if (rule->getType() != BuiltInType::rule)
+		throw TypeException(rule->getType(), BuiltInType::rule);
+
+	TypeComparator compare(&subst);
+
+	// Create context and check types
+	auto param_it = rule->params.begin();
+	auto sub_it = var_list.begin();
+	for (;  param_it != rule->params.end(); ++param_it, ++sub_it) {
+		if (!compare((*param_it)->getType().get(), (*sub_it)->getType().get()))
+			throw TypeException((*param_it)->getType(), (*sub_it)->getType());
+		subst.insert({*param_it, *sub_it});
+	}
+}
+
+/**
+ * Get the substitute of a certain node.
+ * @param node Node to look up.
+ * @return Expression to be substituted.
+ */
+const_Expr_ptr ProofStep::operator[](const_Node_ptr node) const
+{
+	auto find = subst.find(node);
+	if (find != subst.end())
+		return find->second;
 	else
-		throw NamespaceException(NamespaceException::NOTFOUND, rule_name);
+		return const_Expr_ptr();
 }
 
 /**
@@ -350,5 +370,5 @@ ProofStep::ProofStep(const Theory *system, const std::string &rule_name,
  */
 bool ProofStep::proves(const Statement &statement) const
 {
-	return rule->validate(var_list, ref_statement_list, statement.getDefinition());
+	return rule->validate(subst, ref_statement_list, statement.getDefinition());
 }

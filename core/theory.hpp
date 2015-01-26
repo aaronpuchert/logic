@@ -141,13 +141,13 @@ namespace Core {
 	 */
 	class ProofStep : public Proof {
 	public:
-		ProofStep(const Theory *system, const std::string &rule_name,
-			std::vector<Expr_ptr> &&var_list,
+		ProofStep(const_Rule_ptr rule,
+			const std::vector<Expr_ptr> &var_list,
 			std::vector<Reference> &&statement_list);
-		const Rule *getRule() const
+
+		const_Rule_ptr getRule() const
 			{return rule;}
-		const std::vector<Expr_ptr>& getVars() const
-			{return var_list;}
+		const_Expr_ptr operator[](const_Node_ptr node) const;
 		const std::vector<Reference> getReferences() const
 			{return ref_statement_list;}
 		bool proves(const Statement &statement) const;
@@ -155,8 +155,8 @@ namespace Core {
 			{visitor->visit(this);}
 
 	private:
-		const Rule *rule;
-		std::vector<Expr_ptr> var_list;
+		const_Rule_ptr rule;
+		Context subst;
 		std::vector<Reference> ref_statement_list;
 	};
 }	// End of namespace Core

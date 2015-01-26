@@ -37,14 +37,11 @@ namespace Core {
 	public:
 		Rule(const std::string& name, Theory &&params)
 			: Node(BuiltInType::rule, name), params(std::move(params)) {}
-		const Theory* getVars() const
-			{return &params;}
 
-		bool validate(const std::vector<Expr_ptr> &substitutes,
+		bool validate(const Context &context,
 			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
-	protected:
-		Theory params;
+		const Theory params;
 
 	private:
 		virtual bool validate_pass(const Context &context,

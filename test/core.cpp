@@ -286,7 +286,9 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  		(list this~1)
 	//  	)
 	Reference this1(&theory, position);
-	std::shared_ptr<ProofStep> step1 = make_shared<ProofStep>(&rules, "specialization",
+	const_Node_ptr specialization = *rules.get("specialization");
+	std::shared_ptr<ProofStep> step1 = make_shared<ProofStep>(
+		std::static_pointer_cast<const Rule>(specialization),
 		std::vector<Expr_ptr>{person, impl_pred, fritz_expr},
 		std::vector<Reference>{this1 - 1});
 	lemma1->addProof(step1);
@@ -300,8 +302,10 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  		(list this~1 this~3)
 	//  	)
 	Reference this2(&theory, position);
-	std::shared_ptr<ProofStep> step2 = make_shared<ProofStep>(&rules,
-		"ponens", std::vector<Expr_ptr>{axiom1_expr, statement_expr},
+	const_Node_ptr ponens = *rules.get("ponens");
+	std::shared_ptr<ProofStep> step2 = make_shared<ProofStep>(
+		std::static_pointer_cast<const Rule>(ponens),
+		std::vector<Expr_ptr>{axiom1_expr, statement_expr},
 		std::vector<Reference>{this2 - 1, this2 - 3});
 	lemma2->addProof(step2);
 	//  )
