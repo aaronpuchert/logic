@@ -63,9 +63,15 @@ bool Substitution::check(const Expression *target)
 {
 	offender.first.reset();
 
+	// Get substitutions
+	for (const_Node_ptr node : *theory)
+		substitutions[node] = node->getDefinition();
+	theory_stack.push(theory);
+
 	// Traverse expression target, and compare with expr
 	push(expr);
 	target->accept(this);
+	pop();
 
 	return !offender.first;
 }
@@ -89,7 +95,7 @@ Substitution::match Substitution::getMismatch() const
 void Substitution::visit(const AtomicExpr *expression)
 {
 	// Then we really should have an atomic expression on the other side.
-	const_Expr_ptr expr = comp_stack.top();
+	const_Expr_ptr expr = stack.top();
 	if (expr->cls == Expression::ATOMIC) {
 		auto expr_atomic = std::static_pointer_cast<const AtomicExpr>(expr);
 
@@ -108,7 +114,7 @@ void Substitution::visit(const AtomicExpr *expression)
  */
 void Substitution::visit(const LambdaCallExpr *expression)
 {
-	const_Expr_ptr expr = comp_stack.top();
+	const_Expr_ptr expr = stack.top();
 	if (expr->cls == Expression::LAMBDACALL) {
 		auto expr_call = std::static_pointer_cast<const LambdaCallExpr>(expr);
 
@@ -139,7 +145,7 @@ void Substitution::visit(const LambdaCallExpr *expression)
 void Substitution::visit(const NegationExpr *expression)
 {
 	// Do we have a negation in the expr?
-	const_Expr_ptr expr = comp_stack.top();
+	const_Expr_ptr expr = stack.top();
 	if (expr->cls == Expression::NEGATION) {
 		auto expr_neg = std::static_pointer_cast<const NegationExpr>(expr);
 
@@ -161,7 +167,7 @@ void Substitution::visit(const NegationExpr *expression)
 void Substitution::visit(const ConnectiveExpr *expression)
 {
 	// Do we have a connective in the expr?
-	const_Expr_ptr expr = comp_stack.top();
+	const_Expr_ptr expr = stack.top();
 	if (expr->cls == Expression::CONNECTIVE) {
 		auto expr_con = std::static_pointer_cast<const ConnectiveExpr>(expr);
 
@@ -193,9 +199,9 @@ void Substitution::visit(const ConnectiveExpr *expression)
 void Substitution::visit(const QuantifierExpr *expression)
 {
 	// Do we have a quantifier expression?
-	const_Expr_ptr expr = comp_stack.top();
+	const_Expr_ptr expr = stack.top();
 	if (expr->cls == Expression::QUANTIFIER) {
-		auto expr_quant = std::dynamic_pointer_cast<const QuantifierExpr>(expr);
+		auto expr_quant = std::static_pointer_cast<const QuantifierExpr>(expr);
 
 		if (expr_quant->getVariant() == expression->getVariant()) {
 			// Push and go on
@@ -220,12 +226,21 @@ void Substitution::visit(const QuantifierExpr *expression)
 void Substitution::visit(const LambdaExpr *expression)
 {
 	// Do we have a lambda expression on the other side?
-	const_Expr_ptr expr = comp_stack.top();
+	const_Expr_ptr expr = stack.top();
 	if (expr->cls == Expression::LAMBDA) {
-		auto expr_lambda = std::dynamic_pointer_cast<const LambdaExpr>(expr);
+		auto expr_lambda = std::static_pointer_cast<const LambdaExpr>(expr);
 
-		// Try to match their parameters exactly for now. (TODO: better way)
-		if (std::equal(expression->begin(), expression->end(), expr_lambda->begin())) {
+		// Do the type signatures match?
+		TypeComparator compare;
+		if (compare(expression->getType().get(), expr_lambda->getType().get())) {
+			// Try to match theories
+			theory_stack.push(&expr_lambda->getParams());
+
+			auto param_it = expr_lambda->getParams().begin();
+			auto subst_it = expression->getParams().begin();
+			for (; param_it != expr_lambda->getParams().end(); ++param_it, ++subst_it)
+				substitutions[*param_it] = std::make_shared<AtomicExpr>(*subst_it);
+
 			// Compare the definition
 			push(expr_lambda->getDefinition());
 			expression->getDefinition()->accept(this);
@@ -248,45 +263,36 @@ void Substitution::push(const_Expr_ptr expr)
 	switch (expr->cls) {
 	case Expression::ATOMIC: {        // For atomics, when we can: resolve
 		auto atomic = std::static_pointer_cast<const AtomicExpr>(expr);
-		auto node = have(atomic->getAtom());
-		if (node) {
+		const_Expr_ptr def = have(atomic->getAtom());
+		if (def) {
 			// (Recursive) push
-			push(node->getDefinition());
-			scope.push(false);
+			push(def);
 			return;
 		}
 		}	// case end
 		break;
 	case Expression::LAMBDACALL: {
 		auto call = std::static_pointer_cast<const LambdaCallExpr>(expr);
-		auto lambda_node = have(call->getLambda());
-		if (lambda_node) {
-			// Get the definition
-			const_Expr_ptr expr_call = lambda_node->getDefinition();
-
+		const_Expr_ptr lambda_def = have(call->getLambda());
+		if (lambda_def) {
 			// Is it atomic? Then just substitute.
-			if (expr_call->cls == Expression::ATOMIC) {
-				auto atomic = std::static_pointer_cast<const AtomicExpr>(expr_call);
+			if (lambda_def->cls == Expression::ATOMIC) {
+				auto atomic = std::static_pointer_cast<const AtomicExpr>(lambda_def);
 				// TODO
 				throw -1;
 			}
 			else {
 				// Otherwise it is a lambda. Then we have to plug in.
-				auto lambda = std::static_pointer_cast<const LambdaExpr>(expr_call);
+				auto lambda = std::static_pointer_cast<const LambdaExpr>(lambda_def);
 
-				// Copy parameter list, set arguments and push to stack.
-				Theory params = lambda->getParams();
-				auto param_it = params.begin();
+				// Write substitutions.
+				theory_stack.push(&lambda->getParams());
+				auto param_it = lambda->getParams().begin();
 				auto arg_it = call->begin();
-				for (; param_it != params.end() && arg_it != call->end();
-					++param_it, ++arg_it
-				) {
-					(*param_it)->setDefinition(*arg_it);
-				}
+				for (; param_it != lambda->getParams().end(); ++param_it, ++arg_it)
+					substitutions[*param_it] = *arg_it;
 
 				push(lambda->getDefinition());
-				scope.push(true);
-				lambda_theories.push_back(std::move(params));
 			}
 
 			return;
@@ -296,8 +302,9 @@ void Substitution::push(const_Expr_ptr expr)
 	}
 
 	// If there's nothing to substitute: just push the expression.
-	comp_stack.push(expr);
-	scope.push(false);
+	// A null pointer on the theory stack serves as a placeholder.
+	theory_stack.push(nullptr);
+	stack.push(expr);
 }
 
 /**
@@ -306,10 +313,28 @@ void Substitution::push(const_Expr_ptr expr)
  */
 void Substitution::pop()
 {
-	if (scope.top())
-		lambda_theories.pop_back();
-	comp_stack.pop();
-	scope.pop();
+	// Pop null theory
+	if (theory_stack.top())
+		throw std::logic_error("Non-null theory pointer on substitutions stack in pop");
+	theory_stack.pop();
+
+	// Pop all theories until the next null theory
+	while (theory_stack.size() && theory_stack.top())
+		pop_theory();
+
+	stack.pop();
+}
+
+/**
+ * Pop theory from stack and forget about the substitutions.
+ * @method Substitution::pop_theory
+ */
+void Substitution::pop_theory()
+{
+	const Theory *theory = theory_stack.top();
+	for (const_Node_ptr node : *theory)
+		substitutions.erase(node);
+	theory_stack.pop();
 }
 
 /**
@@ -318,22 +343,13 @@ void Substitution::pop()
  * @param node Node referred to in the expression.
  * @return Node from our theory stack with the right definition.
  */
-const_Node_ptr Substitution::have(const_Node_ptr node)
+const_Expr_ptr Substitution::have(const_Node_ptr node)
 {
-	const std::string &name = node->getName();
-	auto lookup = [name] (const Theory &theory) -> bool {
-		auto new_it = theory.get(name);
-		return (new_it != theory.end());
-	};
-
-	// Lookup in stack (from top to bottom) and then parameters
-	auto find = std::find_if(lambda_theories.rbegin(), lambda_theories.rend(), lookup);
-	if (find != lambda_theories.rend())
-		return *(*find).get(name);
-	else if (lookup(*theory))
-		return *theory->get(name);
+	auto find = substitutions.find(node);
+	if (find != substitutions.end())
+		return find->second;
 	else
-		return const_Node_ptr();
+		return Expr_ptr();
 }
 
 /**

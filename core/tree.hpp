@@ -23,7 +23,7 @@
 #include "base.hpp"
 #include "traverse.hpp"
 #include <stack>
-#include <vector>
+#include <map>
 
 /**
  * Namespace for logic core
@@ -59,15 +59,18 @@ namespace Core {
 	private:
 		void push(const_Expr_ptr expr);
 		void pop();
-		const_Node_ptr have(const_Node_ptr node);
+
+		void pop_theory();
+		const_Expr_ptr have(const_Node_ptr node);
+
 		void mismatch(const_Expr_ptr expr, const Expression *target_expr);
 
 		const_Expr_ptr expr;
 		const Theory *theory;
-		std::vector<Theory> lambda_theories;
+		std::map<const_Node_ptr, const_Expr_ptr> substitutions;
 
-		std::stack<const_Expr_ptr> comp_stack;
-		std::stack<bool> scope;
+		std::stack<const_Expr_ptr> stack;
+		std::stack<const Theory *> theory_stack;
 		match offender;
 	};
 }
