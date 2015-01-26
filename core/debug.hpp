@@ -37,9 +37,12 @@ namespace Core {
 		TypeException(const_Expr_ptr type, const std::string &want,
 			const std::string &where = "");
 		const char *what() const noexcept;
+		bool type_undefined() const noexcept
+			{return undefined;}
 
 	private:
 		std::string description;
+		bool undefined;
 	};
 
 	/**

@@ -276,6 +276,19 @@ void Parser::recover()
 }
 
 /**
+ * Report type exceptions.
+ * @param where Where did the error come from?
+ * @param ex Exception object
+ */
+void Parser::report(const char *where, TypeException &ex)
+{
+	// only report if type was properly defined
+	if (!ex.type_undefined()) {
+		error_output << ParserErrorHandler::ERROR << ex.what() << " in " << where;
+	}
+}
+
+/**
  * Dummy objects used when errors occured.
  */
 const Node_ptr Parser::undefined_node = std::make_shared<Node>(BuiltInType::undefined, "");
@@ -330,7 +343,12 @@ void Parser::parseNode()
 		nextToken();
 		if (token.getType() != LispToken::CLOSING) {
 			Expr_ptr def = parseExpression();
-			node->setDefinition(def);
+			try {
+				node->setDefinition(def);
+			}
+			catch (TypeException &ex) {
+				report("definition", ex);
+			}
 		}
 
 		addNode(node);
@@ -424,7 +442,13 @@ const_Expr_ptr Parser::parseLambdaType()
 		nextToken();
 
 	// Build type
-	return std::make_shared<LambdaType>(std::move(argument_types), return_type);
+	try {
+		return std::make_shared<LambdaType>(std::move(argument_types), return_type);
+	}
+	catch (TypeException &ex) {
+		report("lambda type", ex);
+		return undefined_expr;
+	}
 }
 
 /**
@@ -520,7 +544,13 @@ Expr_ptr Parser::parseLambdaCallExpr()
 	nextToken();
 
 	// build expression
-	return std::make_shared<LambdaCallExpr>(lambda_node, std::move(args));
+	try {
+		return std::make_shared<LambdaCallExpr>(lambda_node, std::move(args));
+	}
+	catch (TypeException &ex) {
+		report("lambda call", ex);
+		return undefined_expr;
+	}
 }
 
 /**
@@ -542,7 +572,13 @@ Expr_ptr Parser::parseNegationExpr()
 	else
 		recover();
 
-	return std::make_shared<NegationExpr>(expr);
+	try {
+		return std::make_shared<NegationExpr>(expr);
+	}
+	catch (TypeException &ex) {
+		report("negation expression", ex);
+		return undefined_expr;
+	}
 }
 
 /**
@@ -581,7 +617,13 @@ Expr_ptr Parser::parseConnectiveExpr()
 		recover();
 
 	// Build connective
-	return std::make_shared<ConnectiveExpr>(connective->second, expr1, expr2);
+	try {
+		return std::make_shared<ConnectiveExpr>(connective->second, expr1, expr2);
+	}
+	catch (TypeException &ex) {
+		report("connective expression", ex);
+		return undefined_expr;
+	}
 }
 
 /**
@@ -611,7 +653,13 @@ Expr_ptr Parser::parseQuantifierExpr()
 		recover();
 
 	// Build expression
-	return std::make_shared<QuantifierExpr>(variant, expr);
+	try {
+		return std::make_shared<QuantifierExpr>(variant, expr);
+	}
+	catch (TypeException &ex) {
+		report("quantifier expression", ex);
+		return undefined_expr;
+	}
 }
 
 /**
@@ -695,8 +743,13 @@ void Parser::parseTautology()
 	theory_stack.pop();
 
 	// build
-	Node_ptr tautology = std::make_shared<Tautology>(name, std::move(params), expr);
-	addNode(tautology);
+	try {
+		Node_ptr tautology = std::make_shared<Tautology>(name, std::move(params), expr);
+		addNode(tautology);
+	}
+	catch (TypeException &ex) {
+		report("tautology", ex);
+	}
 }
 
 /**
@@ -744,8 +797,13 @@ void Parser::parseEquivalenceRule()
 	theory_stack.pop();
 
 	// build
-	Node_ptr node = std::make_shared<EquivalenceRule>(name, std::move(params), expr1, expr2);
-	addNode(node);
+	try {
+		Node_ptr node = std::make_shared<EquivalenceRule>(name, std::move(params), expr1, expr2);
+		addNode(node);
+	}
+	catch (TypeException &ex) {
+		report("equivalence rule", ex);
+	}
 }
 
 /**
@@ -807,8 +865,13 @@ void Parser::parseDeductionRule()
 	theory_stack.pop();
 
 	// build
-	Node_ptr node = std::make_shared<DeductionRule>(name, std::move(params), premisses, conclusion);
-	addNode(node);
+	try {
+		Node_ptr node = std::make_shared<DeductionRule>(name, std::move(params), premisses, conclusion);
+		addNode(node);
+	}
+	catch (TypeException &ex) {
+		report("deduction rule", ex);
+	}
 }
 
 /**
@@ -833,13 +896,20 @@ void Parser::parseStatement()
 
 	// Parse expression and build statement
 	Expr_ptr expr = parseExpression();
-	Statement_ptr stmt = std::make_shared<Statement>(name, expr);
-	addNode(stmt);
+	Statement_ptr stmt;
+	try {
+		stmt = std::make_shared<Statement>(name, expr);
+		addNode(stmt);
+	}
+	catch (TypeException &ex) {
+		report(expect_proof ? "lemma" : "axiom", ex);
+	}
 
 	// Parse proof
 	if (expect_proof) {
 		Proof_ptr proof = parseProofStep();
-		stmt->addProof(proof);
+		if (stmt && proof)
+			stmt->addProof(proof);
 	}
 }
 
@@ -899,9 +969,15 @@ Proof_ptr Parser::parseProofStep()
 	else
 		recover();
 
-	return std::make_shared<ProofStep>(
-		std::static_pointer_cast<const Rule>(rule), var_list,
-		std::move(references));
+	try {
+		return std::make_shared<ProofStep>(
+			std::static_pointer_cast<const Rule>(rule), var_list,
+			std::move(references));
+	}
+	catch (TypeException &ex) {
+		report("proof step", ex);
+		return Proof_ptr();
+	}
 }
 
 /**

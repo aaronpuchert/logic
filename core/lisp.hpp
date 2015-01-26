@@ -148,6 +148,7 @@ namespace Core {
 		Theory::iterator addNode(Node_ptr node);
 		const_Node_ptr getNode(bool rules = false);
 		void recover();
+		void report(const char *where, TypeException &ex);
 
 		// Our lexer object
 		Lexer lexer;

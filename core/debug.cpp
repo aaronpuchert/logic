@@ -40,6 +40,8 @@ TypeException::TypeException(const_Expr_ptr type, const_Expr_ptr want, const std
 	if (where != "")
 		str << " in " << where;
 	description = str.str();
+
+	undefined = (type == BuiltInType::undefined);
 }
 
 /**
@@ -57,6 +59,8 @@ TypeException::TypeException(const_Expr_ptr type, const std::string &want, const
 	if (where != "")
 		str << " in " << where;
 	description = str.str();
+
+	undefined = (type == BuiltInType::undefined);
 }
 
 /**
