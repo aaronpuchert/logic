@@ -35,16 +35,19 @@ using namespace Core;
 bool Rule::validate(const std::vector<Expr_ptr> &substitutes,
 	const std::vector<Reference> &statements, const_Expr_ptr statement) const
 {
-	// Set parameters (which does a type check)
+	Context context;
+	TypeComparator compare(&context);
+
+	// Create context and check types
 	auto param_it = params.begin();
 	auto sub_it = substitutes.begin();
-	for (; param_it != params.end() && sub_it != substitutes.end();
-		++param_it, ++sub_it
-	) {
-		(*param_it)->setDefinition(*sub_it);
+	for (;  param_it != params.end(); ++param_it, ++sub_it) {
+		if (!compare((*param_it)->getType().get(), (*sub_it)->getType().get()))
+			throw TypeException((*param_it)->getType(), (*sub_it)->getType());
+		context.insert({*param_it, *sub_it});
 	}
 
-	return validate_pass(substitutes, statements, statement);
+	return validate_pass(context, statements, statement);
 }
 
 /**
@@ -54,7 +57,7 @@ bool Rule::validate(const std::vector<Expr_ptr> &substitutes,
  * @param statement Statement that is always true.
  */
 Tautology::Tautology(const std::string& name, Theory &&params, Expr_ptr tautology)
-	: Rule(name, std::move(params)), subst(tautology, &this->params)
+	: Rule(name, std::move(params)), subst(tautology)
 {
 	if (tautology->getType() != BuiltInType::statement)
 		throw TypeException(tautology->getType(), BuiltInType::statement);
@@ -70,7 +73,7 @@ Node_ptr Tautology::clone() const
 	return std::make_shared<Tautology>(*this);
 }
 
-bool Tautology::validate_pass(const std::vector<Expr_ptr> &substitutes,
+bool Tautology::validate_pass(const Context &context,
 	const std::vector<Reference> &statements, const_Expr_ptr statement) const
 {
 	// Check the number of references, it should be 0
@@ -78,7 +81,8 @@ bool Tautology::validate_pass(const std::vector<Expr_ptr> &substitutes,
 		return false;
 
 	// Check if the statement given is correct
-	return subst.check(statement.get());
+	bool result = subst.check(statement.get(), context);
+	return result;
 }
 
 /**
@@ -90,8 +94,7 @@ bool Tautology::validate_pass(const std::vector<Expr_ptr> &substitutes,
  */
 EquivalenceRule::EquivalenceRule(const std::string& name, Theory &&params,
 	Expr_ptr statement1, Expr_ptr statement2)
-	: Rule(name, std::move(params)), subst1(statement1, &this->params),
-		subst2(statement2, &this->params)
+	: Rule(name, std::move(params)), subst1(statement1), subst2(statement2)
 {
 	if (statement1->getType() != BuiltInType::statement)
 		throw TypeException(statement1->getType(), BuiltInType::statement, "first statement");
@@ -109,7 +112,7 @@ Node_ptr EquivalenceRule::clone() const
 	return std::make_shared<EquivalenceRule>(*this);
 }
 
-bool EquivalenceRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
+bool EquivalenceRule::validate_pass(const Context &context,
 	const std::vector<Reference> &statements, const_Expr_ptr statement) const
 {
 	// Check if we are given one reference
@@ -121,8 +124,12 @@ bool EquivalenceRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
 		std::static_pointer_cast<const Statement>(*statements[0])->getDefinition();
 
 	// Try substitution both ways
-	return (subst1.check(alt_statement.get()) && subst2.check(statement.get()))
-		|| (subst1.check(statement.get()) && subst2.check(alt_statement.get()));
+	bool result =
+		(subst1.check(alt_statement.get(), context)
+			&& subst2.check(statement.get(), context))
+		|| (subst1.check(statement.get(), context)
+			&& subst2.check(alt_statement.get(), context));
+	return result;
 }
 
 /**
@@ -135,7 +142,7 @@ bool EquivalenceRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
  */
 DeductionRule::DeductionRule(const std::string& name, Theory &&params,
 	const std::vector<Expr_ptr> &premisses, Expr_ptr conclusion)
-	: Rule(name, std::move(params)), premisses(premisses), subst_conclusion(conclusion, &this->params)
+	: Rule(name, std::move(params)), premisses(premisses), subst_conclusion(conclusion)
 {
 	auto find = std::find_if(premisses.begin(), premisses.end(),
 		[] (Expr_ptr expr) -> bool {return (expr->getType() != BuiltInType::statement);}
@@ -152,7 +159,7 @@ DeductionRule::DeductionRule(const std::string& name, Theory &&params,
 
 	// Build substitution vector
 	for (Expr_ptr premiss : premisses)
-		subst_premisses.push_back(Substitution(premiss, &this->params));
+		subst_premisses.push_back(Substitution(premiss));
 }
 
 /**
@@ -177,7 +184,7 @@ const std::vector<const_Expr_ptr>& DeductionRule::getPremisses() const
 	return *ptr;
 }
 
-bool DeductionRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
+bool DeductionRule::validate_pass(const Context &context,
 	const std::vector<Reference> &statements, const_Expr_ptr statement) const
 {
 	// Check if we are given the right number of references
@@ -186,15 +193,14 @@ bool DeductionRule::validate_pass(const std::vector<Expr_ptr> &substitutes,
 
 	// Check the premisses
 	auto mismatch = std::mismatch(subst_premisses.begin(), subst_premisses.end(), statements.begin(),
-		[this] (Substitution &subst, const Reference ref) -> bool {
-			const Statement *stmt = static_cast<const Statement *>((*ref).get());
-			return subst.check(stmt->getDefinition().get());
+		[this, context] (Substitution &subst, const Reference ref) -> bool {
+			auto stmt = static_cast<const Statement *>((*ref).get());
+			return subst.check(stmt->getDefinition().get(), context);
 		}
 	);
 
-	if (mismatch.first != subst_premisses.end())
-		return false;
-
-	// Check the conclusion
-	return subst_conclusion.check(statement.get());
+	// Check the conclusion, compute result
+	bool result = (mismatch.first == subst_premisses.end())
+		&& subst_conclusion.check(statement.get(), context);
+	return result;
 }

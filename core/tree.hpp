@@ -39,13 +39,15 @@ namespace Core {
 	class Substitution : public Visitor {
 	public:
 		// Init with expression
-		Substitution(const_Expr_ptr expr, const Theory *params);
+		Substitution(const_Expr_ptr expr);
 		const_Expr_ptr getExpr() const
 			{return expr;}
 
 		// Test against other expression
+		bool check(const Expression *target, const Context &context);
+
+		// Get mismatch, if something didn't work
 		typedef std::pair<const_Expr_ptr, const Expression *> match;
-		bool check(const Expression *target);
 		match getMismatch() const;
 
 		// Visitor functions
@@ -67,8 +69,7 @@ namespace Core {
 		void mismatch(const_Expr_ptr expr, const Expression *target_expr);
 
 		const_Expr_ptr expr;
-		const Theory *theory;
-		std::map<const_Node_ptr, const_Expr_ptr> substitutions;
+		Context substitutions;
 
 		std::stack<const_Expr_ptr> stack;
 		std::stack<const Theory *> theory_stack;

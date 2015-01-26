@@ -169,8 +169,10 @@ void TypeComparator::visit(const AtomicExpr *type)
 {
 	// If there is a definition, look at that.
 	const_Node_ptr node = type->getAtom();
-	if (const_Expr_ptr expr = node->getDefinition())
-		expr->accept(this);
+
+	Context::const_iterator find;
+	if (context && (find = context->find(node)) != context->end())
+		find->second->accept(this);
 	else
 		description[yours].push_back(node.get());
 }

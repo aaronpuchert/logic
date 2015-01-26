@@ -46,27 +46,23 @@ using namespace Core;
  * Initialize Substitution with an expression and a parameter theory.
  * @method Substitution::Substitution
  * @param expr Expression to substitute in.
- * @param params Pointer to a theory containing nodes with definition for each
- *               atom to be substituted.
  */
-Substitution::Substitution(const_Expr_ptr expr, const Theory *params)
-	: expr(expr), theory(params) {}
+Substitution::Substitution(const_Expr_ptr expr) : expr(expr) {}
 
 /**
  * Check if substituting certain expressions for variables in the expression
  * gives the target expression.
  * @method Substitution::check
  * @param target Target expression.
+ * @param context Replacement context.
  * @return Return true, if the target matches.
  */
-bool Substitution::check(const Expression *target)
+bool Substitution::check(const Expression *target, const Context &context)
 {
 	offender.first.reset();
 
-	// Get substitutions
-	for (const_Node_ptr node : *theory)
-		add(node, node->getDefinition());
-	theory_stack.push(theory);
+	// Initialize our context
+	substitutions = context;
 
 	// Traverse expression target, and compare with expr
 	push(expr);

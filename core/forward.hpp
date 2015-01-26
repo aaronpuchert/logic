@@ -21,6 +21,7 @@
 #define CORE_FORWARD_HPP
 #include <memory>
 #include <utility>
+#include <map>
 
 /**
  * Namespace for logic core
@@ -36,6 +37,7 @@ namespace Core {
 	typedef std::shared_ptr<Node> Node_ptr;
 	typedef std::shared_ptr<const Node> const_Node_ptr;
 	class SearchNode;
+	typedef std::map<const_Node_ptr, const_Expr_ptr> Context;
 
 	// expression.hpp
 	class AtomicExpr;

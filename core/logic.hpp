@@ -44,10 +44,10 @@ namespace Core {
 			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
 	protected:
-		mutable Theory params;
+		Theory params;
 
 	private:
-		virtual bool validate_pass(const std::vector<Expr_ptr> &substitutes,
+		virtual bool validate_pass(const Context &context,
 			const std::vector<Reference> &statements, const_Expr_ptr statement) const = 0;
 	};
 
@@ -64,7 +64,7 @@ namespace Core {
 			{visitor->visit(this);}
 
 	private:
-		bool validate_pass(const std::vector<Expr_ptr> &substitutes,
+		bool validate_pass(const Context &context,
 			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
 		mutable Substitution subst;
@@ -86,7 +86,7 @@ namespace Core {
 			{visitor->visit(this);}
 
 	private:
-		bool validate_pass(const std::vector<Expr_ptr> &substitutes,
+		bool validate_pass(const Context &context,
 			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
 		mutable Substitution subst1, subst2;
@@ -112,7 +112,7 @@ namespace Core {
 		};
 
 	private:
-		bool validate_pass(const std::vector<Expr_ptr> &substitutes,
+		bool validate_pass(const Context &context,
 			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
 
 		std::vector<Expr_ptr> premisses;

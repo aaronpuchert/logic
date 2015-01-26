@@ -85,12 +85,14 @@ namespace Core {
 	 */
 	class TypeComparator : public Visitor {
 	public:
+		TypeComparator(const Context *context = nullptr) : context(context) {}
 		bool operator()(const Expression *, const Expression *);
 		void visit(const BuiltInType *type);
 		void visit(const LambdaType *type);
 		void visit(const AtomicExpr *type);
 
 	private:
+		const Context *context;
 		int yours;
 		std::vector<const void *> description[2];
 	};
