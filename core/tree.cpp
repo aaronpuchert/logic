@@ -65,7 +65,7 @@ bool Substitution::check(const Expression *target)
 
 	// Get substitutions
 	for (const_Node_ptr node : *theory)
-		substitutions[node] = node->getDefinition();
+		add(node, node->getDefinition());
 	theory_stack.push(theory);
 
 	// Traverse expression target, and compare with expr
@@ -239,7 +239,7 @@ void Substitution::visit(const LambdaExpr *expression)
 			auto param_it = expr_lambda->getParams().begin();
 			auto subst_it = expression->getParams().begin();
 			for (; param_it != expr_lambda->getParams().end(); ++param_it, ++subst_it)
-				substitutions[*param_it] = std::make_shared<AtomicExpr>(*subst_it);
+				add(*param_it, std::make_shared<AtomicExpr>(*subst_it));
 
 			// Compare the definition
 			push(expr_lambda->getDefinition());
@@ -265,8 +265,10 @@ void Substitution::push(const_Expr_ptr expr)
 		auto atomic = std::static_pointer_cast<const AtomicExpr>(expr);
 		const_Expr_ptr def = have(atomic->getAtom());
 		if (def) {
-			// (Recursive) push
-			push(def);
+			// Push definition on stack
+			// A null pointer on the theory stack serves as a placeholder.
+			theory_stack.push(nullptr);
+			stack.push(def);
 			return;
 		}
 		}	// case end
@@ -290,8 +292,9 @@ void Substitution::push(const_Expr_ptr expr)
 				auto param_it = lambda->getParams().begin();
 				auto arg_it = call->begin();
 				for (; param_it != lambda->getParams().end(); ++param_it, ++arg_it)
-					substitutions[*param_it] = *arg_it;
+					add(*param_it, *arg_it);
 
+				// Recursively push definition
 				push(lambda->getDefinition());
 			}
 
@@ -323,6 +326,25 @@ void Substitution::pop()
 		pop_theory();
 
 	stack.pop();
+}
+
+/**
+ * Add substitution to map.
+ * @method Substitution::add
+ * @param node Node to substitute.
+ * @param expr Expression to substitute with.
+ */
+void Substitution::add(const_Node_ptr node, const_Expr_ptr expr)
+{
+	// If expr is atomic, look it up. This is to create shortcuts.
+	if (expr->cls == Expression::ATOMIC) {
+		auto atomic = std::static_pointer_cast<const AtomicExpr>(expr);
+		auto find = substitutions.find(atomic->getAtom());
+		if (find != substitutions.end())
+			expr = find->second;
+	}
+
+	substitutions.insert({node, expr});
 }
 
 /**

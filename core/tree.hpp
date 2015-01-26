@@ -60,6 +60,7 @@ namespace Core {
 		void push(const_Expr_ptr expr);
 		void pop();
 
+		void add(const_Node_ptr node, const_Expr_ptr expr);
 		void pop_theory();
 		const_Expr_ptr have(const_Node_ptr node);
 
