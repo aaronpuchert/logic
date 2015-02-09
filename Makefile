@@ -23,10 +23,9 @@ CPPS =	core/base.cpp \
 
 TESTS = core
 TEST_CPPS = $(patsubst %,test/%.cpp,$(TESTS))
-TEST_TARGETS = $(patsubst %,$(BUILDDIR)/test/%,$(TESTS))
+TEST_TARGETS = $(patsubst %,$(BUILDDIR)/test/%test,$(TESTS))
 
 OBJS = $(patsubst %.cpp,$(BUILDDIR)/%.o,$(CPPS))
-TEST_OBJS = $(patsubst test/%.cpp,$(BUILDDIR)/test/%.o,$(TEST_CPPS))
 
 DOCS = $(patsubst %.md,%.html,$(wildcard doc/*.md))
 
@@ -41,14 +40,11 @@ $(TARGET): $(OBJS)
 test: $(TEST_TARGETS)
 	$(patsubst %,% &&,$(TEST_TARGETS)) true
 
-$(TEST_TARGETS): %: $(OBJS) %.o
+$(TEST_TARGETS): %test: $(OBJS) %.o
 	$(CXX) $(LFLAGS) -lboost_unit_test_framework -o $@ $^
 
 # Object files
-$(OBJS): $(BUILDDIR)/%.o: %.cpp
-	$(CXX) -c $(CFLAGS) -o $@ $<
-
-$(TEST_OBJS): $(BUILDDIR)/test/%.o: test/%.cpp
+$(BUILDDIR)/%.o: %.cpp
 	$(CXX) -c $(CFLAGS) -o $@ $<
 
 # Directories
@@ -67,8 +63,8 @@ $(DOCS): doc/%.html: doc/%.md
 	@echo -e "</body>\n</html>" >>$@
 
 clean:
-	-rm $(OBJS) $(TEST_OBJS) $(patsubst %.o,%.d,$(OBJS) $(TEST_OBJS))
-	-rm $(TARGET) $(TEST_TARGETS)
+	-rm -rf build/
+	-rm $(TARGET)
 	-rm $(DOCS)
 
 .PHONY: all test clean doc
