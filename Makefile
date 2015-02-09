@@ -1,9 +1,9 @@
 # Settings
-# For release builds set RELEASE=1|2|3|s, depending on the desired optimization level.
-ifeq ($(RELEASE),)
-    ADDITIONAL_FLAGS = -ggdb3 -DDEBUG
+# For debug builds set DEBUG=0|1|2|3|s, depending on the desired optimization level.
+ifeq ($(DEBUG),)
+    ADDITIONAL_FLAGS = -O2
 else
-    ADDITIONAL_FLAGS = -O$(RELEASE)
+    ADDITIONAL_FLAGS = -ggdb3 -DDEBUG -O$(DEBUG)
 endif
 CFLAGS = -Wall -MMD -std=c++11 $(ADDITIONAL_FLAGS)
 LFLAGS = -Wall $(DEBUG)
