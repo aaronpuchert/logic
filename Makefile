@@ -21,6 +21,10 @@ CPPS =	core/base.cpp \
 	core/traverse.cpp \
 	core/tree.cpp
 
+TOOLS = parser
+TOOL_CPPS = $(patsubst %,tools/%.cpp,$(TOOLS))
+TOOL_TARGETS = $(patsubst %,$(BUILDDIR)/%,$(TOOLS))
+
 TESTS = core
 TEST_CPPS = $(patsubst %,test/%.cpp,$(TESTS))
 TEST_TARGETS = $(patsubst %,$(BUILDDIR)/test/%test,$(TESTS))
@@ -30,10 +34,17 @@ OBJS = $(patsubst %.cpp,$(BUILDDIR)/%.o,$(CPPS))
 DOCS = $(patsubst %.md,%.html,$(wildcard doc/*.md))
 
 # Compile everything
-all: $(BUILDDIR)/ $(BUILDDIR)/core/ $(BUILDDIR)/test/ $(TEST_TARGETS) # $(TARGET)
+all: $(BUILDDIR)/ $(BUILDDIR)/core/ $(BUILDDIR)/test/ $(BUILDDIR)/tools/ \
+	$(TEST_TARGETS)	$(TOOL_TARGETS)# $(TARGET)
 
 # Main target
 $(TARGET): $(OBJS)
+	$(CXX) $(LFLAGS) -o $@ $^
+
+# Tools
+tools: $(TOOL_TARGETS)
+
+$(TOOL_TARGETS): build/%: $(OBJS) build/tools/%.o
 	$(CXX) $(LFLAGS) -o $@ $^
 
 # Tests
@@ -67,7 +78,7 @@ clean:
 	-rm $(TARGET)
 	-rm $(DOCS)
 
-.PHONY: all test clean doc
+.PHONY: all test tools clean doc
 
 # Use the dependency files created by the compiler
 -include $(patsubst %.o,%.d,$(OBJS) $(TEST_OBJS))
