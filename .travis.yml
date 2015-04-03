@@ -7,11 +7,14 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.6
     packages:
       - gcc-4.9
       - clang-3.6
-      - libstdc++-4.8-dev
       - libboost-test-dev
+install:
+  - if [[ "$CXX" == "g++" ]]; then export CXX="g++-4.9"; fi
+  - if [[ "$CXX" == "clang++" ]]; then export CXX="clang++-3.6"; fi
 script:
   - make -k all
   - make -k test
