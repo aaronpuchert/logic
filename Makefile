@@ -31,7 +31,8 @@ TEST_TARGETS = $(patsubst %,$(BUILDDIR)/test/%test,$(TESTS))
 
 OBJS = $(patsubst %.cpp,$(BUILDDIR)/%.o,$(CPPS))
 
-DOCS = $(patsubst %.md,%.html,$(wildcard doc/*.md))
+DOCS = doc/language.md
+DOXY_CONFIG = doc/doxygen.cfg
 
 # Compile everything
 all: $(BUILDDIR)/ $(BUILDDIR)/core/ $(BUILDDIR)/test/ $(BUILDDIR)/tools/ \
@@ -65,13 +66,9 @@ $(BUILDDIR)/:
 $(BUILDDIR)/%/:
 	mkdir $@
 
-doc: $(DOCS)
-
-$(DOCS): doc/%.html: doc/%.md
-	@echo -e "<!DOCTYPE html>\n<html>\n<head>\n\t<title>$^</title>\n\
-		<meta charset='utf-8'></head>\n<body>" >$@
-	markdown $^ >>$@
-	@echo -e "</body>\n</html>" >>$@
+# Use a wildcard here, since doxygen also scans all sources
+doc: $(wildcard core/*.*) $(DOCS)
+	doxygen $(DOXY_CONFIG)
 
 clean:
 	-rm -rf build/

@@ -1,8 +1,11 @@
 # Build files
 build/
 
-# Compiled markdown
-doc/*.html
+# Doxygen documentation
+doc/html
+
+# Local 3rd party
+contrib/
 
 # IDE files
 *.kdev4
