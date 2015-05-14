@@ -35,10 +35,28 @@ namespace Core {
 	public:
 		enum Class {BUILTINTYPE, ATOMIC, LAMBDACALL, NEGATION, CONNECTIVE, QUANTIFIER,
 			LAMBDATYPE, LAMBDA} const cls;
-		Expression(Class cls) : cls(cls) {}
+
 		virtual ~Expression() {}
+
+		/**
+		 * Accept a Visitor.
+		 *
+		 * @param visitor Visitor object on which to call the visit() method.
+		 */
 		virtual void accept(Visitor *visitor) const = 0;
+
+		/**
+		 * Get type of expression.
+		 *
+		 * @return Type of expression.
+		 */
 		virtual const_Expr_ptr getType() const = 0;
+
+	protected:
+		/**
+		 * Construct expression of certain class.
+		 */
+		Expression(Class cls) : cls(cls) {}
 	};
 
 	/**
@@ -107,11 +125,29 @@ namespace Core {
 		virtual ~Node() {}
 		virtual Node_ptr clone() const;
 
-		const std::string &getName() const
-			{return name;}
-		void setDefinition(Expr_ptr new_expression);
+		/**
+		 * Get type of node.
+		 *
+		 * @return Type of node.
+		 */
 		const_Expr_ptr getType() const
 			{return type;}
+
+		/**
+		 * Get name of node.
+		 *
+		 * @return Name of node.
+		 */
+		const std::string &getName() const
+			{return name;}
+
+		void setDefinition(Expr_ptr new_expression);
+
+		/**
+		 * Get definition expression of the node, if there is any.
+		 *
+		 * @return Definition expression, or an invalid pointer, if there is none.
+		 */
 		const_Expr_ptr getDefinition() const
 			{return expression;}
 

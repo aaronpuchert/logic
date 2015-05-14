@@ -25,7 +25,7 @@ using namespace Core;
 
 /**
  * Construct standard type.
- * @method BuiltInType::BuiltInType
+ *
  * @param variant Can be any of Type::{UNDEFINED|TYPE|STATEMENT|RULE}.
  */
 BuiltInType::BuiltInType(Variant variant)
@@ -33,7 +33,7 @@ BuiltInType::BuiltInType(Variant variant)
 
 /**
  * Get type of a type expression.
- * @method BuiltInType::getType
+ *
  * @return Type of a type, which is type.
  */
 const_Expr_ptr BuiltInType::getType() const
@@ -55,7 +55,7 @@ const const_Expr_ptr
 
 /**
  * Construct a LambdaType.
- * @method LambdaType::LambdaType
+ *
  * @param args Vector of argument types.
  * @param return_type Type of return value, defaults to statement.
  */
@@ -81,7 +81,7 @@ LambdaType::LambdaType(std::vector<const_Expr_ptr> &&args, const_Expr_ptr return
 
 /**
  * Get type of a type expression.
- * @method LambdaType::getType
+ *
  * @return Type of a type, which is type.
  */
 const_Expr_ptr LambdaType::getType() const
@@ -91,7 +91,7 @@ const_Expr_ptr LambdaType::getType() const
 
 /**
  * Get the return type of the lambda.
- * @method LambdaType::getReturnType
+ *
  * @return Pointer to the return type.
  */
 const_Expr_ptr LambdaType::getReturnType() const
@@ -101,7 +101,7 @@ const_Expr_ptr LambdaType::getReturnType() const
 
 /**
  * Return an iterator to the beginning of the argument list.
- * @method LambdaType::begin
+ *
  * @return Begin iterator.
  */
 LambdaType::const_iterator LambdaType::begin() const
@@ -111,7 +111,7 @@ LambdaType::const_iterator LambdaType::begin() const
 
 /**
  * Return an iterator to the beginning of the argument list.
- * @method LambdaType::end
+ *
  * @return End iterator.
  */
 LambdaType::const_iterator LambdaType::end() const
@@ -126,7 +126,7 @@ void LambdaType::accept(Visitor *visitor) const
 
 /**
  * Compare function for types
- * @method TypeComparator::operator()
+ *
  * @return True, if a==b.
  */
 bool TypeComparator::operator()(const Expression *a, const Expression *b)
@@ -179,6 +179,7 @@ void TypeComparator::visit(const AtomicExpr *type)
 
 /**
  * Construct a node.
+ *
  * @param type Type of the node
  * @param name Name or identifier of a node.
  */
@@ -190,8 +191,8 @@ Node::Node(const_Expr_ptr type, const std::string &name)
 }
 
 /**
- * Clone node object
- * @method Node::clone
+ * Clone node object.
+ *
  * @return Pointer to new node object.
  */
 Node_ptr Node::clone() const
@@ -201,7 +202,7 @@ Node_ptr Node::clone() const
 
 /**
  * Set definition for a node.
- * @method Node::setDefinition
+ *
  * @param  new_expression Expression to serve as new definition.
  */
 void Node::setDefinition(Expr_ptr new_expression)

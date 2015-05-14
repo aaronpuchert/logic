@@ -50,7 +50,13 @@ namespace Core {
 	 */
 	class TypeWriter : public Visitor {
 	public:
+		/**
+		 * Construct TypeWriter.
+		 *
+		 * @param str Stream to write to.
+		 */
 		TypeWriter(std::ostream &str) : str(str) {}
+
 		void write(const Expression *type);
 		void visit(const BuiltInType *type);
 		void visit(const LambdaType *type);

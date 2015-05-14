@@ -44,7 +44,7 @@ using namespace Core;
 
 /**
  * Initialize Substitution with an expression and a parameter theory.
- * @method Substitution::Substitution
+ *
  * @param expr Expression to substitute in.
  */
 Substitution::Substitution(const_Expr_ptr expr) : expr(expr) {}
@@ -52,7 +52,7 @@ Substitution::Substitution(const_Expr_ptr expr) : expr(expr) {}
 /**
  * Check if substituting certain expressions for variables in the expression
  * gives the target expression.
- * @method Substitution::check
+ *
  * @param target Target expression.
  * @param context Replacement context.
  * @return Return true, if the target matches.
@@ -74,7 +74,7 @@ bool Substitution::check(const Expression *target, const Context &context)
 
 /**
  * Get mismatch.
- * @method Substitution::getMismatch
+ *
  * @return Return a pair of mismatching expressions or a pair with first pointer reset.
  */
 Substitution::match Substitution::getMismatch() const
@@ -85,7 +85,7 @@ Substitution::match Substitution::getMismatch() const
 /**
  * Compare atomic expression in target. Of course we want to know if they refer
  * to the same node
- * @method Substitution::visit
+ *
  * @param expression Atomic expression in target
  */
 void Substitution::visit(const AtomicExpr *expression)
@@ -105,7 +105,7 @@ void Substitution::visit(const AtomicExpr *expression)
 /**
  * Compare a lambda call expression: for this we have to know if the same lambda
  * was called and if the parameters compare.
- * @method Substitution::visit
+ *
  * @param expression Lambda call expression in target
  */
 void Substitution::visit(const LambdaCallExpr *expression)
@@ -135,7 +135,7 @@ void Substitution::visit(const LambdaCallExpr *expression)
 
 /**
  * Compare a negation expression.
- * @method Substitution::visit
+ *
  * @param expression Negation expression in target
  */
 void Substitution::visit(const NegationExpr *expression)
@@ -157,7 +157,7 @@ void Substitution::visit(const NegationExpr *expression)
 /**
  * Compare a connective expression. We need the same variant and then to compare
  * the two operands.
- * @method Substitution::visit
+ *
  * @param expression Connective expression in target
  */
 void Substitution::visit(const ConnectiveExpr *expression)
@@ -189,7 +189,7 @@ void Substitution::visit(const ConnectiveExpr *expression)
 /**
  * Compare a quantifier expression. We compare the variant and the contained
  * predicate lambda.
- * @method Substitution::visit
+ *
  * @param expression Quantifier expression in target
  */
 void Substitution::visit(const QuantifierExpr *expression)
@@ -216,7 +216,7 @@ void Substitution::visit(const QuantifierExpr *expression)
  * Compare a lambda expression.
  * First we have to compare their type signature. Then to match the contained
  * expressions, we have to create a theory translating the parameter names.
- * @method Substitution::visit
+ *
  * @param expression Lambda expression in target
  */
 void Substitution::visit(const LambdaExpr *expression)
@@ -251,7 +251,7 @@ void Substitution::visit(const LambdaExpr *expression)
 
 /**
  * Push an expression to the stack and do substitutions, if necessary.
- * @method Substitution::push
+ *
  * @param expr Expression to push to stack
  */
 void Substitution::push(const_Expr_ptr expr)
@@ -308,7 +308,6 @@ void Substitution::push(const_Expr_ptr expr)
 
 /**
  * Pop an expression from the stack.
- * @method Substitution::pop
  */
 void Substitution::pop()
 {
@@ -326,7 +325,7 @@ void Substitution::pop()
 
 /**
  * Add substitution to map.
- * @method Substitution::add
+ *
  * @param node Node to substitute.
  * @param expr Expression to substitute with.
  */
@@ -345,7 +344,7 @@ void Substitution::add(const_Node_ptr node, const_Expr_ptr expr)
 
 /**
  * Pop theory from stack and forget about the substitutions.
- * @method Substitution::pop_theory
+ *
  */
 void Substitution::pop_theory()
 {
@@ -357,7 +356,7 @@ void Substitution::pop_theory()
 
 /**
  * Get our variant of a certain node.
- * @method Substitution::have
+ *
  * @param node Node referred to in the expression.
  * @return Node from our theory stack with the right definition.
  */
@@ -372,7 +371,7 @@ const_Expr_ptr Substitution::have(const_Node_ptr node)
 
 /**
  * Report mismatch of expressions on the top level.
- * @method Substitution::mismatch
+ *
  * @param expr Subexpression to compared against.
  * @param target_expr Subexpression of target.
  */

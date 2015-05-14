@@ -38,12 +38,16 @@ namespace Core {
 	 */
 	class Substitution : public Visitor {
 	public:
-		// Init with expression
 		Substitution(const_Expr_ptr expr);
+
+		/**
+		 * Get the expression we substitute in.
+		 *
+		 * @return Expression.
+		 */
 		const_Expr_ptr getExpr() const
 			{return expr;}
 
-		// Test against other expression
 		bool check(const Expression *target, const Context &context);
 
 		// Get mismatch, if something didn't work

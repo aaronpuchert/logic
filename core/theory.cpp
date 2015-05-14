@@ -33,6 +33,7 @@ bool Theory::NodeCompare::operator ()(const Node *x, const Node *y) const
 
 /**
  * Construct a theory.
+ *
  * @param parent The parent theory, if this is a subtheory, otherwise nullptr.
  * @param parent_node Iterator to the node referring to this theory.
  */
@@ -41,6 +42,7 @@ Theory::Theory(Theory* parent, iterator parent_node)
 
 /**
  * Construct a theory from a list of nodes.
+ *
  * @param nodes List of nodes.
  */
 Theory::Theory(std::initializer_list<Node_ptr> nodes) : parent(nullptr)
@@ -52,6 +54,7 @@ Theory::Theory(std::initializer_list<Node_ptr> nodes) : parent(nullptr)
 
 /**
  * Copy construct a theory.
+ *
  * @param theory Other theory.
  */
 Theory::Theory(const Theory &theory) : parent(nullptr)
@@ -63,6 +66,7 @@ Theory::Theory(const Theory &theory) : parent(nullptr)
 
 /**
  * Add node to theory.
+ *
  * @param object Object to add.
  * @param after Iterator pointing to the node after which to insert.
  * @return Iterator to the newly inserted object.
@@ -84,6 +88,7 @@ Theory::iterator Theory::add(Node_ptr object, iterator after)
 
 /**
  * Get the object having a specific name.
+ *
  * @param reference Identifier to search for.
  * @return Iterator to the node or to the end, if no such node exists.
  */
@@ -123,6 +128,7 @@ Theory::const_iterator Theory::end() const
 
 /**
  * Verify the theory.
+ *
  * @return True, when the theory verifies, false if it doesn't.
  */
 bool Theory::verify() const
@@ -139,7 +145,7 @@ bool Theory::verify() const
 
 /**
  * Construct a statement node.
- * @method Statement::Statement
+ *
  * @param name Name of the statement.
  * @param expr Contents of the statement.
  */
@@ -155,7 +161,7 @@ Statement::Statement(const std::string &name, Expr_ptr expr)
 
 /**
  * Clone statement object
- * @method Statement::clone
+ *
  * @return Pointer to new statement object.
  */
 Node_ptr Statement::clone() const
@@ -165,7 +171,7 @@ Node_ptr Statement::clone() const
 
 /**
  * Add a proof to a statement.
- * @method Statement::addProof
+ *
  * @param proof Pointer to the proof to be added.
  */
 void Statement::addProof(Proof_ptr proof)
@@ -175,6 +181,7 @@ void Statement::addProof(Proof_ptr proof)
 
 /**
  * Construct a reference.
+ *
  * @param theory Theory which contains the referenced node.
  * @param it Iterator pointing to the referenced node.
  */
@@ -183,6 +190,7 @@ Reference::Reference(const Theory *theory, Theory::const_iterator it)
 
 /**
  * Construct reference from description string.
+ *
  * @param description Description string.
  */
 Reference::Reference(const Theory *this_theory, Theory::const_iterator this_it,
@@ -238,6 +246,7 @@ Reference::Reference(const Theory *this_theory, Theory::const_iterator this_it,
 
 /**
  * Create description of reference.
+ *
  * @param this_theory Theory which contains `this`.
  * @param this_it Iterator to `this`.
  */
@@ -288,6 +297,7 @@ std::string Reference::getDescription(const Theory *this_theory,
 
 /**
  * Wind back a reference.
+ *
  * @param diff Number of nodes to go back.
  */
 Reference& Reference::operator -=(int diff)
@@ -298,7 +308,11 @@ Reference& Reference::operator -=(int diff)
 }
 
 /**
- * Get a reference to the node which is `back` before `a`.
+ * Get a reference to the node which is @a back before @a a.
+ *
+ * @param a Start reference
+ * @param back Number of nodes to go back.
+ * @return Reference to node a~back.
  */
 Reference Core::operator -(const Reference& a, int back)
 {
@@ -308,8 +322,9 @@ Reference Core::operator -(const Reference& a, int back)
 }
 
 /**
- * Compute the positive distance between two references, assuming a<b.
- * @return The nonnegative difference or -1, if `a` doesn't precede `b` in this theory.
+ * Compute the positive distance between two references, assuming a < b.
+ *
+ * @return The nonnegative difference or -1, if @a a doesn't precede @a b in this theory.
  */
 int Core::operator -(const Reference& a, const Reference& b)
 {
@@ -325,6 +340,7 @@ int Core::operator -(const Reference& a, const Reference& b)
 
 /**
  * Initialize a proof step.
+ *
  * @param rule Pointer to the rule to be used.
  * @param var_list List of expressions which substitute the rule variables.
  * @param statement_list List of statements referenced.
@@ -350,6 +366,7 @@ ProofStep::ProofStep(const_Rule_ptr rule, const std::vector<Expr_ptr>& var_list,
 
 /**
  * Get the substitute of a certain node.
+ *
  * @param node Node to look up.
  * @return Expression to be substituted.
  */
@@ -364,7 +381,7 @@ const_Expr_ptr ProofStep::operator[](const_Node_ptr node) const
 
 /**
  * Does the proof step prove a certain statement?
- * @method ProofStep::proves
+ *
  * @param statement Statement to prove
  * @return True, if the statement can be proven this way.
  */

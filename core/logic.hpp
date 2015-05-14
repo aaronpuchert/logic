@@ -35,6 +35,12 @@ namespace Core {
 	 */
 	class Rule : public Node {
 	public:
+		/**
+		 * Construct a rule.
+		 *
+		 * @param name Name of the rule.
+		 * @param params Parameter list of the rule.
+		 */
 		Rule(const std::string& name, Theory &&params)
 			: Node(BuiltInType::rule, name), params(std::move(params)) {}
 
@@ -55,8 +61,15 @@ namespace Core {
 	public:
 		Tautology(const std::string& name, Theory &&params, Expr_ptr tautology);
 		Node_ptr clone() const;
+
+		/**
+		 * Get statement that we can assume to be true by this rule.
+		 *
+		 * @return Tautological statement expression.
+		 */
 		const_Expr_ptr getStatement() const
 			{return subst.getExpr();}
+
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
@@ -75,10 +88,23 @@ namespace Core {
 		EquivalenceRule(const std::string& name, Theory &&params,
 			Expr_ptr statement1, Expr_ptr statement2);
 		Node_ptr clone() const;
+
+		/**
+		 * Get first statement of the equivalence.
+		 *
+		 * @return Statement expression.
+		 */
 		const_Expr_ptr getStatement1() const
-			{return subst1.getExpr();;}
+			{return subst1.getExpr();}
+
+		/**
+		 * Get second statement of the equivalence.
+		 *
+		 * @return Statement expression.
+		 */
 		const_Expr_ptr getStatement2() const
 			{return subst2.getExpr();}
+
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
@@ -97,16 +123,18 @@ namespace Core {
 		DeductionRule(const std::string& name, Theory &&params,
 			const std::vector<Expr_ptr> &premisses, Expr_ptr conclusion);
 		Node_ptr clone() const;
+
 		const std::vector<const_Expr_ptr>& getPremisses() const;
+		/**
+		 * Get conclusion of the deduction rule.
+		 *
+		 * @return Conclusion expression.
+		 */
 		const_Expr_ptr getConclusion() const
 			{return subst_conclusion.getExpr();}
+
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
-
-		class const_iterator : std::vector<Substitution>::const_iterator {
-		public:
-			const_iterator(std::vector<Substitution>::const_iterator it);
-		};
 
 	private:
 		bool validate_pass(const Context &context,

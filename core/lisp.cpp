@@ -109,6 +109,7 @@ void Lexer::skipLine()
 
 /**
  * Construct a parser error handler.
+ *
  * @param lexer Lexer reference to deliver line and column numbers.
  * @param output Output stream for errors, warnings and notes.
  * @param descriptor String that denotes the input stream, e.g. a file name.
@@ -128,6 +129,7 @@ ParserErrorHandler::~ParserErrorHandler()
 
 /**
  * Write new error, warning or note.
+ *
  * @param level One of ParserErrorHandler::{ERROR|WARNING|NOTE}.
  */
 ParserErrorHandler& ParserErrorHandler::operator <<(Level level)
@@ -154,6 +156,7 @@ ParserErrorHandler& ParserErrorHandler::operator <<(Level level)
 
 /**
  * Write string.
+ *
  * @param str String.
  */
 ParserErrorHandler& ParserErrorHandler::operator <<(const std::string &str)
@@ -165,6 +168,7 @@ ParserErrorHandler& ParserErrorHandler::operator <<(const std::string &str)
 
 /**
  * Write token type.
+ *
  * @param type Token type.
  */
 ParserErrorHandler& ParserErrorHandler::operator <<(LispToken::Type type)
@@ -189,6 +193,7 @@ ParserErrorHandler& ParserErrorHandler::operator <<(LispToken::Type type)
 
 /**
  * Write type signature.
+ *
  * @param type Pointer to type object.
  */
 ParserErrorHandler& ParserErrorHandler::operator <<(const_Expr_ptr type)
@@ -205,8 +210,11 @@ ParserErrorHandler& ParserErrorHandler::operator <<(const_Expr_ptr type)
 
 /**
  * Construct a parser.
+ *
  * @param input Stream to read from.
- * @param error_output ParserErrorHandler object to tell problems occured.
+ * @param output Output stream for errors, warnings and notes.
+ * @param descriptor How to callthe input stream data in error messages, could
+ *      be a file name.
  */
 Parser::Parser(std::istream& input, std::ostream &output, const std::string &descriptor)
 	: lexer(input), error_output(lexer, output, descriptor), token(lexer.getToken()) {}
@@ -218,7 +226,9 @@ void Parser::nextToken()
 
 /**
  * Check if the current token has a certain type.
+ *
  * Write an error message if it doesn't.
+ *
  * @param type Token type expected.
  * @return True, if the current token is of the expected type.
  */
@@ -234,7 +244,8 @@ bool Parser::expect(LispToken::Type type)
 }
 
 /**
- * Add node to current theory.
+ * Add Node to current theory.
+ *
  * @param node Pointer to node object
  * @return Iterator to the newly inserted node.
  */
@@ -247,7 +258,8 @@ Theory::iterator Parser::addNode(Node_ptr node)
 }
 
 /**
- * Get the node denoted by the current token.
+ * Get the Node denoted by the current token.
+ *
  * @param rules If true, look up in rules.
  * @return Node from a theory or undefined_node, if nothing was found.
  */
@@ -277,6 +289,7 @@ void Parser::recover()
 
 /**
  * Report type exceptions.
+ *
  * @param where Where did the error come from?
  * @param ex Exception object
  */
@@ -307,9 +320,9 @@ const std::map<std::string, NodeParser> Parser::node_dispatch = {
 };
 
 /**
- * Parses a node and add it to top theory.
- * @method Parser::parseNode
- * @pre The current token is the beginning of a node, the enclosing theory is
+ * Parses a Node and adds it to top Theory.
+ *
+ * @pre The current token is the beginning of a node, the enclosing Theory is
  *      top on the stack.
  * @post The current token is the token right after the closing paranthesis.
  */
@@ -362,8 +375,8 @@ void Parser::parseNode()
 }
 
 /**
- * Parse a type expression.
- * @method Parser::parseType
+ * Parse a type Expression.
+ *
  * @return Pointer to a type object.
  * @pre The current token is the first token of a type expression.
  * @post The current token is the token right after the type expression.
@@ -399,8 +412,8 @@ const_Expr_ptr Parser::parseType()
 }
 
 /**
- * Parse a lambda type expression.
- * @method Parser::parseLambdaType
+ * Parse a LambdaType expression.
+ *
  * @return Pointer to a type object.
  * @pre The current token is an opening paranthesis.
  * @post The current token is the token right after the type expression.
@@ -467,8 +480,8 @@ const std::map<std::string, Expr_ptr (Parser::*)()> Parser::expr_dispatch = {
 
 /**
  * Dispatcher for expressions.
- * @method Parser::parseExpression
- * @return Pointer to an expression.
+ *
+ * @return Pointer to an Expression.
  * @pre The current token is the beginning of an expression.
  * @post The current token is the token right after the expression.
  */
@@ -508,9 +521,9 @@ Expr_ptr Parser::parseExpression()
 }
 
 /**
- * Parse an atomic expression.
- * @method Parser::parseAtomicExpr
- * @return Pointer to an expression.
+ * Parse an AtomicExpr.
+ *
+ * @return Pointer to an Expression.
  * @pre The current token is an atomic expression.
  * @post The current token is the token right after the atomic expression.
  */
@@ -522,9 +535,9 @@ Expr_ptr Parser::parseAtomicExpr()
 }
 
 /**
- * Parse a lambda call expression.
- * @method Parser::parseLambdaCallExpr
- * @return Pointer to an expression.
+ * Parse a LambdaCallExpr.
+ *
+ * @return Pointer to an Expression.
  * @pre The current token is a word token (denoting a lambda node) at the
  *      beginning of a lambda call expression.
  * @post The current token is the token right after the closing paranthesis.
@@ -554,9 +567,9 @@ Expr_ptr Parser::parseLambdaCallExpr()
 }
 
 /**
- * Parse a negation expression.
- * @method Parser::parseNegationExpr
- * @return Pointer to an expression
+ * Parse a NegationExpr.
+ *
+ * @return Pointer to an Expression
  * @pre The current token is `not`, preceded by an opening paranthesis.
  * @post The current token is the token right after the closing paranthesis.
  */
@@ -593,8 +606,8 @@ const std::map<std::string, ConnectiveExpr::Variant> Parser::connective_dispatch
 
 /**
  * Parse a and, or, implication or equivalence expression.
- * @method Parser::parseConnectiveExpr
- * @return Pointer to an expression.
+ *
+ * @return Pointer to an Expression.
  * @pre The current token is a connective, preceded by an opening paranthesis.
  * @post The current token is the token right after the closing paranthesis.
  */
@@ -627,8 +640,8 @@ Expr_ptr Parser::parseConnectiveExpr()
 }
 
 /**
- * Parse a forall or exists quantifier expression.
- * @method Parser::parseQuantifierExpr
+ * Parse a forall or exists QuantifierExpr.
+ *
  * @return Pointer to an expression.
  * @pre The current token denotes the quantifier, i.e. either 'forall' or 'exists'.
  * @post The current token is the token right after the closing paranthesis.
@@ -663,9 +676,9 @@ Expr_ptr Parser::parseQuantifierExpr()
 }
 
 /**
- * Parse a lambda expression.
- * @method Parser::parseLam
- * @return Pointer to an expression.
+ * Parse a LambdaExpr.
+ *
+ * @return Pointer to an Expression.
  * @pre The current token is the word "lambda", preceded by an opening paranthesis.
  * @post The current token is the token right after the closing paranthesis.
  */
@@ -701,8 +714,8 @@ Expr_ptr Parser::parseLambda()
 }
 
 /**
- * Parse a tautology rule and add it to the top theory.
- * @method Parser::parseTautology
+ * Parse a Tautology and add it to the top Theory.
+ *
  * @pre The current token is the word "tautology", preceded by an opening paranthesis.
  * @post The current token is the token right after the closing paranthesis.
  */
@@ -753,8 +766,8 @@ void Parser::parseTautology()
 }
 
 /**
- * Parse a equivalence rule and add it to the top theory.
- * @method Parser::parseEquivalenceRule
+ * Parse a EquivalenceRule and add it to the top Theory.
+ *
  * @pre The current token is the word "equivrule", preceded by an opening paranthesis.
  * @post The current token is the token right after the closing paranthesis.
  */
@@ -807,8 +820,8 @@ void Parser::parseEquivalenceRule()
 }
 
 /**
- * Parse a deduction rule and add it to the top theory.
- * @method Parser::parseDeductionRule
+ * Parse a DeductionRule and add it to the top Theory.
+ *
  * @pre The current token is the word "deductionrule", preceded by an opening paranthesis.
  * @post The current token is the token right after the closing paranthesis.
  */
@@ -875,8 +888,8 @@ void Parser::parseDeductionRule()
 }
 
 /**
- * Parse a statement and add it to the top theory.
- * @method Parser::parseStatement
+ * Parse a Statement and add it to the top Theory.
+ *
  * @pre The current token is either "axiom" or "lemma", preceded by an opening
  *      paranthesis.
  * @post The current token is the token right after the last token of the content.
@@ -914,8 +927,8 @@ void Parser::parseStatement()
 }
 
 /**
- * Parse a proof step.
- * @method Parser::parseProofStep
+ * Parse a ProofStep.
+ *
  * @return Pointer to proof
  * @pre The current token is the beginning of a proof step.
  * @post The current token is the token right after the closing paranthesis.
@@ -981,8 +994,8 @@ Proof_ptr Parser::parseProofStep()
 }
 
 /**
- * Parse a reference.
- * @method Parser::parseReference
+ * Parse a Reference.
+ *
  * @return Reference object
  * @pre The current token is a reference token.
  * @post The current token is the token right after the reference.
@@ -999,8 +1012,8 @@ Reference Parser::parseReference()
 }
 
 /**
- * Parse a theory.
- * @method Parser::parseTheory
+ * Parse a Theory.
+ *
  * @param standalone If set to true, the theory won't point to it's parent.
  * @return Theory object.
  * @pre The current token is the beginning of the first node of the theory.
@@ -1037,6 +1050,14 @@ Theory Parser::parseTheory(bool standalone)
 // Implementation of the Writer //
 //////////////////////////////////
 
+/**
+ * Construct Lisp Writer.
+ *
+ * @param output Output stream
+ * @param line_length Line length form automatic wrapping
+ * @param tab_size Indentation (in number of spaces)
+ * @param tabs Indent with tabs?
+ */
 Writer::Writer(std::ostream &output, int line_length, int tab_size, bool tabs)
 	: output(output), depth(0), max_line_length(line_length), line_length(0),
 	  tab_size(tab_size), tabs(tabs), write_depth(0) {}
@@ -1259,7 +1280,7 @@ void Writer::visit(const Theory *theory)
 
 /**
  * Add paranthesis token.
- * @method Writer::addParanthesis
+ *
  * @param depth_change One of LispToken::{OPENING¦CLOSING}
  */
 void Writer::addParanthesis(Change depth_change)
@@ -1278,7 +1299,7 @@ void Writer::addParanthesis(Change depth_change)
 
 /**
  * Add a token string.
- * @method Writer::addToken
+ *
  * @param token Token string.
  */
 void Writer::addToken(const std::string &token)
@@ -1288,7 +1309,7 @@ void Writer::addToken(const std::string &token)
 
 /**
  * Add a token string we can eat up.
- * @method Writer::addToken
+ *
  * @param token Rvalue reference to token.
  */
 void Writer::addToken(std::string &&token)
@@ -1298,7 +1319,7 @@ void Writer::addToken(std::string &&token)
 
 /**
  * Push a LispToken, called by addToken and addParanthesis.
- * @method Writer::push
+ *
  * @param token Rvalue reference to a LispToken
  */
 void Writer::push(LispToken &&token)
@@ -1320,7 +1341,6 @@ void Writer::push(LispToken &&token)
  * We will stop at level 0, when the queue is empty, or, when in between, when
  * there is material for just one line in it. Then we allow to refill, since we
  * always need at least a full line to decide where to put line breaks.
- * @method Writer::writeQueue
  */
 void Writer::writeQueue()
 {
@@ -1377,7 +1397,7 @@ void Writer::writeQueue()
  * Write a complete line, using a certain number of tokens from the queue.
  * The line is indented as write_depth says, and we write the tokens with
  * indices 0 to num_tokens-1.
- * @method Writer::writeLine
+ *
  * @param num_tokens Number of tokens to write
  */
 void Writer::writeLine(int num_tokens)
@@ -1415,7 +1435,7 @@ void Writer::writeLine(int num_tokens)
 
 /**
  * Write a single token.
- * @method Writer::writeToken
+ *
  * @param token Token to write
  */
 void Writer::writeToken(LispToken token)
@@ -1438,7 +1458,7 @@ void Writer::writeToken(LispToken token)
  * This assumes that all tokens will form a single line of output. We don't
  * concern ourselves with the case that a token might be at the end of a line.
  * We can only compute the length of tokens that are not at the end.
- * @method Writer::tokenLength
+ *
  * @param index Index of token in the queue
  * @return Length of token including a space after it.
  */

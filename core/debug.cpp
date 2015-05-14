@@ -25,6 +25,7 @@ using namespace Core;
 
 /**
  * Construct a TypeException.
+ *
  * @param type The type we got.
  * @param want The type we would like to see.
  * @param where Short (local) description where the problem occured.
@@ -46,6 +47,7 @@ TypeException::TypeException(const_Expr_ptr type, const_Expr_ptr want, const std
 
 /**
  * Construct a TypeException.
+ *
  * @param type The type we got.
  * @param want Description of what we'd like to see.
  * @param where Short (local) description where the problem occured.
@@ -65,6 +67,7 @@ TypeException::TypeException(const_Expr_ptr type, const std::string &want, const
 
 /**
  * Get description of a type exception.
+ *
  * @return Description.
  */
 const char *TypeException::what() const noexcept
@@ -74,6 +77,7 @@ const char *TypeException::what() const noexcept
 
 /**
  * Write type to output stream
+ *
  * @param type Pointer to type object
  */
 void TypeWriter::write(const Expression *type)
@@ -124,6 +128,7 @@ void TypeWriter::visit(const AtomicExpr *type)
 
 /**
  * Construct a NamespaceException.
+ *
  * @param reason One of NamespaceException::{NOTFOUND|DUPLICATE}.
  * @param name The name of the node this is about.
  */
@@ -132,6 +137,7 @@ NamespaceException::NamespaceException(Reason reason, const std::string &name)
 
 /**
  * Return exception description.
+ *
  * @return Description.
  */
 const char* NamespaceException::what() const noexcept

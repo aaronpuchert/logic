@@ -80,11 +80,23 @@ namespace Core {
 	public:
 		Statement(const std::string &name, Expr_ptr expr);
 		Node_ptr clone() const;
+
+		/**
+		 * Does the statement have a proof?
+		 *
+		 * @return True, if it has a proof.
+		 */
 		bool hasProof() const
 			{return (bool)proof;}
 
+		/**
+		 * Get proof of the statement, not necessarily valid.
+		 *
+		 * @return Proof of the statement.
+		 */
 		const_Proof_ptr getProof() const
 			{return proof;}
+
 		void addProof(Proof_ptr proof);
 
 		void accept(Visitor *visitor) const
@@ -105,9 +117,14 @@ namespace Core {
 		std::string getDescription(const Theory *this_theory,
 			Theory::const_iterator this_it) const;
 
-		// Resolve reference
+		/**
+		 * Resolve reference
+		 *
+		 * @return Node the reference points to.
+		 */
 		const_Node_ptr operator *() const
 			{return *ref;}
+
 		Reference& operator -=(int diff);
 
 		void accept(Visitor *visitor) const
@@ -125,14 +142,26 @@ namespace Core {
 		Theory::const_iterator ref;
 	};
 
-
 	/**
 	 * Abstract base class for proofs.
 	 */
 	class Proof {
 	public:
 		virtual ~Proof() {}
+
+		/**
+		 * Does the proof prove a statement?
+		 *
+		 * @param statement Statement to verify.
+		 * @return True, if the statement could be verified by the proof.
+		 */
 		virtual bool proves(const Statement &statement) const = 0;
+
+		/**
+		 * Accept a Visitor.
+		 *
+		 * @param visitor Visitor object on which to call the visit() method.
+		 */
 		virtual void accept(Visitor *visitor) const = 0;
 	};
 
@@ -145,11 +174,24 @@ namespace Core {
 			const std::vector<Expr_ptr> &var_list,
 			std::vector<Reference> &&statement_list);
 
+		/**
+		 * Get the rule used in this proof step.
+		 *
+		 * @return Rule used in the proof step.
+		 */
 		const_Rule_ptr getRule() const
 			{return rule;}
+
 		const_Expr_ptr operator[](const_Node_ptr node) const;
+
+		/**
+		 * Get a vector of the references used.
+		 *
+		 * @return References used in application of the rule.
+		 */
 		const std::vector<Reference> getReferences() const
 			{return ref_statement_list;}
+
 		bool proves(const Statement &statement) const;
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}

@@ -26,7 +26,7 @@ using namespace Core;
 
 /**
  * Get type of an atomic expression.
- * @method AtomicExpr::getType
+ *
  * @return Type of the expression.
  */
 const_Expr_ptr AtomicExpr::getType() const
@@ -36,7 +36,7 @@ const_Expr_ptr AtomicExpr::getType() const
 
 /**
  * Construct predicate (call) expression.
- * @method LambdaCallExpr::LambdaCallExpr
+ *
  * @param node Predicate to call.
  * @param args Vector of argument expressions.
  */
@@ -71,7 +71,7 @@ const_Expr_ptr LambdaCallExpr::getType() const
 
 /**
  * Begin iterator for iterating through the arguments.
- * @method LambdaCallExpr::begin
+ *
  * @return Begin iterator.
  */
 LambdaCallExpr::const_iterator LambdaCallExpr::begin() const
@@ -81,7 +81,7 @@ LambdaCallExpr::const_iterator LambdaCallExpr::begin() const
 
 /**
  * End iterator for iterating through the arguments.
- * @method LambdaCallExpr::end
+ *
  * @return End iterator.
  */
 LambdaCallExpr::const_iterator LambdaCallExpr::end() const
@@ -91,8 +91,8 @@ LambdaCallExpr::const_iterator LambdaCallExpr::end() const
 
 /**
  * Construct a negation expression.
- * @method NegationExpr::NegationExpr
- * @param expr Statement expression to be negated.
+ *
+ * @param expr %Statement expression to be negated.
  */
 NegationExpr::NegationExpr(Expr_ptr expr)
 	: Expression(Expression::NEGATION), expr(expr)
@@ -109,7 +109,7 @@ const_Expr_ptr NegationExpr::getType() const
 
 /**
  * Construct connective expression.
- * @method ConnectiveExpr::ConnectiveExpr
+ *
  * @param variant One of ConnectiveExpr::{AND|OR|IMPL|EQUIV}
  * @param first First operand of connective
  * @param seond Second operand of connective
@@ -131,7 +131,7 @@ const_Expr_ptr ConnectiveExpr::getType() const
 
 /**
  * Construct a quantifier expression.
- * @method QuantifierExpr::QuantifierExpr
+ *
  * @param variant One of QuantifierExpr::{EXISTS|FORALL}
  * @param predicate Lambda expression containing the predicate
  */
@@ -156,7 +156,7 @@ const_Expr_ptr QuantifierExpr::getType() const
 
 /**
  * Construct lambda expression.
- * @method LambdaExpr::LambdaExpr
+ *
  * @param params Parameters to the lambda expression.
  * @param expression Lambda body.
  */
@@ -165,7 +165,7 @@ LambdaExpr::LambdaExpr(Theory &&params, const_Expr_ptr expression)
 
 /**
  * Set definition expression for lambda.
- * @method LambdaExpr::setDefinition
+ *
  * @param  expression Expression defining the predicate.
  */
 void LambdaExpr::setDefinition(const_Expr_ptr new_expression)
@@ -180,7 +180,7 @@ void LambdaExpr::setDefinition(const_Expr_ptr new_expression)
 
 /**
  * Get type of Lambda expression.
- * @method LambdaExpr::getType
+ *
  * @return Type of Lambda expression.
  */
 const_Expr_ptr LambdaExpr::getType() const
@@ -199,7 +199,7 @@ const_Expr_ptr LambdaExpr::getType() const
 
 /**
  * Begin iterator for iterating through the paramenters.
- * @method LambdaExpr::begin
+ *
  * @return Begin iterator.
  */
 Theory::const_iterator LambdaExpr::begin() const
@@ -209,7 +209,7 @@ Theory::const_iterator LambdaExpr::begin() const
 
 /**
  * End iterator for iterating through the parameters.
- * @method LambdaExpr::end
+ *
  * @return End iterator.
  */
 Theory::const_iterator LambdaExpr::end() const

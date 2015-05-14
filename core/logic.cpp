@@ -26,7 +26,7 @@ using namespace Core;
 
 /**
  * Validate the application of a Rule.
- * @method Rule::validate
+ *
  * @param  context        Arguments for the parameters of the Expression.
  * @param  statements     References to the statements needed.
  * @param  statement      Statement that was deduced.
@@ -40,6 +40,7 @@ bool Rule::validate(const Context &context,
 
 /**
  * Construct a tautology: such a rule states that a certain statement is always true.
+ *
  * @param name Name of the rule.
  * @param params Parameters of the rule.
  * @param statement Statement that is always true.
@@ -53,7 +54,7 @@ Tautology::Tautology(const std::string& name, Theory &&params, Expr_ptr tautolog
 
 /**
  * Clone tautology
- * @method Tautology::clone
+ *
  * @return Pointer to new tautology.
  */
 Node_ptr Tautology::clone() const
@@ -75,6 +76,7 @@ bool Tautology::validate_pass(const Context &context,
 
 /**
  * Construct an equivalence rule: such a rule states that two statements are equivalent.
+ *
  * @param name Name of the rule.
  * @param params Parameters of the rule.
  * @param statement1 First statement.
@@ -92,7 +94,7 @@ EquivalenceRule::EquivalenceRule(const std::string& name, Theory &&params,
 
 /**
  * Clone equivalence rule
- * @method EquivalenceRule::clone
+ *
  * @return Pointer to new equivalence rule.
  */
 Node_ptr EquivalenceRule::clone() const
@@ -123,6 +125,7 @@ bool EquivalenceRule::validate_pass(const Context &context,
 /**
  * Construct an deduction rule: such a rule states that, given all premisses are
  * true, the conclusion also holds.
+ *
  * @param name Name of the rule.
  * @param params Parameters of the rule.
  * @param premisses Vector of premisses.
@@ -151,8 +154,8 @@ DeductionRule::DeductionRule(const std::string& name, Theory &&params,
 }
 
 /**
- * Clone deduction rule
- * @method DeductionRule::clone
+ * Clone deduction rule.
+ *
  * @return Pointer to new deduction rule.
  */
 Node_ptr DeductionRule::clone() const
@@ -161,8 +164,8 @@ Node_ptr DeductionRule::clone() const
 }
 
 /**
- * Get a vector of the premisses
- * @method DeductionRule::getPremisses
+ * Get a vector of the premisses.
+ *
  * @return Vector of expressions.
  */
 const std::vector<const_Expr_ptr>& DeductionRule::getPremisses() const

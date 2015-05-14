@@ -34,10 +34,22 @@ namespace Core {
 	 */
 	class AtomicExpr : public Expression {
 	public:
+		/**
+		 * Construct atomic expression.
+		 *
+		 * @param node Node the expression should point to.
+		 */
 		AtomicExpr(const_Node_ptr node)
 			: Expression(Expression::ATOMIC), node(node) {}
+
+		/**
+		 * Get corresponding node.
+		 *
+		 * @return Node the expression refers to.
+		 */
 		const_Node_ptr getAtom() const
 			{return node;}
+
 		const_Expr_ptr getType() const;
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
@@ -52,11 +64,20 @@ namespace Core {
 	class LambdaCallExpr : public Expression {
 	public:
 		LambdaCallExpr(const_Node_ptr node, std::vector<Expr_ptr> &&args);
+
+		/**
+		 * Get the lambda node that is called.
+		 *
+		 * @return Lambda node.
+		 */
 		const_Node_ptr getLambda() const
 			{return node;}
+
 		const_Expr_ptr getType() const;
 
-		// Iteration
+		/**
+		 * Iterator for parameters.
+		 */
 		typedef std::vector<Expr_ptr>::const_iterator const_iterator;
 		const_iterator begin() const;
 		const_iterator end() const;
@@ -75,7 +96,14 @@ namespace Core {
 	class NegationExpr : public Expression {
 	public:
 		NegationExpr(Expr_ptr expr);
+
+		/**
+		 * Get negated expression.
+		 *
+		 * @return Negated expression.
+		 */
 		Expr_ptr getExpr() const {return expr;}
+
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 		const_Expr_ptr getType() const;
@@ -91,9 +119,28 @@ namespace Core {
 	public:
 		enum Variant {AND, OR, IMPL, EQUIV};
 		ConnectiveExpr(Variant variant, Expr_ptr first, Expr_ptr second);
+
+		/**
+		 * Get variant of connective expression.
+		 *
+		 * @return One of ConnectiveExpr::{AND|OR|IMPL|EQUIV}.
+		 */
 		Variant getVariant() const {return variant;}
+
+		/**
+		 * Get first subexpression of the connective.
+		 *
+		 * @return First expression.
+		 */
 		Expr_ptr getFirstExpr() const {return expr[0];}
+
+		/**
+		 * Get second subexpression of the connective.
+		 *
+		 * @return Second expression.
+		 */
 		Expr_ptr getSecondExpr() const {return expr[1];}
+
 		const_Expr_ptr getType() const;
 
 		void accept(Visitor *visitor) const
@@ -111,12 +158,24 @@ namespace Core {
 	public:
 		enum Variant {EXISTS, FORALL};
 		QuantifierExpr(Variant variant, const_Expr_ptr predicate);
+
+		/**
+		 * Is this an universal or existential quantification?
+		 *
+		 * @return One of QuantifierExpr::{EXISTS|FORALL}
+		 */
 		Variant getVariant() const
 			{return variant;}
+
+		/**
+		 * Get predicate expression over which is quantified.
+		 *
+		 * @return Predicate expression.
+		 */
 		const_Expr_ptr getPredicate() const
 			{return predicate;}
-		const_Expr_ptr getType() const;
 
+		const_Expr_ptr getType() const;
 		void accept(Visitor *visitor) const
 			{visitor->visit(this);}
 
@@ -128,8 +187,7 @@ namespace Core {
 	/**
 	 * Logical syntactical sugar
 	 */
-	// class LongImplication : public Expression {};
-	// class LongConjunction : public Expression {};
+	// class LongConnective : public Expression {};
 
 	/**
 	 * Lambda expressions.
