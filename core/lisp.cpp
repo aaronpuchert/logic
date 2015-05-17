@@ -70,7 +70,7 @@ LispToken Lexer::getToken()
 				&& last != ')' && last != '#';
 		} while (valid);
 
-		return LispToken(LispToken::WORD, std::move(token));
+		return LispToken(std::move(token));
 	}
 
 	// Otherwise, we will have parantheses
@@ -1304,7 +1304,7 @@ void Writer::addParanthesis(Change depth_change)
  */
 void Writer::addToken(const std::string &token)
 {
-	push(LispToken(LispToken::WORD, token));
+	push(LispToken(token));
 }
 
 /**
@@ -1314,7 +1314,7 @@ void Writer::addToken(const std::string &token)
  */
 void Writer::addToken(std::string &&token)
 {
-	push(LispToken(LispToken::WORD, std::move(token)));
+	push(LispToken(std::move(token)));
 }
 
 /**

@@ -39,10 +39,10 @@ namespace Core {
 	public:
 		enum Type {WORD, OPENING, CLOSING, ENDOFFILE};
 		LispToken(Type type) : type(type) {}
-		LispToken(Type type, const std::string &content)
-			: type(type), content(content) {}
-		LispToken(Type type, std::string &&content)
-			: type(type), content(std::move(content)) {}
+		LispToken(const std::string &content)
+			: type(WORD), content(content) {}
+		LispToken(std::string &&content)
+			: type(WORD), content(std::move(content)) {}
 
 		Type getType() const
 			{return type;}
