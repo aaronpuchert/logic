@@ -158,17 +158,6 @@ namespace Core {
 		const std::string name;
 		Expr_ptr expression;
 	};
-
-	/**
-	 * Dummy node class for searching.
-	 */
-	class SearchNode : public Node {
-	public:
-		SearchNode(const std::string& name)
-			: Node(BuiltInType::undefined, name) {}
-		void accept(Visitor *visitor) const
-			{}
-	};
 }	// End of namespace Core
 
 #endif

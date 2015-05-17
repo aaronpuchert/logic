@@ -23,6 +23,19 @@
 #include "debug.hpp"
 using namespace Core;
 
+namespace {
+	/**
+	 * Dummy node class for searching.
+	 */
+	class SearchNode : public Node {
+	public:
+		SearchNode(const std::string& name)
+			: Node(BuiltInType::undefined, name) {}
+		void accept(Visitor *visitor) const
+			{}
+	};
+}
+
 /**
  * Compare function object for nodes, similar to std::less.
  */
