@@ -194,8 +194,8 @@ namespace Core {
 	 */
 	class LambdaExpr : public Expression {
 	public:
-		LambdaExpr(Theory &&params, const_Expr_ptr expression);
-		const Theory& getParams() const
+		LambdaExpr(std::vector<Node_ptr> &&params, const_Expr_ptr expression);
+		const std::vector<Node_ptr>& getParams() const
 			{return params;}
 		const_Expr_ptr getDefinition() const
 			{return expression;}
@@ -203,13 +203,13 @@ namespace Core {
 		const_Expr_ptr getType() const;
 
 		// Iterating through arguments
-		Theory::const_iterator begin() const;
-		Theory::const_iterator end() const;
+		std::vector<Node_ptr>::const_iterator begin() const;
+		std::vector<Node_ptr>::const_iterator end() const;
 
 		void accept(Visitor *visitor) const;
 
 	private:
-		Theory params;
+		std::vector<Node_ptr> params;
 		mutable const_Expr_ptr type;
 		const_Expr_ptr expression;
 	};

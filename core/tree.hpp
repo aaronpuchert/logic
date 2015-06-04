@@ -67,7 +67,7 @@ namespace Core {
 		void pop();
 
 		void add(const_Node_ptr node, const_Expr_ptr expr);
-		void pop_theory();
+		void pop_params();
 		const_Expr_ptr have(const_Node_ptr node);
 
 		void mismatch(const_Expr_ptr expr, const Expression *target_expr);
@@ -76,7 +76,7 @@ namespace Core {
 		Context substitutions;
 
 		std::stack<const_Expr_ptr> stack;
-		std::stack<const Theory *> theory_stack;
+		std::stack<const std::vector<Node_ptr> *> subst_stack;
 		match offender;
 	};
 }

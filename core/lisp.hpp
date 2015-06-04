@@ -114,7 +114,7 @@ namespace Core {
 		Parser(std::istream &input, std::ostream &output,
 			const std::string &descriptor);
 
-		void parseNode();
+		// Expression parsers
 		const_Expr_ptr parseType();
 		const_Expr_ptr parseLambdaType();
 
@@ -125,6 +125,11 @@ namespace Core {
 		Expr_ptr parseConnectiveExpr();
 		Expr_ptr parseQuantifierExpr();
 		Expr_ptr parseLambda();
+
+		// Object parsers
+		void parseObject();
+		Node_ptr parseNode();
+		void parseNodeList(std::vector<Node_ptr> *nodes);
 
 		void parseTautology();
 		void parseEquivalenceRule();
@@ -145,8 +150,9 @@ namespace Core {
 	private:
 		void nextToken();
 		bool expect(LispToken::Type type);
-		Theory::iterator addNode(Node_ptr node);
-		const_Node_ptr getNode(bool rules = false);
+		Theory::iterator addObject(Object_ptr object);
+		const_Rule_ptr getRule();
+		const_Node_ptr getNode();
 		void recover();
 		void report(const char *where, TypeException &ex);
 
@@ -155,13 +161,16 @@ namespace Core {
 		// Where we write errors
 		ParserErrorHandler error_output;
 
-		// The current token and theory stack
+		// The current token
 		LispToken token;
+
+		// Theory stack and parameter list stack (for lambdas and rules)
 		std::stack<Theory *> theory_stack;
 		std::stack<Theory::iterator> iterator_stack;
+		std::vector<const std::vector<Node_ptr>*> parameter_stack;
 
 		// Dispatch tables
-		static const std::map<std::string, void (Parser::*)()> node_dispatch;
+		static const std::map<std::string, void (Parser::*)()> object_dispatch;
 		static const std::map<std::string, Expr_ptr (Parser::*)()> expr_dispatch;
 		static const std::map<std::string, ConnectiveExpr::Variant> connective_dispatch;
 

@@ -244,37 +244,71 @@ bool Parser::expect(LispToken::Type type)
 }
 
 /**
- * Add Node to current theory.
+ * Add Object to current theory.
  *
- * @param node Pointer to node object
- * @return Iterator to the newly inserted node.
+ * @param object Pointer to object
+ * @return Iterator to the newly inserted object
  */
-Theory::iterator Parser::addNode(Node_ptr node)
+Theory::iterator Parser::addObject(Object_ptr object)
 {
 	Theory::iterator it = iterator_stack.top();
-	it = theory_stack.top()->add(node, it);
+	it = theory_stack.top()->add(object, it);
 	iterator_stack.top() = it;
 	return it;
 }
 
 /**
+ * Get the Rule denoted by the current token.
+ *
+ * @return Rule or nullptr, if nothing was found.
+ */
+const_Rule_ptr Parser::getRule()
+{
+	Theory::const_iterator it = this->rules->get(token.getContent());
+
+	if (it == this->rules->end()) {
+		error_output << ParserErrorHandler::ERROR << "undefined rule "
+			<< token.getContent();
+		return const_Rule_ptr();
+	}
+	else {
+		const_Rule_ptr rule = std::dynamic_pointer_cast<const Rule>(*it);
+		return rule;
+	}
+}
+
+/**
  * Get the Node denoted by the current token.
  *
- * @param rules If true, look up in rules.
- * @return Node from a theory or undefined_node, if nothing was found.
+ * @return Node from a parameter list or theory, or undefined_node,
+ *         if nothing was found.
  */
-const_Node_ptr Parser::getNode(bool rules)
+const_Node_ptr Parser::getNode()
 {
-	const Theory *theory = rules ? this->rules : theory_stack.top();
+	// Look in parameter lists
+	for (auto it = parameter_stack.rbegin(); it != parameter_stack.rend(); ++it)
+		for (const_Node_ptr node : *(*it))
+			if (node->getName() == token.getContent())
+				return node;
+
+	// Nothing found? Look in theory.
+	const Theory *theory = theory_stack.top();
 	Theory::const_iterator it = theory->get(token.getContent());
 
-	if (it == theory->end()) {
-		error_output << ParserErrorHandler::ERROR << "undeclared identifier "
-			<< token.getContent();
-		return undefined_node;
+	if (it != theory->end()) {
+		const_Node_ptr node = std::dynamic_pointer_cast<const Node>(*it);
+		if (!node) {
+			error_output << ParserErrorHandler::ERROR
+				<< "object " << token.getContent() << " isn't a node";
+			return undefined_node;
+		}
+		return node;
 	}
-	else
-		return *it;
+
+	// Still nothing found? Then this is an error.
+	error_output << ParserErrorHandler::ERROR << "undeclared identifier "
+		<< token.getContent();
+	return undefined_node;
 }
 
 /**
@@ -306,73 +340,6 @@ void Parser::report(const char *where, TypeException &ex)
  */
 const Node_ptr Parser::undefined_node = std::make_shared<Node>(BuiltInType::undefined, "");
 const Expr_ptr Parser::undefined_expr = std::make_shared<AtomicExpr>(undefined_node);
-
-/**
- * Dispatch table for nodes.
- */
-typedef void (Parser::*NodeParser)();
-const std::map<std::string, NodeParser> Parser::node_dispatch = {
-	{"axiom", &Parser::parseStatement},
-	{"lemma", &Parser::parseStatement},
-	{"tautology", &Parser::parseTautology},
-	{"equivrule", &Parser::parseEquivalenceRule},
-	{"deductionrule", &Parser::parseDeductionRule}
-};
-
-/**
- * Parses a Node and adds it to top Theory.
- *
- * @pre The current token is the beginning of a node, the enclosing Theory is
- *      top on the stack.
- * @post The current token is the token right after the closing paranthesis.
- */
-void Parser::parseNode()
-{
-	// parse (
-	if (!expect(LispToken::OPENING))
-		return;
-	nextToken();
-
-	// Dispatch
-	std::map<std::string, NodeParser>::const_iterator parse_function;
-	if (token.getType() == LispToken::WORD &&
-		(parse_function = node_dispatch.find(token.getContent()))
-			!= node_dispatch.end()) {
-		(this->*(parse_function->second))();
-	}
-	else {
-		Node_ptr node;
-
-		// Get Type
-		const_Expr_ptr type = parseType();
-
-		// Name
-		if (expect(LispToken::WORD))
-			node = std::make_shared<Node>(type, token.getContent());
-		else
-			return;
-
-		// parse Definition, if there is one
-		nextToken();
-		if (token.getType() != LispToken::CLOSING) {
-			Expr_ptr def = parseExpression();
-			try {
-				node->setDefinition(def);
-			}
-			catch (TypeException &ex) {
-				report("definition", ex);
-			}
-		}
-
-		addNode(node);
-	}
-
-	// parse )
-	if (expect(LispToken::CLOSING))
-		nextToken();
-	else
-		recover();
-}
 
 /**
  * Parse a type Expression.
@@ -687,21 +654,14 @@ Expr_ptr Parser::parseLambda()
 	// skip "lambda"
 	nextToken();
 
-	// parse parameter list
-	if (expect(LispToken::OPENING) && (nextToken(), expect(LispToken::WORD))
-			&& token.getContent() == "list")
-		nextToken();
-	else
-		return undefined_expr;
-	// TODO: the iterator won't be correct here, but we don't need it anyway.
-	Theory params(parseTheory());
-	// skip ')'
-	nextToken();
+	// parse parameters
+	std::vector<Node_ptr> params;
+	parameter_stack.push_back(&params);
+	parseNodeList(&params);
 
 	// parse expression
-	theory_stack.push(&params);
 	Expr_ptr expr = parseExpression();
-	theory_stack.pop();
+	parameter_stack.pop_back();
 
 	// Hope for a )
 	if (expect(LispToken::CLOSING))
@@ -711,6 +671,119 @@ Expr_ptr Parser::parseLambda()
 
 	// build
 	return std::make_shared<LambdaExpr>(std::move(params), expr);
+}
+
+/**
+ * Dispatch table for nodes.
+ */
+typedef void (Parser::*ObjectParser)();
+const std::map<std::string, ObjectParser> Parser::object_dispatch = {
+	{"axiom", &Parser::parseStatement},
+	{"lemma", &Parser::parseStatement},
+	{"tautology", &Parser::parseTautology},
+	{"equivrule", &Parser::parseEquivalenceRule},
+	{"deductionrule", &Parser::parseDeductionRule}
+};
+
+/**
+ * Parses an object and adds it to top Theory.
+ *
+ * @pre The current token is the beginning of an object, the enclosing Theory
+ *      is on top of the stack.
+ * @post The current token is the token right after the closing paranthesis.
+ */
+void Parser::parseObject()
+{
+	// parse (
+	if (!expect(LispToken::OPENING))
+		return;
+	nextToken();
+
+	// Dispatch
+	std::map<std::string, ObjectParser>::const_iterator parse_function;
+	if (token.getType() == LispToken::WORD &&
+		(parse_function = object_dispatch.find(token.getContent()))
+			!= object_dispatch.end())
+		(this->*(parse_function->second))();
+	else    // it's a normal node
+		addObject(parseNode());
+
+	// parse )
+	if (expect(LispToken::CLOSING))
+		nextToken();
+	else
+		recover();
+}
+
+/**
+ * Parses a node.
+ *
+ * @return Pointer to the node parsed.
+ * @pre The current token is the opening paranthesis.
+ * @post The current token is the closing paranthesis.
+ */
+Node_ptr Parser::parseNode()
+{
+	// Get Type
+	const_Expr_ptr type = parseType();
+
+	// Name
+	if (!expect(LispToken::WORD))
+		return undefined_node;
+
+	std::shared_ptr<Node> node = std::make_shared<Node>(type, token.getContent());
+
+	// parse Definition, if there is one
+	nextToken();
+	if (token.getType() != LispToken::CLOSING) {
+		Expr_ptr def = parseExpression();
+		try {
+			node->setDefinition(def);
+		}
+		catch (TypeException &ex) {
+			report("definition", ex);
+		}
+	}
+
+	return node;
+}
+
+/**
+ * Parse a node list as they occur in lambdas and rules.
+ *
+ * @param nodes (Empty) vector of nodes where we should write the nodes into.
+ * @pre The current token is an opening paranthesis. (followed by 'list',  hopefully)
+ * @post The current token is the next token after the node list.
+ */
+void Parser::parseNodeList(std::vector<Node_ptr> *nodes)
+{
+	// Parse beginning "(list"
+	if (expect(LispToken::OPENING)) {
+		nextToken();
+		// next should be "list"
+		if (expect(LispToken::WORD) && token.getContent() == "list")
+			nextToken();
+		else {
+			recover();
+			return;
+		}
+	}
+	else
+		return;
+
+	// Parse nodes to vector
+	while (token.getType() != LispToken::CLOSING)
+		if (expect(LispToken::OPENING)) {
+			nextToken();
+			nodes->push_back(parseNode());
+			if (expect(LispToken::CLOSING))
+				nextToken();
+			else
+				recover();
+		}
+
+	// skip ')'
+	nextToken();
 }
 
 /**
@@ -733,32 +806,18 @@ void Parser::parseTautology()
 	nextToken();
 
 	// parse parameters
-	if (expect(LispToken::OPENING)) {
-		nextToken();
-		// next should be "list"
-		if (expect(LispToken::WORD) && token.getContent() == "list")
-			nextToken();
-		else {
-			recover();
-			return;
-		}
-	}
-	else
-		return;
-
-	Theory params(parseTheory(true));
-	// skip ')'
-	nextToken();
+	std::vector<Node_ptr> params;
+	parameter_stack.push_back(&params);
+	parseNodeList(&params);
 
 	// parse expression
-	theory_stack.push(&params);
 	Expr_ptr expr = parseExpression();
-	theory_stack.pop();
+	parameter_stack.pop_back();
 
 	// build
 	try {
-		Node_ptr tautology = std::make_shared<Tautology>(name, std::move(params), expr);
-		addNode(tautology);
+		Object_ptr tautology = std::make_shared<Tautology>(name, std::move(params), expr);
+		addObject(tautology);
 	}
 	catch (TypeException &ex) {
 		report("tautology", ex);
@@ -785,34 +844,20 @@ void Parser::parseEquivalenceRule()
 	nextToken();
 
 	// parse parameters
-	if (expect(LispToken::OPENING)) {
-		nextToken();
-		// next should be "list"
-		if (expect(LispToken::WORD) && token.getContent() == "list")
-			nextToken();
-		else {
-			recover();
-			return;
-		}
-	}
-	else
-		return;
-
-	Theory params(parseTheory(true));
-	// skip ')'
-	nextToken();
+	std::vector<Node_ptr> params;
+	parameter_stack.push_back(&params);
+	parseNodeList(&params);
 
 	// parse expression
-	theory_stack.push(&params);
 	Expr_ptr expr1, expr2;
 	expr1 = parseExpression();
 	expr2 = parseExpression();
-	theory_stack.pop();
+	parameter_stack.pop_back();
 
 	// build
 	try {
-		Node_ptr node = std::make_shared<EquivalenceRule>(name, std::move(params), expr1, expr2);
-		addNode(node);
+		Object_ptr node = std::make_shared<EquivalenceRule>(name, std::move(params), expr1, expr2);
+		addObject(node);
 	}
 	catch (TypeException &ex) {
 		report("equivalence rule", ex);
@@ -839,25 +884,11 @@ void Parser::parseDeductionRule()
 	nextToken();
 
 	// parse parameters
-	if (expect(LispToken::OPENING)) {
-		nextToken();
-		// next should be "list"
-		if (expect(LispToken::WORD) && token.getContent() == "list")
-			nextToken();
-		else {
-			recover();
-			return;
-		}
-	}
-	else
-		return;
-
-	Theory params(parseTheory(true));
-	// skip ')'
-	nextToken();
+	std::vector<Node_ptr> params;
+	parameter_stack.push_back(&params);
+	parseNodeList(&params);
 
 	// parse premisses
-	theory_stack.push(&params);
 	std::vector<Expr_ptr> premisses;
 	if (expect(LispToken::OPENING)) {
 		nextToken();
@@ -875,12 +906,12 @@ void Parser::parseDeductionRule()
 
 	// parse conclusion
 	Expr_ptr conclusion = parseExpression();
-	theory_stack.pop();
+	parameter_stack.pop_back();
 
 	// build
 	try {
-		Node_ptr node = std::make_shared<DeductionRule>(name, std::move(params), premisses, conclusion);
-		addNode(node);
+		Object_ptr node = std::make_shared<DeductionRule>(name, std::move(params), premisses, conclusion);
+		addObject(node);
 	}
 	catch (TypeException &ex) {
 		report("deduction rule", ex);
@@ -912,7 +943,7 @@ void Parser::parseStatement()
 	Statement_ptr stmt;
 	try {
 		stmt = std::make_shared<Statement>(name, expr);
-		addNode(stmt);
+		addObject(stmt);
 	}
 	catch (TypeException &ex) {
 		report(expect_proof ? "lemma" : "axiom", ex);
@@ -941,7 +972,7 @@ Proof_ptr Parser::parseProofStep()
 	nextToken();
 
 	// get name of rule
-	const_Node_ptr rule = getNode(true);
+	const_Rule_ptr rule = getRule();    // we might get a nullptr here - will check later
 	nextToken();
 
 	// parse expression list
@@ -982,9 +1013,15 @@ Proof_ptr Parser::parseProofStep()
 	else
 		recover();
 
+	// Check if we really got a rule, otherwise skip
+	if (!rule) {
+		error_output << ParserErrorHandler::NOTE <<
+			"skipping proof step because of missing rule";
+		return Proof_ptr();
+	}
+
 	try {
-		return std::make_shared<ProofStep>(
-			std::static_pointer_cast<const Rule>(rule), var_list,
+		return std::make_shared<ProofStep>(rule, var_list,
 			std::move(references));
 	}
 	catch (TypeException &ex) {
@@ -1037,7 +1074,7 @@ Theory Parser::parseTheory(bool standalone)
 
 	while (token.getType() != LispToken::CLOSING &&
 			token.getType() != LispToken::ENDOFFILE)
-		parseNode();
+		parseObject();
 
 	iterator_stack.pop();
 	theory_stack.pop();
@@ -1120,7 +1157,8 @@ void Writer::visit(const LambdaExpr *expression)
 	// Declaration list
 	addParanthesis(OPENING);
 	addToken("list");
-	expression->getParams().accept(this);
+	for (const_Node_ptr node : expression->getParams())
+		node->accept(this);
 	addParanthesis(CLOSING);
 	if (const_Expr_ptr expr = expression->getDefinition())
 		expr->accept(this);
@@ -1190,7 +1228,8 @@ void Writer::write_varlist(const Rule* rule)
 {
 	addParanthesis(OPENING);
 	addToken("list");
-	rule->params.accept(this);
+	for (const_Node_ptr node : rule->getParams())
+		node->accept(this);
 	addParanthesis(CLOSING);
 }
 
@@ -1254,7 +1293,7 @@ void Writer::visit(const ProofStep *proofstep)
 	addToken(proofstep->getRule()->getName());
 	addParanthesis(OPENING);
 	addToken("list");
-	for (Node_ptr node : proofstep->getRule()->params)
+	for (const_Node_ptr node : proofstep->getRule()->getParams())
 		(*proofstep)[node]->accept(this);
 	addParanthesis(CLOSING);
 	addParanthesis(OPENING);

@@ -33,25 +33,28 @@ namespace Core {
 	/**
 	 * Abstract base class for logical rules
 	 */
-	class Rule : public Node {
+	class Rule : public Object {
 	public:
+		const std::vector<Node_ptr>& getParams() const
+			{return params;}
+		bool validate(const Context &context,
+			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
+
+	protected:
 		/**
 		 * Construct a rule.
 		 *
 		 * @param name Name of the rule.
 		 * @param params Parameter list of the rule.
 		 */
-		Rule(const std::string& name, Theory &&params)
-			: Node(BuiltInType::rule, name), params(std::move(params)) {}
-
-		bool validate(const Context &context,
-			const std::vector<Reference> &statements, const_Expr_ptr statement) const;
-
-		const Theory params;
+		Rule(const std::string& name, std::vector<Node_ptr> &&params)
+			: Object(BuiltInType::rule, name), params(std::move(params)) {}
 
 	private:
 		virtual bool validate_pass(const Context &context,
 			const std::vector<Reference> &statements, const_Expr_ptr statement) const = 0;
+
+		const std::vector<Node_ptr> params;
 	};
 
 	/**
@@ -59,8 +62,8 @@ namespace Core {
 	 */
 	class Tautology : public Rule {
 	public:
-		Tautology(const std::string& name, Theory &&params, Expr_ptr tautology);
-		Node_ptr clone() const;
+		Tautology(const std::string& name, std::vector<Node_ptr> &&params, Expr_ptr tautology);
+		Object_ptr clone() const;
 
 		/**
 		 * Get statement that we can assume to be true by this rule.
@@ -85,9 +88,9 @@ namespace Core {
 	 */
 	class EquivalenceRule : public Rule {
 	public:
-		EquivalenceRule(const std::string& name, Theory &&params,
+		EquivalenceRule(const std::string& name, std::vector<Node_ptr> &&params,
 			Expr_ptr statement1, Expr_ptr statement2);
-		Node_ptr clone() const;
+		Object_ptr clone() const;
 
 		/**
 		 * Get first statement of the equivalence.
@@ -120,9 +123,9 @@ namespace Core {
 	 */
 	class DeductionRule : public Rule {
 	public:
-		DeductionRule(const std::string& name, Theory &&params,
+		DeductionRule(const std::string& name, std::vector<Node_ptr> &&params,
 			const std::vector<Expr_ptr> &premisses, Expr_ptr conclusion);
-		Node_ptr clone() const;
+		Object_ptr clone() const;
 
 		const std::vector<const_Expr_ptr>& getPremisses() const;
 		/**

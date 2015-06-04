@@ -45,7 +45,7 @@ bool Rule::validate(const Context &context,
  * @param params Parameters of the rule.
  * @param statement Statement that is always true.
  */
-Tautology::Tautology(const std::string& name, Theory &&params, Expr_ptr tautology)
+Tautology::Tautology(const std::string& name, std::vector<Node_ptr> &&params, Expr_ptr tautology)
 	: Rule(name, std::move(params)), subst(tautology)
 {
 	if (tautology->getType() != BuiltInType::statement)
@@ -57,7 +57,7 @@ Tautology::Tautology(const std::string& name, Theory &&params, Expr_ptr tautolog
  *
  * @return Pointer to new tautology.
  */
-Node_ptr Tautology::clone() const
+Object_ptr Tautology::clone() const
 {
 	return std::make_shared<Tautology>(*this);
 }
@@ -82,7 +82,7 @@ bool Tautology::validate_pass(const Context &context,
  * @param statement1 First statement.
  * @param statement2 Second statement.
  */
-EquivalenceRule::EquivalenceRule(const std::string& name, Theory &&params,
+EquivalenceRule::EquivalenceRule(const std::string& name, std::vector<Node_ptr> &&params,
 	Expr_ptr statement1, Expr_ptr statement2)
 	: Rule(name, std::move(params)), subst1(statement1), subst2(statement2)
 {
@@ -97,7 +97,7 @@ EquivalenceRule::EquivalenceRule(const std::string& name, Theory &&params,
  *
  * @return Pointer to new equivalence rule.
  */
-Node_ptr EquivalenceRule::clone() const
+Object_ptr EquivalenceRule::clone() const
 {
 	return std::make_shared<EquivalenceRule>(*this);
 }
@@ -131,7 +131,7 @@ bool EquivalenceRule::validate_pass(const Context &context,
  * @param premisses Vector of premisses.
  * @param statement2 Conclusion statement.
  */
-DeductionRule::DeductionRule(const std::string& name, Theory &&params,
+DeductionRule::DeductionRule(const std::string& name, std::vector<Node_ptr> &&params,
 	const std::vector<Expr_ptr> &premisses, Expr_ptr conclusion)
 	: Rule(name, std::move(params)), premisses(premisses), subst_conclusion(conclusion)
 {
@@ -158,7 +158,7 @@ DeductionRule::DeductionRule(const std::string& name, Theory &&params,
  *
  * @return Pointer to new deduction rule.
  */
-Node_ptr DeductionRule::clone() const
+Object_ptr DeductionRule::clone() const
 {
 	return std::make_shared<DeductionRule>(*this);
 }

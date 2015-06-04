@@ -160,7 +160,7 @@ const_Expr_ptr QuantifierExpr::getType() const
  * @param params Parameters to the lambda expression.
  * @param expression Lambda body.
  */
-LambdaExpr::LambdaExpr(Theory &&params, const_Expr_ptr expression)
+LambdaExpr::LambdaExpr(std::vector<Node_ptr> &&params, const_Expr_ptr expression)
 	: Expression(Expression::LAMBDA), params(std::move(params)), expression(expression) {}
 
 /**
@@ -202,7 +202,7 @@ const_Expr_ptr LambdaExpr::getType() const
  *
  * @return Begin iterator.
  */
-Theory::const_iterator LambdaExpr::begin() const
+std::vector<Node_ptr>::const_iterator LambdaExpr::begin() const
 {
 	return params.begin();
 }
@@ -212,7 +212,7 @@ Theory::const_iterator LambdaExpr::begin() const
  *
  * @return End iterator.
  */
-Theory::const_iterator LambdaExpr::end() const
+std::vector<Node_ptr>::const_iterator LambdaExpr::end() const
 {
 	return params.end();
 }

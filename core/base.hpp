@@ -119,11 +119,10 @@ namespace Core {
 	 * Abstract base class for named entities in theories: types, variables,
 	 * predicates, statements.
 	 */
-	class Node {
+	class Object {
 	public:
-		Node(const_Expr_ptr type, const std::string &name);
-		virtual ~Node() {}
-		virtual Node_ptr clone() const;
+		virtual ~Object() {}
+		virtual Object_ptr clone() const = 0;
 
 		/**
 		 * Get type of node.
@@ -141,6 +140,26 @@ namespace Core {
 		const std::string &getName() const
 			{return name;}
 
+		virtual void accept(Visitor *visitor) const = 0;
+
+	protected:
+		Object(const_Expr_ptr type, const std::string &name);
+
+	private:
+		const_Expr_ptr type;
+		const std::string name;
+	};
+
+	/**
+	 * Objects that can be used in an expression.
+	 * (and be defined via an expression)
+	 */
+	class Node : public Object {
+	public:
+		Node(const_Expr_ptr type, const std::string &name)
+		  : Object(type, name) {}
+		Object_ptr clone() const;
+
 		void setDefinition(Expr_ptr new_expression);
 
 		/**
@@ -153,9 +172,7 @@ namespace Core {
 
 		virtual void accept(Visitor *visitor) const;
 
-	protected:
-		const_Expr_ptr type;
-		const std::string name;
+	private:
 		Expr_ptr expression;
 	};
 }	// End of namespace Core

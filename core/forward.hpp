@@ -33,6 +33,9 @@ namespace Core {
 	typedef std::shared_ptr<const Expression> const_Expr_ptr;
 	class BuiltInType;
 	class LambdaType;
+	class Object;
+	typedef std::shared_ptr<Object> Object_ptr;
+	typedef std::shared_ptr<const Object> const_Object_ptr;
 	class Node;
 	typedef std::shared_ptr<Node> Node_ptr;
 	typedef std::shared_ptr<const Node> const_Node_ptr;

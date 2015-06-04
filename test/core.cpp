@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(type_check_test)
 
 	// Define a predicate via another
 	neg_expr = make_shared<NegationExpr>(pred_expr[0]);
-	BOOST_CHECK_NO_THROW(lambda_def = make_shared<LambdaExpr>(Theory{var_def[0]}, neg_expr));
+	BOOST_CHECK_NO_THROW(lambda_def = make_shared<LambdaExpr>(std::vector<Node_ptr>{var_def[0]}, neg_expr));
 	BOOST_CHECK_NO_THROW(lambda[2]->setDefinition(lambda_def));
 	BOOST_CHECK_EXCEPTION(
 		lambda[1]->setDefinition(lambda_def),
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	Expr_ptr not_a = make_shared<NegationExpr>(expr_a);
 	Expr_ptr taut_stmt = make_shared<ConnectiveExpr>(ConnectiveExpr::OR, expr_a, not_a);
 	Rule_ptr tautology = make_shared<Tautology>("excluded_middle",
-		Theory{stmt_a}, taut_stmt);
+		std::vector<Node_ptr>{stmt_a}, taut_stmt);
 
 	checkResult(tautology.get(), "(tautology excluded_middle (list (statement a)) (or a (not a)))\n");
 	position = rules.add(tautology, position);
@@ -180,7 +180,7 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	// Rule of double negation.
 	Expr_ptr not_not_a = make_shared<NegationExpr>(not_a);
 	Rule_ptr equivrule = make_shared<EquivalenceRule>("double_negation",
-		Theory{stmt_a}, not_not_a, expr_a);
+		std::vector<Node_ptr>{stmt_a}, not_not_a, expr_a);
 
 	checkResult(equivrule.get(), "(equivrule double_negation (list (statement a)) (not (not a)) a)\n");
 	position = rules.add(equivrule, position);
@@ -189,7 +189,7 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	Expr_ptr impl = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL, expr_a, expr_b);
 	std::vector<Expr_ptr> premisses{impl, expr_a};
 	Rule_ptr deductionrule = make_shared<DeductionRule>("ponens",
-		Theory{stmt_a, stmt_b}, premisses, expr_b);
+		std::vector<Node_ptr>{stmt_a, stmt_b}, premisses, expr_b);
 
 	checkResult(deductionrule.get(), "(deductionrule ponens (list (statement a) (statement b)) (list (impl a b) a) b)\n");
 	position = rules.add(deductionrule, position);
@@ -210,7 +210,7 @@ BOOST_AUTO_TEST_CASE(rule_writer_test)
 	Expr_ptr pred_expr = make_shared<LambdaCallExpr>(pred_node,
 		std::vector<Expr_ptr>{expr_y});
 	Rule_ptr specializationrule = make_shared<DeductionRule>(
-		"specialization", Theory{type_decl, pred_node, var_y},
+		"specialization", std::vector<Node_ptr>{type_decl, pred_node, var_y},
 		std::vector<Expr_ptr>{forall_expr}, pred_expr);
 
 	checkResult(specializationrule.get(), "(deductionrule specialization (list (type T) ((lambda-type statement (list T)) P) (T y)) (list (forall P)) (P y))\n");
@@ -265,7 +265,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	Expr_ptr impl = make_shared<ConnectiveExpr>(ConnectiveExpr::IMPL,
 		student_x, stupid_x);
 	std::shared_ptr<LambdaExpr> impl_pred =
-		make_shared<LambdaExpr>(Theory{var_x}, impl);
+		make_shared<LambdaExpr>(std::vector<Node_ptr>{var_x}, impl);
 	Expr_ptr forall_expr = make_shared<QuantifierExpr>
 		(QuantifierExpr::FORALL, impl_pred);
 	Statement_ptr axiom2 = make_shared<Statement>("", forall_expr);
@@ -286,7 +286,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  		(list this~1)
 	//  	)
 	Reference this1(&theory, position);
-	const_Node_ptr specialization = *rules.get("specialization");
+	const_Object_ptr specialization = *rules.get("specialization");
 	std::shared_ptr<ProofStep> step1 = make_shared<ProofStep>(
 		std::static_pointer_cast<const Rule>(specialization),
 		std::vector<Expr_ptr>{person, impl_pred, fritz_expr},
@@ -302,7 +302,7 @@ BOOST_AUTO_TEST_CASE(theory_writer_test)
 	//  		(list this~1 this~3)
 	//  	)
 	Reference this2(&theory, position);
-	const_Node_ptr ponens = *rules.get("ponens");
+	const_Object_ptr ponens = *rules.get("ponens");
 	std::shared_ptr<ProofStep> step2 = make_shared<ProofStep>(
 		std::static_pointer_cast<const Rule>(ponens),
 		std::vector<Expr_ptr>{axiom1_expr, statement_expr},

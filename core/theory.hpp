@@ -33,27 +33,31 @@
  */
 namespace Core {
 	/**
-	 * Theory class
+	 * Theories are collections of objects like nodes, statements and rules.
+	 *
+	 * The objects are arranged in a list. To add an object, one has to have
+	 * an iterator into that list after which to insert. Theories are
+	 * searchable by name.
 	 */
 	class Theory {
 	public:
 		// Types for iterating through theories
-		using iterator = std::list<Node_ptr>::iterator;
-		using const_iterator = std::list<Node_ptr>::const_iterator;
+		using iterator = std::list<Object_ptr>::iterator;
+		using const_iterator = std::list<Object_ptr>::const_iterator;
 
-		Theory(Theory *parent = nullptr, iterator parent_node = iterator());
-		Theory(std::initializer_list<Node_ptr> nodes);
+		Theory(Theory *parent = nullptr, iterator parent_object = iterator());
+		Theory(std::initializer_list<Object_ptr> objects);
 		Theory(const Theory &theory);
 		Theory(Theory &&theory) = default;
 
-		// Iterate through nodes
+		// Iterate through objects
 		iterator begin();
 		iterator end();
 		const_iterator begin() const;
 		const_iterator end() const;
 
-		// Add and get nodes: declarations, definitions, and statements.
-		iterator add(Node_ptr object, iterator after);
+		// Add and get objects: declarations, definitions, and statements.
+		iterator add(Object_ptr object, iterator after);
 		const_iterator get(const std::string& reference) const;
 
 		// Miscellaneous
@@ -62,15 +66,15 @@ namespace Core {
 		bool verify() const;
 
 		const Theory *parent;
-		const iterator parent_node;
+		const iterator parent_object;
 
 	private:
 		// Dependencies?
-		std::list<Node_ptr> nodes;
-		struct NodeCompare : public std::binary_function<Node *, Node *, bool> {
-			bool operator ()(const Node *, const Node *) const;
+		std::list<Object_ptr> objects;
+		struct NodeCompare : public std::binary_function<Object *, Object *, bool> {
+			bool operator ()(const Object *, const Object *) const;
 		};
-		std::map<Node *, iterator, NodeCompare> name_space;
+		std::map<Object *, iterator, NodeCompare> name_space;
 	};
 
 	/**
@@ -79,7 +83,7 @@ namespace Core {
 	class Statement : public Node {
 	public:
 		Statement(const std::string &name, Expr_ptr expr);
-		Node_ptr clone() const;
+		Object_ptr clone() const;
 
 		/**
 		 * Does the statement have a proof?
@@ -107,7 +111,8 @@ namespace Core {
 	};
 
 	/**
-	 * Class for references
+	 * References to objects.
+	 * (They should be used for statements only, shouldn't they?)
 	 */
 	class Reference {
 	public:
@@ -118,11 +123,11 @@ namespace Core {
 			Theory::const_iterator this_it) const;
 
 		/**
-		 * Resolve reference
+		 * Resolve reference.
 		 *
-		 * @return Node the reference points to.
+		 * @return Statement the reference points to.
 		 */
-		const_Node_ptr operator *() const
+		const_Object_ptr operator *() const
 			{return *ref;}
 
 		Reference& operator -=(int diff);
@@ -189,7 +194,7 @@ namespace Core {
 		 *
 		 * @return References used in application of the rule.
 		 */
-		const std::vector<Reference> getReferences() const
+		const std::vector<Reference>& getReferences() const
 			{return ref_statement_list;}
 
 		bool proves(const Statement &statement) const;

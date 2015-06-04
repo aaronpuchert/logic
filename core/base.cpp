@@ -178,12 +178,12 @@ void TypeComparator::visit(const AtomicExpr *type)
 }
 
 /**
- * Construct a node.
+ * Construct a object.
  *
- * @param type Type of the node
- * @param name Name or identifier of a node.
+ * @param type Type of the object
+ * @param name Name or identifier of the object.
  */
-Node::Node(const_Expr_ptr type, const std::string &name)
+Object::Object(const_Expr_ptr type, const std::string &name)
 	: type(type), name(name)
 {
 	if (type->getType() != BuiltInType::type)
@@ -195,7 +195,7 @@ Node::Node(const_Expr_ptr type, const std::string &name)
  *
  * @return Pointer to new node object.
  */
-Node_ptr Node::clone() const
+Object_ptr Node::clone() const
 {
 	return std::make_shared<Node>(*this);
 }
@@ -208,10 +208,10 @@ Node_ptr Node::clone() const
 void Node::setDefinition(Expr_ptr new_expression)
 {
 	TypeComparator compare;
-	if (compare(type.get(), new_expression->getType().get()))
+	if (compare(getType().get(), new_expression->getType().get()))
 		expression = new_expression;
 	else
-		throw TypeException(new_expression->getType(), type);
+		throw TypeException(new_expression->getType(), getType());
 }
 
 void Node::accept(Visitor *visitor) const

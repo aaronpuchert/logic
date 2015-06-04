@@ -27,10 +27,12 @@ namespace {
 	/**
 	 * Dummy node class for searching.
 	 */
-	class SearchNode : public Node {
+	class SearchObject : public Object {
 	public:
-		SearchNode(const std::string& name)
-			: Node(BuiltInType::undefined, name) {}
+		SearchObject(const std::string& name)
+			: Object(BuiltInType::undefined, name) {}
+		Object_ptr clone() const
+			{return std::make_shared<SearchObject>(*this);}
 		void accept(Visitor *visitor) const
 			{}
 	};
@@ -39,7 +41,7 @@ namespace {
 /**
  * Compare function object for nodes, similar to std::less.
  */
-bool Theory::NodeCompare::operator ()(const Node *x, const Node *y) const
+bool Theory::NodeCompare::operator ()(const Object *x, const Object *y) const
 {
 	return (x->getName() < y->getName());
 }
@@ -48,20 +50,20 @@ bool Theory::NodeCompare::operator ()(const Node *x, const Node *y) const
  * Construct a theory.
  *
  * @param parent The parent theory, if this is a subtheory, otherwise nullptr.
- * @param parent_node Iterator to the node referring to this theory.
+ * @param parent_node Iterator to the object referring to this theory.
  */
-Theory::Theory(Theory* parent, iterator parent_node)
-	: parent(parent), parent_node(parent_node) {}
+Theory::Theory(Theory *parent, Theory::iterator parent_object)
+	: parent(parent), parent_object(parent_object) {}
 
 /**
  * Construct a theory from a list of nodes.
  *
  * @param nodes List of nodes.
  */
-Theory::Theory(std::initializer_list<Node_ptr> nodes) : parent(nullptr)
+Theory::Theory(std::initializer_list<Object_ptr> objects) : parent(nullptr)
 {
 	iterator it = begin();
-	for (Node_ptr node : nodes)
+	for (Object_ptr node : objects)
 		it = add(node, it);
 }
 
@@ -73,7 +75,7 @@ Theory::Theory(std::initializer_list<Node_ptr> nodes) : parent(nullptr)
 Theory::Theory(const Theory &theory) : parent(nullptr)
 {
 	iterator it = begin();
-	for (const_Node_ptr node : theory)
+	for (const_Object_ptr node : theory)
 		it = add(node->clone(), it);
 }
 
@@ -85,11 +87,11 @@ Theory::Theory(const Theory &theory) : parent(nullptr)
  * @return Iterator to the newly inserted object.
  * @throw Core::NamespaceException if an object of the same name already exists.
  */
-Theory::iterator Theory::add(Node_ptr object, iterator after)
+Theory::iterator Theory::add(Object_ptr object, iterator after)
 {
 	auto entry = name_space.find(object.get());
 	if (entry == name_space.end()) {
-		iterator position = nodes.insert(++after, object);
+		iterator position = objects.insert(++after, object);
 		if (object->getName() != "")
 			name_space[object.get()] = position;
 		return position;
@@ -108,7 +110,7 @@ Theory::iterator Theory::add(Node_ptr object, iterator after)
 Theory::const_iterator Theory::get(const std::string& reference) const
 {
 	// construct a dummy node
-	SearchNode node(reference);
+	SearchObject node(reference);
 
 	auto entry = name_space.find(&node);
 	if (entry != name_space.end())
@@ -116,27 +118,27 @@ Theory::const_iterator Theory::get(const std::string& reference) const
 	else if (parent != nullptr)
 		return parent->get(reference);
 	else
-		return nodes.end();
+		return objects.end();
 }
 
 Theory::iterator Theory::begin()
 {
-	return nodes.begin();
+	return objects.begin();
 }
 
 Theory::iterator Theory::end()
 {
-	return nodes.end();
+	return objects.end();
 }
 
 Theory::const_iterator Theory::begin() const
 {
-	return nodes.begin();
+	return objects.begin();
 }
 
 Theory::const_iterator Theory::end() const
 {
-	return nodes.end();
+	return objects.end();
 }
 
 /**
@@ -146,9 +148,9 @@ Theory::const_iterator Theory::end() const
  */
 bool Theory::verify() const
 {
-	return std::all_of(nodes.begin(), nodes.end(), [] (Node_ptr node) -> bool {
-		if (node->getType() == BuiltInType::statement) {
-			auto stmt = std::dynamic_pointer_cast<Statement>(node);
+	return std::all_of(objects.begin(), objects.end(), [] (Object_ptr object) -> bool {
+		if (object->getType() == BuiltInType::statement) {
+			auto stmt = std::dynamic_pointer_cast<Statement>(object);
 			if (stmt && stmt->hasProof())
 				return stmt->getProof()->proves(*stmt);
 		}
@@ -177,7 +179,7 @@ Statement::Statement(const std::string &name, Expr_ptr expr)
  *
  * @return Pointer to new statement object.
  */
-Node_ptr Statement::clone() const
+Object_ptr Statement::clone() const
 {
 	return std::make_shared<Statement>(*this);
 }
@@ -230,7 +232,7 @@ Reference::Reference(const Theory *this_theory, Theory::const_iterator this_it,
 	// - parent
 	else if (base == "parent") {
 		theory = this_theory->parent;
-		ref = this_theory->parent_node;
+		ref = this_theory->parent_object;
 	}
 	// - parent^<n>
 	else if (base.substr(0, 6) == "parent^") {
@@ -243,7 +245,7 @@ Reference::Reference(const Theory *this_theory, Theory::const_iterator this_it,
 		ref = this_it;
 		while (level--) {
 			theory = theory->parent;
-			ref = theory->parent_node;
+			ref = theory->parent_object;
 		}
 	}
 	// - <name>
@@ -283,7 +285,7 @@ std::string Reference::getDescription(const Theory *this_theory,
 
 		// level up
 		if (level->parent && level_head != ref) {
-			level_head = level->parent_node;
+			level_head = level->parent_object;
 			++level_val;
 		}
 		else
@@ -368,9 +370,9 @@ ProofStep::ProofStep(const_Rule_ptr rule, const std::vector<Expr_ptr>& var_list,
 	TypeComparator compare(&subst);
 
 	// Create context and check types
-	auto param_it = rule->params.begin();
+	auto param_it = rule->getParams().begin();
 	auto sub_it = var_list.begin();
-	for (;  param_it != rule->params.end(); ++param_it, ++sub_it) {
+	for (;  param_it != rule->getParams().end(); ++param_it, ++sub_it) {
 		if (!compare((*param_it)->getType().get(), (*sub_it)->getType().get()))
 			throw TypeException((*param_it)->getType(), (*sub_it)->getType());
 		subst.insert({*param_it, *sub_it});

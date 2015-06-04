@@ -43,7 +43,7 @@
 using namespace Core;
 
 /**
- * Initialize Substitution with an expression and a parameter theory.
+ * Initialize Substitution with an expression.
  *
  * @param expr Expression to substitute in.
  */
@@ -215,7 +215,7 @@ void Substitution::visit(const QuantifierExpr *expression)
 /**
  * Compare a lambda expression.
  * First we have to compare their type signature. Then to match the contained
- * expressions, we have to create a theory translating the parameter names.
+ * expressions, we add them to the list of substitutions.
  *
  * @param expression Lambda expression in target
  */
@@ -229,8 +229,8 @@ void Substitution::visit(const LambdaExpr *expression)
 		// Do the type signatures match?
 		TypeComparator compare;
 		if (compare(expression->getType().get(), expr_lambda->getType().get())) {
-			// Try to match theories
-			theory_stack.push(&expr_lambda->getParams());
+			// Try to match parameter lists
+			subst_stack.push(&expr_lambda->getParams());
 
 			auto param_it = expr_lambda->getParams().begin();
 			auto subst_it = expression->getParams().begin();
@@ -262,8 +262,8 @@ void Substitution::push(const_Expr_ptr expr)
 		const_Expr_ptr def = have(atomic->getAtom());
 		if (def) {
 			// Push definition on stack
-			// A null pointer on the theory stack serves as a placeholder.
-			theory_stack.push(nullptr);
+			// A null pointer on the parameter stack serves as a placeholder.
+			subst_stack.push(nullptr);
 			stack.push(def);
 			return;
 		}
@@ -284,7 +284,7 @@ void Substitution::push(const_Expr_ptr expr)
 				auto lambda = std::static_pointer_cast<const LambdaExpr>(lambda_def);
 
 				// Write substitutions.
-				theory_stack.push(&lambda->getParams());
+				subst_stack.push(&lambda->getParams());
 				auto param_it = lambda->getParams().begin();
 				auto arg_it = call->begin();
 				for (; param_it != lambda->getParams().end(); ++param_it, ++arg_it)
@@ -301,8 +301,8 @@ void Substitution::push(const_Expr_ptr expr)
 	}
 
 	// If there's nothing to substitute: just push the expression.
-	// A null pointer on the theory stack serves as a placeholder.
-	theory_stack.push(nullptr);
+	// A null pointer on the parameter stack serves as a placeholder.
+	subst_stack.push(nullptr);
 	stack.push(expr);
 }
 
@@ -311,14 +311,14 @@ void Substitution::push(const_Expr_ptr expr)
  */
 void Substitution::pop()
 {
-	// Pop null theory
-	if (theory_stack.top())
-		throw std::logic_error("Non-null theory pointer on substitutions stack in pop");
-	theory_stack.pop();
+	// Pop null parameter list
+	if (subst_stack.top())
+		throw std::logic_error("Non-null parameter list pointer on substitutions stack in pop");
+	subst_stack.pop();
 
-	// Pop all theories until the next null theory
-	while (theory_stack.size() && theory_stack.top())
-		pop_theory();
+	// Pop all parameter lists until the next null list
+	while (subst_stack.size() && subst_stack.top())
+		pop_params();
 
 	stack.pop();
 }
@@ -343,22 +343,22 @@ void Substitution::add(const_Node_ptr node, const_Expr_ptr expr)
 }
 
 /**
- * Pop theory from stack and forget about the substitutions.
+ * Pop parameters from stack and forget about the substitutions.
  *
  */
-void Substitution::pop_theory()
+void Substitution::pop_params()
 {
-	const Theory *theory = theory_stack.top();
-	for (const_Node_ptr node : *theory)
+	const std::vector<Node_ptr> *params = subst_stack.top();
+	for (const_Node_ptr node : *params)
 		substitutions.erase(node);
-	theory_stack.pop();
+	subst_stack.pop();
 }
 
 /**
  * Get our variant of a certain node.
  *
  * @param node Node referred to in the expression.
- * @return Node from our theory stack with the right definition.
+ * @return Node from our parameter stack with the right definition.
  */
 const_Expr_ptr Substitution::have(const_Node_ptr node)
 {
