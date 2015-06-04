@@ -1,15 +1,17 @@
 # Settings
-# For debug builds set DEBUG=0|1|2|3|s, depending on the desired optimization level.
-ifeq ($(DEBUG),)
+# For debug builds set VARIANT = debug.
+VARIANT ?= release
+ifeq ($(VARIANT),release)
     ADDITIONAL_FLAGS = -O2
 else
-    ADDITIONAL_FLAGS = -ggdb3 -DDEBUG -O$(DEBUG)
+    ADDITIONAL_FLAGS = -ggdb3 -DDEBUG
 endif
+
 CFLAGS = -Wall -MMD -std=c++11 $(ADDITIONAL_FLAGS)
-LFLAGS = -Wall $(DEBUG)
+LFLAGS = -Wall
 
 # Files
-BUILDDIR = build
+BUILDDIR = $(VARIANT)
 TARGET = logic
 
 CPPS =	core/base.cpp \
@@ -31,8 +33,9 @@ TEST_TARGETS = $(patsubst %,$(BUILDDIR)/test/%test,$(TESTS))
 
 OBJS = $(patsubst %.cpp,$(BUILDDIR)/%.o,$(CPPS))
 
-DOCS = doc/language.md
-DOXY_CONFIG = doc/doxygen.cfg
+DOC_DIR = doc
+DOCS = $(DOC_DIR)/language.md
+DOXY_CONFIG = $(DOC_DIR)/doxygen.cfg
 
 # Compile everything
 all: $(BUILDDIR)/ $(BUILDDIR)/core/ $(BUILDDIR)/test/ $(BUILDDIR)/tools/ \
@@ -45,7 +48,7 @@ $(TARGET): $(OBJS)
 # Tools
 tools: $(TOOL_TARGETS)
 
-$(TOOL_TARGETS): build/%: $(OBJS) build/tools/%.o
+$(TOOL_TARGETS): $(BUILDDIR)/%: $(OBJS) $(BUILDDIR)/tools/%.o
 	$(CXX) $(LFLAGS) -o $@ $^
 
 # Tests
@@ -71,9 +74,9 @@ doc: $(wildcard core/*.*) $(DOCS)
 	doxygen $(DOXY_CONFIG)
 
 clean:
-	-rm -rf build/
+	-rm -rf debug/ release/
 	-rm $(TARGET)
-	-rm $(DOCS)
+	-rm -rf $(DOC_DIR)/html
 
 .PHONY: all test tools clean doc
 

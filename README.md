@@ -53,7 +53,8 @@ Once you have these installed, you can run `make <target>`, with target
 * `doc` for the Doxygen documentation and
 * `clean` to remove all generated files.
 
-There is no main program yet, hence no installation target.
+There is no main program yet, hence no installation target. By default, release
+versions are built. If you want debug symbols, add the option `VARIANT=debug`.
 
 Usage
 -----
@@ -63,6 +64,7 @@ There isn't much to use yet, except the parser.
 This is a tool to parse a theory in Lisp syntax and verify it. The parser is
 invoked by
 
-	build/parser <theory file> [<rules file>]
+	$VARIANT/parser <theory file> [<rules file>]
 
-If no rules file is given, `basic/rules.lth` is used.
+where `$VARIANT` is either `debug` or `release`. If no rules file is given,
+`basic/rules.lth` is used.
