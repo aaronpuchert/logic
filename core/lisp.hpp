@@ -196,7 +196,7 @@ namespace Core {
 		void visit(const ConnectiveExpr *expression);
 		void visit(const QuantifierExpr *expression);
 		void visit(const LambdaExpr *expression);
-		void write_varlist(const Rule *rule);
+		void writeNodeList(const std::vector<Node_ptr> &nodes);
 		void visit(const Tautology *rule);
 		void visit(const EquivalenceRule *rule);
 		void visit(const DeductionRule *rule);

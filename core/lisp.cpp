@@ -1154,14 +1154,8 @@ void Writer::visit(const LambdaExpr *expression)
 {
 	addParanthesis(OPENING);
 	addToken("lambda");
-	// Declaration list
-	addParanthesis(OPENING);
-	addToken("list");
-	for (const_Node_ptr node : expression->getParams())
-		node->accept(this);
-	addParanthesis(CLOSING);
-	if (const_Expr_ptr expr = expression->getDefinition())
-		expr->accept(this);
+	writeNodeList(expression->getParams());
+	expression->getDefinition()->accept(this);
 	addParanthesis(CLOSING);
 }
 
@@ -1224,11 +1218,11 @@ void Writer::visit(const QuantifierExpr *expression)
 	addParanthesis(CLOSING);
 }
 
-void Writer::write_varlist(const Rule* rule)
+void Writer::writeNodeList(const std::vector<Node_ptr> &nodes)
 {
 	addParanthesis(OPENING);
 	addToken("list");
-	for (const_Node_ptr node : rule->getParams())
+	for (const_Node_ptr node : nodes)
 		node->accept(this);
 	addParanthesis(CLOSING);
 }
@@ -1238,7 +1232,7 @@ void Writer::visit(const Tautology *rule)
 	addParanthesis(OPENING);
 	addToken("tautology");
 	addToken(rule->getName());
-	write_varlist(rule);
+	writeNodeList(rule->getParams());
 	rule->getStatement()->accept(this);
 	addParanthesis(CLOSING);
 }
@@ -1248,7 +1242,7 @@ void Writer::visit(const EquivalenceRule *rule)
 	addParanthesis(OPENING);
 	addToken("equivrule");
 	addToken(rule->getName());
-	write_varlist(rule);
+	writeNodeList(rule->getParams());
 	rule->getStatement1()->accept(this);
 	rule->getStatement2()->accept(this);
 	addParanthesis(CLOSING);
@@ -1259,7 +1253,7 @@ void Writer::visit(const DeductionRule *rule)
 	addParanthesis(OPENING);
 	addToken("deductionrule");
 	addToken(rule->getName());
-	write_varlist(rule);
+	writeNodeList(rule->getParams());
 	addParanthesis(OPENING);
 	addToken("list");
 	for (const_Expr_ptr expr : rule->getPremisses())
